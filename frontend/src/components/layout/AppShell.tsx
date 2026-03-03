@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { NavLink, Outlet } from 'react-router-dom';
 import { useCartStore } from '@/store';
 
 const navItems = [
@@ -62,10 +62,7 @@ const styles: Record<string, React.CSSProperties> = {
 };
 
 export function AppShell() {
-  const navigate = useNavigate();
-  const cartCount = useCartStore(useCallback((s) => s.items.length, []));
-
-  const goToCart = useCallback(() => navigate('/cart'), [navigate]);
+  const cartCount = useCartStore((s) => s.items.length);
 
   return (
     <div style={styles.shell}>
@@ -79,9 +76,7 @@ export function AppShell() {
               end={to === '/'}
               style={({ isActive }) => ({
                 ...styles.navLink,
-                ...(isActive
-                  ? { color: '#f9fafb', background: '#1f2937' }
-                  : {}),
+                ...(isActive ? { color: '#f9fafb', background: '#1f2937' } : {}),
               })}
             >
               <span aria-hidden>{icon}</span>
@@ -93,15 +88,13 @@ export function AppShell() {
 
       <div style={styles.main}>
         <header style={styles.topbar}>
-          <button
-            type="button"
-            onClick={goToCart}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
             aria-label={`Cart — ${cartCount} items`}
           >
             🛒
             {cartCount > 0 && <span style={styles.cartBadge}>{cartCount}</span>}
-          </button>
+          </div>
         </header>
         <main style={styles.content}>
           <Outlet />

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { OrderStatus, ProductListParams, OrderListParams } from '@/types';
+import type { ProductListParams, OrderListParams } from '@/types';
 
 // ── UI Store (Zustand handles local/ephemeral UI state ONLY) ─────────────────
 // Server state lives in React Query — never duplicate it here.
@@ -97,5 +97,3 @@ export const useModalStore = create<ModalStore>((set) => ({
   closeModal: () => set({ activeModal: null, modalData: null }),
 }));
 
-// Suppress unused import warning
-export type { OrderStatus };

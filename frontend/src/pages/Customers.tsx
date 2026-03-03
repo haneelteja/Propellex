@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useFilterStore } from '@/store';
 import { TableSkeleton } from '@/components/ui/Skeleton';
@@ -25,6 +26,7 @@ const styles: Record<string, React.CSSProperties> = {
 
 export default function Customers() {
   const { setOrderFilters } = useFilterStore();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const { data, isLoading, error, refetch } = useCustomers(search ? { search } : undefined);
 
@@ -35,9 +37,9 @@ export default function Customers() {
   const handleViewOrders = useCallback(
     (customerId: string) => {
       setOrderFilters({ customer_id: customerId });
-      window.location.hash = '/orders';
+      navigate('/orders');
     },
-    [setOrderFilters],
+    [setOrderFilters, navigate],
   );
 
   const initials = (c: Customer) =>

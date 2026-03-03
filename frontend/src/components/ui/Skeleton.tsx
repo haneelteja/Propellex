@@ -1,7 +1,10 @@
+import React from 'react';
+
 interface SkeletonProps {
   width?: string;
   height?: string;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 const baseStyle: React.CSSProperties = {
@@ -11,11 +14,11 @@ const baseStyle: React.CSSProperties = {
   borderRadius: 6,
 };
 
-export function Skeleton({ width = '100%', height = '1rem', className }: SkeletonProps) {
+export function Skeleton({ width = '100%', height = '1rem', className, style }: SkeletonProps) {
   return (
     <div
       className={className}
-      style={{ ...baseStyle, width, height }}
+      style={{ ...baseStyle, width, height, ...style }}
       aria-busy="true"
       aria-label="Loading..."
     />
