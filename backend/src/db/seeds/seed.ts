@@ -77,7 +77,6 @@ async function run() {
     console.info('[Seed] Migration applied');
 
     // Agencies
-    const agencyIds: string[] = [];
     const agencyData = [
       { name: 'Hyderabad Prime Realty', contact: 'Rajesh Kumar', email: 'rajesh@hprrealty.com', phone: '9848012345' },
       { name: 'Deccan Properties', contact: 'Priya Sharma', email: 'priya@deccanprop.com', phone: '9849023456' },
@@ -87,7 +86,6 @@ async function run() {
     ];
     for (const a of agencyData) {
       const id = uuidv4();
-      agencyIds.push(id);
       await client.query(
         `INSERT INTO agencies (id, agency_name, contact_name, email, phone, subscription_status)
          VALUES ($1,$2,$3,$4,$5,'active')
@@ -95,6 +93,10 @@ async function run() {
         [id, a.name, a.contact, a.email, a.phone],
       );
     }
+    // Fetch actual IDs from DB (ON CONFLICT DO NOTHING may have skipped inserts)
+    const agencyRows = await client.query<{ id: string }>(`SELECT id FROM agencies`);
+    const agencyIds = agencyRows.rows.map((r) => r.id);
+    if (agencyIds.length === 0) throw new Error('No agencies found after insert');
     console.info('[Seed] 5 agencies created');
 
     // Properties (50)
