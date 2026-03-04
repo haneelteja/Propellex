@@ -1,25 +1,33 @@
 import { Pool } from 'pg';
 
-// Neon.tech and other cloud PG providers require SSL in production
-const isProduction = process.env.NODE_ENV === 'production';
+// Parse DATABASE_URL into explicit fields so URL query params don't interfere with SSL
+function buildPoolConfig() {
+  const raw = process.env.DATABASE_URL ?? '';
+  try {
+    const u = new URL(raw);
+    console.info('[DB] Connecting to', u.hostname, 'db:', u.pathname.slice(1));
+    return {
+      host: u.hostname,
+      port: parseInt(u.port || '5432', 10),
+      database: u.pathname.slice(1),
+      user: decodeURIComponent(u.username),
+      password: decodeURIComponent(u.password),
+      ssl: { rejectUnauthorized: false },
+      max: 5,
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: 30_000,
+    };
+  } catch {
+    console.warn('[DB] Could not parse DATABASE_URL, using raw connection string');
+    return { connectionString: raw, ssl: { rejectUnauthorized: false }, max: 5 };
+  }
+}
 
-// Strip unsupported params; keep sslmode=require (Neon requires SSL)
-const rawUrl = process.env.DATABASE_URL ?? '';
-const cleanUrl = rawUrl
-  .replace(/[?&]channel_binding=[^&]*/g, '')
-  .replace(/[?&]sslmode=[^&]*/g, '')
-  .replace(/\?$/, '');
-const connectionString = cleanUrl + (cleanUrl.includes('?') ? '&' : '?') + 'sslmode=require';
+export const pool = new Pool(buildPoolConfig());
 
-export const pool = new Pool({
-  connectionString,
-  max: 5,
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 30_000,
-});
-
+pool.on('connect', () => console.info('[DB] Client connected'));
 pool.on('error', (err) => {
-  console.error('[DB] Unexpected pool error:', err.message);
+  console.error('[DB] Pool error:', err.message);
 });
 
 export async function query<T = Record<string, unknown>>(
