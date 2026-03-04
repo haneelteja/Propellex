@@ -1,5 +1,4 @@
 import { query, queryOne } from '../../config/db';
-import { redis } from '../../config/redis';
 import { signToken } from '../../middleware/auth';
 import { AppError } from '../../utils/response';
 import { v4 as uuidv4 } from 'uuid';
@@ -28,33 +27,41 @@ interface User {
 
 const OTP_TTL_SECONDS = 600; // 10 minutes
 
-// In-memory fallback when Redis is unavailable (single-instance safe)
-const otpMemory = new Map<string, { code: string; expiresAt: number }>();
+// Ensure otp_codes table exists (runs once on startup path)
+let otpTableReady = false;
+async function ensureOtpTable(): Promise<void> {
+  if (otpTableReady) return;
+  await query(`
+    CREATE TABLE IF NOT EXISTS otp_codes (
+      email TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL
+    )
+  `);
+  otpTableReady = true;
+}
 
 async function setOTP(email: string, code: string): Promise<void> {
-  try {
-    await redis.set(`otp:${email}`, code, 'EX', OTP_TTL_SECONDS);
-  } catch {
-    otpMemory.set(email, { code, expiresAt: Date.now() + OTP_TTL_SECONDS * 1_000 });
-  }
+  await ensureOtpTable();
+  await query(
+    `INSERT INTO otp_codes (email, code, expires_at)
+     VALUES ($1, $2, NOW() + INTERVAL '${OTP_TTL_SECONDS} seconds')
+     ON CONFLICT (email) DO UPDATE SET code = $2, expires_at = NOW() + INTERVAL '${OTP_TTL_SECONDS} seconds'`,
+    [email, code],
+  );
 }
 
 async function getOTP(email: string): Promise<string | null> {
-  try {
-    const val = await redis.get(`otp:${email}`);
-    if (val !== null) return val;
-  } catch { /* fall through to memory */ }
-  const entry = otpMemory.get(email);
-  if (!entry || Date.now() > entry.expiresAt) { otpMemory.delete(email); return null; }
-  return entry.code;
+  await ensureOtpTable();
+  const row = await queryOne<{ code: string }>(
+    `SELECT code FROM otp_codes WHERE email = $1 AND expires_at > NOW()`,
+    [email],
+  );
+  return row?.code ?? null;
 }
 
 async function delOTP(email: string): Promise<void> {
-  try {
-    await redis.del(`otp:${email}`);
-  } catch {
-    otpMemory.delete(email);
-  }
+  await query(`DELETE FROM otp_codes WHERE email = $1`, [email]);
 }
 
 function generateOTP(): string {
