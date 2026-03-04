@@ -1,6 +1,26 @@
 import { query, queryOne } from '../../config/db';
 import { AppError } from '../../utils/response';
 import { serializeMoney } from '../../utils/currency';
+import { v4 as uuidv4 } from 'uuid';
+
+export interface PropertyInput {
+  title: string;
+  description?: string;
+  property_type: 'residential' | 'commercial' | 'plot';
+  status: 'ready_to_move' | 'under_construction';
+  price_cr: number;           // crores — converted to paise
+  area_sqft: number;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  locality: string;
+  pincode?: string;
+  lat?: number;
+  lng?: number;
+  amenities?: string[];
+  builder_name?: string;
+  rera_number?: string;
+  photos?: string[];
+}
 
 export interface PropertyFilter {
   search?: string;
@@ -23,6 +43,8 @@ const SORT_MAP: Record<string, string> = {
   price_asc: 'p.price ASC',
   price_desc: 'p.price DESC',
   newest: 'p.published_at DESC NULLS LAST, p.created_at DESC',
+  published_desc: 'p.published_at DESC NULLS LAST, p.created_at DESC',
+  area_desc: 'p.area_sqft DESC',
   relevance: 'p.created_at DESC',
 };
 
@@ -121,7 +143,7 @@ export async function searchProperties(filters: PropertyFilter) {
       page,
       limit: pageLimit,
       total,
-      pages: Math.ceil(total / pageLimit),
+      total_pages: Math.ceil(total / pageLimit),
     },
   };
 }
@@ -195,4 +217,102 @@ export async function getInvestmentAnalysis(id: string) {
       price_stability: 65,
     },
   };
+}
+
+export async function createProperty(agencyId: string, input: PropertyInput) {
+  const pricePaise = Math.round(input.price_cr * 1_00_00_000 * 100); // cr → rupees → paise
+  const pricePerSqft = Math.round(pricePaise / input.area_sqft);
+  const id = uuidv4();
+  const row = await queryOne(
+    `INSERT INTO properties (
+       id, title, description, property_type, status,
+       price, price_per_sqft, area_sqft, bedrooms, bathrooms,
+       locality, city, pincode, lat, lng,
+       amenities, builder_name, rera_number, rera_status,
+       photos, agency_id, is_active, published_at
+     ) VALUES (
+       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'Hyderabad',$12,$13,$14,$15,$16,$17,'pending',$18,$19,true,NOW()
+     ) RETURNING *`,
+    [
+      id,
+      input.title,
+      input.description ?? '',
+      input.property_type,
+      input.status,
+      pricePaise,
+      pricePerSqft,
+      input.area_sqft,
+      input.bedrooms ?? null,
+      input.bathrooms ?? null,
+      input.locality,
+      input.pincode ?? null,
+      input.lat ?? null,
+      input.lng ?? null,
+      JSON.stringify(input.amenities ?? []),
+      input.builder_name ?? null,
+      input.rera_number ?? null,
+      JSON.stringify(input.photos ?? []),
+      agencyId,
+    ],
+  );
+  if (!row) throw new AppError('Failed to create property', 500);
+  return serializeMoney(row as Record<string, unknown>);
+}
+
+export async function updateProperty(
+  propertyId: string,
+  agencyId: string,
+  input: Partial<PropertyInput>,
+) {
+  const existing = await queryOne<{ agency_id: string }>(
+    'SELECT agency_id FROM properties WHERE id = $1 AND is_active = true',
+    [propertyId],
+  );
+  if (!existing) throw new AppError('Property not found', 404);
+  if (existing.agency_id !== agencyId) throw new AppError('Not authorized to edit this property', 403);
+
+  const pricePaise = input.price_cr != null ? Math.round(input.price_cr * 1_00_00_000 * 100) : null;
+  const row = await queryOne(
+    `UPDATE properties SET
+       title = COALESCE($1, title),
+       description = COALESCE($2, description),
+       property_type = COALESCE($3, property_type),
+       status = COALESCE($4, status),
+       price = COALESCE($5, price),
+       area_sqft = COALESCE($6, area_sqft),
+       bedrooms = COALESCE($7, bedrooms),
+       bathrooms = COALESCE($8, bathrooms),
+       locality = COALESCE($9, locality),
+       amenities = COALESCE($10::jsonb, amenities),
+       builder_name = COALESCE($11, builder_name),
+       photos = COALESCE($12::jsonb, photos)
+     WHERE id = $13
+     RETURNING *`,
+    [
+      input.title ?? null,
+      input.description ?? null,
+      input.property_type ?? null,
+      input.status ?? null,
+      pricePaise,
+      input.area_sqft ?? null,
+      input.bedrooms ?? null,
+      input.bathrooms ?? null,
+      input.locality ?? null,
+      input.amenities ? JSON.stringify(input.amenities) : null,
+      input.builder_name ?? null,
+      input.photos ? JSON.stringify(input.photos) : null,
+      propertyId,
+    ],
+  );
+  return serializeMoney(row as Record<string, unknown>);
+}
+
+export async function deleteProperty(propertyId: string, agencyId: string) {
+  const existing = await queryOne<{ agency_id: string }>(
+    'SELECT agency_id FROM properties WHERE id = $1',
+    [propertyId],
+  );
+  if (!existing) throw new AppError('Property not found', 404);
+  if (existing.agency_id !== agencyId) throw new AppError('Not authorized to delete this property', 403);
+  await query('UPDATE properties SET is_active = false WHERE id = $1', [propertyId]);
 }

@@ -1,7 +1,7 @@
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
 export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
-export type UserType = 'resident_hni' | 'nri' | 'institutional' | 'home_buyer';
+export type UserType = 'resident_hni' | 'nri' | 'institutional' | 'home_buyer' | 'agency_manager';
 export type RiskAppetite = 'low' | 'medium' | 'high';
 
 export interface UserPreferences {
@@ -77,6 +77,25 @@ export interface PropertyFilters {
   price_max: number | '';
   rera_status: ReraStatus | '';
   sort: 'price_asc' | 'price_desc' | 'area_desc' | 'published_desc';
+}
+
+// ── Agency ────────────────────────────────────────────────────────────────────
+
+export interface AgencyPropertyForm {
+  title: string;
+  description?: string;
+  property_type: PropertyType;
+  status: PropertyStatus;
+  price_cr: number;
+  area_sqft: number;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  locality: string;
+  pincode?: string;
+  amenities?: string[];
+  builder_name?: string;
+  rera_number?: string;
+  photos?: string[];
 }
 
 export interface PropertySearchResult {

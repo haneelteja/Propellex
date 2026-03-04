@@ -31,15 +31,23 @@ export function Navbar() {
           {/* Nav links */}
           {user && (
             <div className="hidden md:flex items-center gap-6 text-sm">
-              <Link to="/" className={isActive('/')}>
-                Home
-              </Link>
-              <Link to="/search" className={isActive('/search')}>
-                Search
-              </Link>
-              <Link to="/shortlist" className={isActive('/shortlist')}>
-                Shortlist
-              </Link>
+              {user.user_type === 'agency_manager' ? (
+                <Link to="/agency" className={isActive('/agency')}>
+                  My Listings
+                </Link>
+              ) : (
+                <>
+                  <Link to="/" className={isActive('/')}>
+                    Home
+                  </Link>
+                  <Link to="/search" className={isActive('/search')}>
+                    Search
+                  </Link>
+                  <Link to="/shortlist" className={isActive('/shortlist')}>
+                    Shortlist
+                  </Link>
+                </>
+              )}
             </div>
           )}
 

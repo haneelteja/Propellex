@@ -8,7 +8,7 @@ export interface ApiResponse<T = unknown> {
     page: number;
     limit: number;
     total: number;
-    pages: number;
+    total_pages: number;
   };
 }
 

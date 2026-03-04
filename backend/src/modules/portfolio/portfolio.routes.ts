@@ -19,9 +19,9 @@ portfolioRouter.get('/', asyncHandler(async (req, res) => {
 }));
 
 portfolioRouter.post('/', freemiumGate('save'), asyncHandler(async (req, res) => {
-  const { property_id } = req.body as { property_id?: string };
+  const { property_id, intent } = req.body as { property_id?: string; intent?: 'buy' | 'invest' | 'watch' };
   if (!property_id) { res.status(400).json({ success: false, error: 'property_id required' }); return; }
-  const item = await addToPortfolio(req.user!.userId, property_id, req.user!.subscriptionTier);
+  const item = await addToPortfolio(req.user!.userId, property_id, req.user!.subscriptionTier, intent ?? 'watch');
   ok(res, item, 201);
 }));
 

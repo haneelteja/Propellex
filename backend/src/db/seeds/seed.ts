@@ -68,13 +68,12 @@ function pickN<T>(arr: T[], n: number): T[] {
 async function run() {
   const client = await pool.connect();
   try {
-    // Run migration
-    const migrationSQL = fs.readFileSync(
-      path.join(__dirname, '../migrations/001_initial.sql'),
-      'utf8',
-    );
-    await client.query(migrationSQL);
-    console.info('[Seed] Migration applied');
+    // Run migrations
+    for (const file of ['001_initial.sql', '002_agency_intent.sql']) {
+      const sql = fs.readFileSync(path.join(__dirname, '../migrations', file), 'utf8');
+      await client.query(sql);
+      console.info(`[Seed] Migration applied: ${file}`);
+    }
 
     // Agencies
     const agencyData = [

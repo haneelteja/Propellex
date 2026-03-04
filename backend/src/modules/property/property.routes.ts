@@ -7,11 +7,17 @@ import {
   handleGetOne,
   handleComparables,
   handleAnalysis,
+  handleCreate,
+  handleUpdate,
+  handleDelete,
 } from './property.controller';
 
 export const propertyRouter = Router();
 
 propertyRouter.get('/', optionalAuth, freemiumGate('search'), asyncHandler(handleSearch));
+propertyRouter.post('/', requireAuth, asyncHandler(handleCreate));
 propertyRouter.get('/:id', optionalAuth, asyncHandler(handleGetOne));
 propertyRouter.get('/:id/comparables', optionalAuth, asyncHandler(handleComparables));
 propertyRouter.get('/:id/analysis', requireAuth, asyncHandler(handleAnalysis));
+propertyRouter.put('/:id', requireAuth, asyncHandler(handleUpdate));
+propertyRouter.delete('/:id', requireAuth, asyncHandler(handleDelete));

@@ -7,7 +7,7 @@ const FREE_SAVE_LIMIT = 3;
 
 export async function getPortfolio(userId: string) {
   const rows = await query(
-    `SELECT po.id, po.property_id, po.added_at, po.notes, po.status, po.custom_roi_inputs,
+    `SELECT po.id, po.property_id, po.intent, po.added_at, po.notes, po.status, po.custom_roi_inputs,
             p.title, p.property_type, p.price, p.area_sqft, p.bedrooms,
             p.locality, p.rera_status, p.photos, p.risk_score, p.roi_estimate_3yr
      FROM portfolio po
@@ -23,6 +23,7 @@ export async function addToPortfolio(
   userId: string,
   propertyId: string,
   subscriptionTier: string,
+  intent: 'buy' | 'invest' | 'watch' = 'watch',
 ) {
   if (subscriptionTier === 'free') {
     const count = await queryOne<{ count: string }>(
@@ -44,10 +45,10 @@ export async function addToPortfolio(
   if (existing) throw new AppError('Property already in shortlist', 409);
 
   const row = await queryOne(
-    `INSERT INTO portfolio (id, user_id, property_id)
-     VALUES ($1, $2, $3)
+    `INSERT INTO portfolio (id, user_id, property_id, intent)
+     VALUES ($1, $2, $3, $4)
      RETURNING *`,
-    [uuidv4(), userId, propertyId],
+    [uuidv4(), userId, propertyId, intent],
   );
   return row;
 }

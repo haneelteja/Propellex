@@ -10,6 +10,7 @@ import type {
   MarketNews,
   User,
   UserPreferences,
+  AgencyPropertyForm,
 } from '@/types';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
@@ -106,6 +107,22 @@ export const properties = {
 
   getAnalysis: (id: string) =>
     request<InvestmentAnalysis>(`/api/properties/${id}/analysis`),
+
+  // Agency manager: create / update / delete
+  create: (data: AgencyPropertyForm) =>
+    request<Property>('/api/properties', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: Partial<AgencyPropertyForm>) =>
+    request<Property>(`/api/properties/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  remove: (id: string) =>
+    request<{ message: string }>(`/api/properties/${id}`, { method: 'DELETE' }),
 };
 
 // ── Recommendations ───────────────────────────────────────────────────────────

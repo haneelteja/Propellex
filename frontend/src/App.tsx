@@ -15,6 +15,7 @@ const Search = lazy(() => import('@/pages/Search'));
 const PropertyDetail = lazy(() => import('@/pages/PropertyDetail'));
 const Shortlist = lazy(() => import('@/pages/Shortlist'));
 const Profile = lazy(() => import('@/pages/Profile'));
+const AgencyDashboard = lazy(() => import('@/pages/AgencyDashboard'));
 
 function PageLoader() {
   return (
@@ -80,6 +81,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/agency"
+              element={
+                <ProtectedRoute>
+                  <AgencyDashboard />
                 </ProtectedRoute>
               }
             />

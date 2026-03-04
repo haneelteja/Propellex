@@ -20,7 +20,14 @@ export function freemiumGate(action: 'search' | 'save' | 'chat') {
     if (req.user.subscriptionTier === 'premium') { next(); return; }
 
     const limit = FREE_LIMITS[action];
-    const current = await getDailyUsage(req.user.userId, action);
+
+    // If Redis is unavailable, fail-open (allow the action)
+    let current = 0;
+    try {
+      current = await getDailyUsage(req.user.userId, action);
+    } catch {
+      next(); return;
+    }
 
     if (current >= limit) {
       fail(
@@ -31,7 +38,7 @@ export function freemiumGate(action: 'search' | 'save' | 'chat') {
       return;
     }
 
-    await incrementDailyUsage(req.user.userId, action);
+    try { await incrementDailyUsage(req.user.userId, action); } catch { /* Redis down — ignore */ }
     next();
   };
 }
