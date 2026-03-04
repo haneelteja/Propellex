@@ -11,15 +11,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
     "sourceMap": true,
     "paths": {
       "@config/*": ["./src/config/*"],
       "@middleware/*": ["./src/middleware/*"],
-      "@models/*": ["./src/models/*"],
-      "@routes/*": ["./src/routes/*"],
-      "@services/*": ["./src/services/*"]
+      "@modules/*": ["./src/modules/*"],
+      "@utils/*": ["./src/utils/*"]
     }
   },
   "include": ["src/**/*"],

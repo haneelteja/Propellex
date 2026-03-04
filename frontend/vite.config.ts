@@ -5,7 +5,9 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: { '@': path.resolve(__dirname, './src') },
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
   },
   server: {
     port: 5173,
@@ -19,14 +21,13 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        // Manual chunk splitting for better caching
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'query-vendor': ['@tanstack/react-query'],
           'state-vendor': ['zustand'],
+          'map-vendor': ['leaflet', 'react-leaflet'],
         },
       },
     },
-    chunkSizeWarningLimit: 500,
   },
 });

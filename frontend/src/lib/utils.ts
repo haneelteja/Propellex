@@ -1,40 +1,60 @@
-export function formatCurrency(amount: number, currency = 'USD'): string {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+/**
+ * Format a rupee amount using Indian numbering system (en-IN).
+ * Input: number in rupees.
+ * Output: e.g. "₹1,20,00,000" or "₹85,00,000"
+ */
+export function formatRupees(rupees: number): string {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(rupees);
 }
 
-export function formatDate(dateStr: string): string {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date(dateStr));
-}
-
-export function formatRelativeTime(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-}
-
-export function buildQueryString(params: Record<string, unknown>): string {
-  const qs = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== null && value !== '') {
-      qs.set(key, String(value));
-    }
+/**
+ * Format rupees in crore shorthand for display.
+ * e.g. 15000000 → "₹1.5 Cr", 8500000 → "₹85 L"
+ */
+export function formatRupeesCr(rupees: number): string {
+  if (rupees >= 1_00_00_000) {
+    return `₹${(rupees / 1_00_00_000).toFixed(2)} Cr`;
   }
-  const str = qs.toString();
-  return str ? `?${str}` : '';
+  if (rupees >= 1_00_000) {
+    return `₹${(rupees / 1_00_000).toFixed(0)} L`;
+  }
+  return formatRupees(rupees);
 }
 
-export const ORDER_STATUS_COLORS: Record<string, string> = {
-  pending: '#f59e0b',
-  confirmed: '#3b82f6',
-  shipped: '#8b5cf6',
-  delivered: '#10b981',
-  cancelled: '#ef4444',
-};
+/**
+ * Format a date string to "DD MMM YYYY" format.
+ */
+export function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+/**
+ * Clamp a value between min and max.
+ */
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+/**
+ * Convert a risk score (0–100) to a label.
+ */
+export function riskLabel(score: number): 'Low' | 'Medium' | 'High' {
+  if (score < 40) return 'Low';
+  if (score < 70) return 'Medium';
+  return 'High';
+}
+
+/**
+ * Build a CSS class string from multiple parts (simple alternative to clsx).
+ */
+export function cn(...classes: (string | undefined | null | false)[]): string {
+  return classes.filter(Boolean).join(' ');
+}

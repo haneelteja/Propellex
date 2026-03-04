@@ -1,96 +1,149 @@
 import type {
-  Order,
-  OrderWithItems,
-  Product,
-  Customer,
+  ApiResponse,
   PaginatedResponse,
-  OrderListParams,
-  ProductListParams,
-  CustomerListParams,
+  Property,
+  PropertyFilters,
+  ScoredProperty,
+  PortfolioItem,
+  PortfolioIntent,
+  InvestmentAnalysis,
+  MarketNews,
+  User,
+  UserPreferences,
 } from '@/types';
-import { buildQueryString } from '@/lib/utils';
 
-const BASE_URL = '/api';
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 class ApiError extends Error {
   constructor(
-    public readonly status: number,
+    public status: number,
     message: string,
-    public readonly code?: string,
   ) {
     super(message);
     this.name = 'ApiError';
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
-    ...init,
-  });
-
-  if (!res.ok) {
-    let message = res.statusText;
-    let code: string | undefined;
-    try {
-      const body = await res.json() as { error?: { message: string; code: string } };
-      message = body.error?.message ?? message;
-      code = body.error?.code;
-    } catch { /* non-JSON error body */ }
-    throw new ApiError(res.status, message, code);
+function getToken(): string | null {
+  try {
+    const raw = localStorage.getItem('propellex_auth');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { state?: { token?: string } };
+    return parsed?.state?.token ?? null;
+  } catch {
+    return null;
   }
-
-  if (res.status === 204) return undefined as T;
-  return res.json() as Promise<T>;
 }
 
-// ── Orders ────────────────────────────────────────────────────────────────────
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
 
-export const ordersApi = {
-  list: (params?: OrderListParams) =>
-    request<PaginatedResponse<Order>>(`/orders${buildQueryString(params ?? {})}`),
+  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  const json = (await res.json()) as ApiResponse<T>;
 
-  get: (id: string) =>
-    request<OrderWithItems>(`/orders/${id}`),
+  if (!res.ok || !json.success) {
+    throw new ApiError(res.status, json.error ?? 'Request failed');
+  }
+  return json.data;
+}
 
-  create: (body: { customer_id: string; items: { product_id: string; quantity: number }[]; shipping_address: string; notes?: string }) =>
-    request<{ id: string; total_amount: number; status: string }>('/orders', {
+// ── Auth ─────────────────────────────────────────────────────────────────────
+
+export const auth = {
+  sendOtp: (email: string) =>
+    request<{ message: string }>('/api/auth/send-otp', {
       method: 'POST',
-      body: JSON.stringify(body),
+      body: JSON.stringify({ email }),
     }),
 
-  update: (id: string, body: { status?: string; shipping_address?: string; notes?: string }) =>
-    request<Order>(`/orders/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  verifyOtp: (email: string, code: string) =>
+    request<{ token: string; user: User }>('/api/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email, code }),
+    }),
+
+  getProfile: () => request<User>('/api/auth/profile'),
+
+  updateProfile: (data: Partial<Pick<User, 'name' | 'user_type'>> & { preferences?: UserPreferences }) =>
+    request<User>('/api/auth/profile', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 };
 
-// ── Products ──────────────────────────────────────────────────────────────────
+// ── Properties ────────────────────────────────────────────────────────────────
 
-export const productsApi = {
-  list: (params?: ProductListParams) =>
-    request<PaginatedResponse<Product>>(`/products${buildQueryString(params ?? {})}`),
+function buildQuery(filters: Partial<PropertyFilters> & { page?: number; limit?: number }): string {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([k, v]) => {
+    if (v !== '' && v !== undefined && v !== null) {
+      params.set(k, String(v));
+    }
+  });
+  return params.toString() ? `?${params.toString()}` : '';
+}
 
-  get: (id: string) =>
-    request<Product>(`/products/${id}`),
+export const properties = {
+  search: (filters: Partial<PropertyFilters> & { page?: number; limit?: number }) =>
+    fetch(`${BASE_URL}/api/properties${buildQuery(filters)}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+      },
+    })
+      .then((r) => r.json())
+      .then((j: PaginatedResponse<Property>) => j),
 
-  create: (body: Omit<Product, 'id' | 'is_active' | 'created_at' | 'updated_at'>) =>
-    request<{ id: string }>('/products', { method: 'POST', body: JSON.stringify(body) }),
+  getById: (id: string) => request<Property>(`/api/properties/${id}`),
 
-  update: (id: string, body: Partial<Pick<Product, 'name' | 'description' | 'price' | 'stock_quantity' | 'category' | 'is_active'>>) =>
-    request<Product>(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  getAnalysis: (id: string) =>
+    request<InvestmentAnalysis>(`/api/properties/${id}/analysis`),
 };
 
-// ── Customers ─────────────────────────────────────────────────────────────────
+// ── Recommendations ───────────────────────────────────────────────────────────
 
-export const customersApi = {
-  list: (params?: CustomerListParams) =>
-    request<PaginatedResponse<Customer>>(`/customers${buildQueryString(params ?? {})}`),
-
-  get: (id: string) =>
-    request<Customer & { recent_orders: unknown[] }>(`/customers/${id}`),
-
-  create: (body: Pick<Customer, 'first_name' | 'last_name' | 'email'> & { phone?: string; shipping_address?: string }) =>
-    request<{ id: string }>('/customers', { method: 'POST', body: JSON.stringify(body) }),
-
-  update: (id: string, body: Partial<Pick<Customer, 'first_name' | 'last_name' | 'phone' | 'shipping_address'>>) =>
-    request<Customer>(`/customers/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+export const recommendations = {
+  getScored: (preferences: UserPreferences, limit = 20) =>
+    request<ScoredProperty[]>('/api/recommendations', {
+      method: 'POST',
+      body: JSON.stringify({ preferences, limit }),
+    }),
 };
+
+// ── Portfolio ─────────────────────────────────────────────────────────────────
+
+export const portfolio = {
+  list: () => request<PortfolioItem[]>('/api/portfolio'),
+
+  add: (property_id: string, intent: PortfolioIntent, notes = '') =>
+    request<PortfolioItem>('/api/portfolio', {
+      method: 'POST',
+      body: JSON.stringify({ property_id, intent, notes }),
+    }),
+
+  update: (id: string, data: { intent?: PortfolioIntent; notes?: string }) =>
+    request<PortfolioItem>(`/api/portfolio/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  remove: (id: string) =>
+    request<{ message: string }>(`/api/portfolio/${id}`, { method: 'DELETE' }),
+};
+
+// ── Market Intelligence ───────────────────────────────────────────────────────
+
+export const market = {
+  getNews: (locality?: string, limit = 10) =>
+    request<MarketNews[]>(`/api/properties/market/news${buildQuery({ locality, limit } as Record<string, string | number | undefined>)}`),
+};
+
+export { ApiError };

@@ -1,0 +1,20 @@
+import type { Request, Response, NextFunction } from 'express';
+import { AppError } from '../utils/response';
+
+export function errorHandler(
+  err: Error,
+  req: Request,
+  res: Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _next: NextFunction,
+): void {
+  const status = err instanceof AppError ? err.statusCode : 500;
+  const message =
+    status === 500 && process.env.NODE_ENV === 'production'
+      ? 'Internal server error'
+      : err.message;
+
+  console.error(`[Error] ${req.method} ${req.url} → ${status}: ${err.message}`);
+
+  res.status(status).json({ success: false, error: message });
+}

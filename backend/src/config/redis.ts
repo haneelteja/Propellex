@@ -1,31 +1,13 @@
 import Redis from 'ioredis';
 
-const redisConfig = {
-  host: process.env.REDIS_HOST ?? 'localhost',
-  port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
-  password: process.env.REDIS_PASSWORD || undefined,
-  retryStrategy: (times: number) => {
-    if (times > 10) return null; // stop retrying after 10 attempts
-    return Math.min(times * 100, 3_000); // exponential backoff, max 3s
-  },
-  enableOfflineQueue: true,
+export const redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
+  retryStrategy: (times) => Math.min(times * 100, 3_000),
   maxRetriesPerRequest: 3,
   lazyConnect: true,
-};
-
-export const redis = new Redis(redisConfig);
-
-redis.on('connect', () => {
-  console.info('[Redis] Connected');
 });
 
-redis.on('error', (err: Error) => {
-  console.error('[Redis] Error:', err.message);
-});
-
-redis.on('reconnecting', (delay: number) => {
-  console.warn(`[Redis] Reconnecting in ${delay}ms`);
-});
+redis.on('connect', () => console.info('[Redis] Connected'));
+redis.on('error', (err: Error) => console.error('[Redis] Error:', err.message));
 
 export async function connectRedis(): Promise<void> {
   await redis.connect();
@@ -33,5 +15,21 @@ export async function connectRedis(): Promise<void> {
 
 export async function closeRedis(): Promise<void> {
   await redis.quit();
-  console.info('[Redis] Connection closed');
+}
+
+/** Increment a daily usage counter. Returns the new count. */
+export async function incrementDailyUsage(
+  userId: string,
+  action: string,
+): Promise<number> {
+  const key = `usage:${userId}:${action}:${new Date().toISOString().slice(0, 10)}`;
+  const count = await redis.incr(key);
+  if (count === 1) await redis.expire(key, 86_400); // expire at end of day
+  return count;
+}
+
+export async function getDailyUsage(userId: string, action: string): Promise<number> {
+  const key = `usage:${userId}:${action}:${new Date().toISOString().slice(0, 10)}`;
+  const val = await redis.get(key);
+  return val ? parseInt(val, 10) : 0;
 }

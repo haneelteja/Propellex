@@ -1,90 +1,159 @@
-// ── Domain models (mirrored from backend) ──────────────────────────────────────
+// ── Auth ─────────────────────────────────────────────────────────────────────
 
-export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
+export type UserType = 'resident_hni' | 'nri' | 'institutional' | 'home_buyer';
+export type RiskAppetite = 'low' | 'medium' | 'high';
 
-export interface OrderItem {
-  id: string;
-  order_id: string;
-  product_id: string;
-  product_name: string;
-  quantity: number;
-  unit_price: number;
-  line_total: number;
+export interface UserPreferences {
+  budget_min: number;       // rupees
+  budget_max: number;       // rupees
+  localities: string[];
+  property_types: PropertyType[];
+  roi_target: number;       // percent
+  risk_appetite: RiskAppetite;
 }
 
-export interface Order {
+export interface User {
   id: string;
-  customer_id: string;
-  status: OrderStatus;
-  total_amount: number;
-  shipping_address: string;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface OrderWithItems extends Order {
-  items: OrderItem[];
-  customer_name?: string;
-  customer_email?: string;
-}
-
-export interface Product {
-  id: string;
-  name: string;
-  sku: string;
-  description?: string;
-  price: number;
-  stock_quantity: number;
-  category: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Customer {
-  id: string;
-  first_name: string;
-  last_name: string;
   email: string;
-  phone?: string;
-  shipping_address?: string;
-  total_orders: number;
-  total_spent: number;
+  name: string;
+  user_type: UserType;
+  subscription_tier: SubscriptionTier;
+  preferences: UserPreferences;
   created_at: string;
-  updated_at: string;
 }
 
-// ── API response shapes ────────────────────────────────────────────────────────
+export interface AuthState {
+  token: string | null;
+  user: User | null;
+}
+
+// ── Property ─────────────────────────────────────────────────────────────────
+
+export type PropertyType = 'residential' | 'commercial' | 'plot';
+export type PropertyStatus = 'ready_to_move' | 'under_construction';
+export type ReraStatus = 'verified' | 'pending' | 'flagged';
+
+export interface Property {
+  id: string;
+  rera_number: string;
+  rera_status: ReraStatus;
+  title: string;
+  description: string;
+  property_type: PropertyType;
+  status: PropertyStatus;
+  price: number;            // rupees (converted from paise by backend)
+  price_per_sqft: number;   // rupees
+  area_sqft: number;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  locality: string;
+  city: string;
+  lat: number;
+  lng: number;
+  pincode: string;
+  amenities: string[];
+  builder_name: string;
+  photos: string[];
+  risk_score: number;       // 0–100
+  roi_estimate_3yr: string; // e.g. "12.5"
+  is_active: boolean;
+  published_at: string;
+  agency_id: string;
+}
+
+export interface ScoredProperty extends Property {
+  match_score: number;       // 0–100
+  why_recommended: string;   // top-scoring factor label
+}
+
+export interface PropertyFilters {
+  query: string;
+  property_type: PropertyType | '';
+  status: PropertyStatus | '';
+  locality: string;
+  bedrooms: number | '';
+  price_min: number | '';
+  price_max: number | '';
+  rera_status: ReraStatus | '';
+  sort: 'price_asc' | 'price_desc' | 'area_desc' | 'published_desc';
+}
+
+export interface PropertySearchResult {
+  data: Property[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    total_pages: number;
+  };
+}
+
+// ── Portfolio ─────────────────────────────────────────────────────────────────
+
+export type PortfolioIntent = 'buy' | 'invest' | 'watch';
+
+export interface PortfolioItem {
+  id: string;
+  user_id: string;
+  property_id: string;
+  intent: PortfolioIntent;
+  notes: string;
+  added_at: string;
+  property: Property;
+}
+
+// ── Chat ─────────────────────────────────────────────────────────────────────
+
+export type MessageRole = 'user' | 'assistant';
+
+export interface ChatMessage {
+  role: MessageRole;
+  content: string;
+  timestamp: string;
+}
+
+// ── Market Intelligence ───────────────────────────────────────────────────────
+
+export type NewsCategory = 'price' | 'infra' | 'policy' | 'news';
+export type NewsSentiment = 'positive' | 'neutral' | 'negative';
+
+export interface MarketNews {
+  id: string;
+  title: string;
+  summary: string;
+  source_name: string;
+  category: NewsCategory;
+  locality_tags: string[];
+  sentiment: NewsSentiment;
+  published_at: string;
+}
+
+// ── API ───────────────────────────────────────────────────────────────────────
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
+}
 
 export interface PaginatedResponse<T> {
+  success: boolean;
   data: T[];
-  count: number;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    total_pages: number;
+  };
 }
 
-export interface ApiError {
-  error: { message: string; code: string };
-}
-
-// ── Query param types ──────────────────────────────────────────────────────────
-
-export interface OrderListParams {
-  limit?: number;
-  after_id?: string;
-  customer_id?: string;
-  status?: OrderStatus;
-}
-
-export interface ProductListParams {
-  limit?: number;
-  after_id?: string;
-  category?: string;
-  search?: string;
-  in_stock?: boolean;
-}
-
-export interface CustomerListParams {
-  limit?: number;
-  after_id?: string;
-  search?: string;
+export interface InvestmentAnalysis {
+  price: number;
+  price_per_sqft: number;
+  roi_estimate_3yr: string;
+  risk_score: number;
+  risk_label: 'Low' | 'Medium' | 'High';
+  price_trend: Array<{ month: string; avg_price_per_sqft: number }>;
+  comparables: Property[];
 }

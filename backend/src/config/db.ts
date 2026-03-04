@@ -1,56 +1,28 @@
-import sql from 'mssql';
-import { logger } from '../middleware/requestLogger';
+import { Pool } from 'pg';
 
-const poolConfig: sql.config = {
-  server: process.env.DB_HOST ?? 'localhost',
-  port: parseInt(process.env.DB_PORT ?? '1433', 10),
-  database: process.env.DB_NAME ?? 'propellex',
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  pool: {
-    max: 20,
-    min: 5,
-    idleTimeoutMillis: 30_000,
-  },
-  options: {
-    encrypt: true,
-    trustServerCertificate: process.env.NODE_ENV !== 'production',
-    enableArithAbort: true,
-    requestTimeout: 15_000,
-    connectTimeout: 15_000,
-  },
-};
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 20,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 10_000,
+});
 
-let poolPromise: Promise<sql.ConnectionPool> | null = null;
+pool.on('error', (err) => {
+  console.error('[DB] Unexpected pool error:', err.message);
+});
 
-export function getPool(): Promise<sql.ConnectionPool> {
-  if (!poolPromise) {
-    poolPromise = new sql.ConnectionPool(poolConfig)
-      .connect()
-      .then((pool) => {
-        logger.info('SQL Server connection pool established');
-        pool.on('error', (err: Error) => {
-          logger.error({ err }, 'SQL Server pool error');
-          poolPromise = null; // allow reconnect on next call
-        });
-        return pool;
-      })
-      .catch((err: Error) => {
-        logger.error({ err }, 'Failed to connect to SQL Server');
-        poolPromise = null;
-        throw err;
-      });
-  }
-  return poolPromise;
+export async function query<T = Record<string, unknown>>(
+  text: string,
+  params?: unknown[],
+): Promise<T[]> {
+  const result = await pool.query(text, params);
+  return result.rows as T[];
 }
 
-export async function closePool(): Promise<void> {
-  if (poolPromise) {
-    const pool = await poolPromise;
-    await pool.close();
-    poolPromise = null;
-    logger.info('SQL Server pool closed');
-  }
+export async function queryOne<T = Record<string, unknown>>(
+  text: string,
+  params?: unknown[],
+): Promise<T | null> {
+  const result = await pool.query(text, params);
+  return (result.rows[0] as T) ?? null;
 }
-
-export { sql };

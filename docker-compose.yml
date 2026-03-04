@@ -1,85 +1,74 @@
 version: '3.9'
 
 services:
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runtime
-    container_name: propellex-api
-    ports:
-      - '3001:3001'
+  postgres:
+    image: postgres:16-alpine
+    container_name: propellex-postgres
     environment:
-      NODE_ENV: production
-      PORT: 3001
-      DB_HOST: sqlserver
-      DB_PORT: 1433
-      DB_NAME: propellex
-      DB_USER: sa
-      DB_PASS: YourStrong@Passw0rd
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-    depends_on:
-      redis:
-        condition: service_healthy
-      sqlserver:
-        condition: service_healthy
-    restart: unless-stopped
+      POSTGRES_DB: propellex
+      POSTGRES_USER: propellex
+      POSTGRES_PASSWORD: propellex
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD', 'wget', '-qO-', 'http://localhost:3001/health']
-      interval: 30s
+      test: ['CMD-SHELL', 'pg_isready -U propellex']
+      interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
     container_name: propellex-redis
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
     ports:
       - '6379:6379'
-    command: >
-      redis-server
-      --maxmemory 256mb
-      --maxmemory-policy allkeys-lru
-      --save 60 1
     volumes:
       - redis_data:/data
-    restart: unless-stopped
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 5
-
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: propellex-sqlserver
-    ports:
-      - '1433:1433'
-    environment:
-      ACCEPT_EULA: Y
-      SA_PASSWORD: YourStrong@Passw0rd
-      MSSQL_PID: Developer
-    volumes:
-      - sqlserver_data:/var/opt/mssql
     restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          'CMD',
-          '/opt/mssql-tools/bin/sqlcmd',
-          '-S',
-          'localhost',
-          '-U',
-          'sa',
-          '-P',
-          'YourStrong@Passw0rd',
-          '-Q',
-          'SELECT 1',
-        ]
-      interval: 15s
-      timeout: 10s
-      retries: 10
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: propellex-ai
+    ports:
+      - '8001:8001'
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      DATABASE_URL: postgresql://propellex:propellex@postgres:5432/propellex
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: propellex-backend
+    ports:
+      - '3001:3001'
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://propellex:propellex@postgres:5432/propellex
+      REDIS_URL: redis://redis:6379
+      AI_SERVICE_URL: http://ai-service:8001
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
+  postgres_data:
   redis_data:
-  sqlserver_data:
