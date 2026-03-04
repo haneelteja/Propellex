@@ -4,9 +4,15 @@ from typing import List, Dict, Any
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://propellex:propellex@localhost:5432/propellex")
 
+# Neon.tech requires SSL in production
+_ssl = "require" if os.getenv("NODE_ENV") == "production" or "neon.tech" in DATABASE_URL else None
+
+async def _connect():
+    return await asyncpg.connect(DATABASE_URL, ssl=_ssl)
+
 async def get_relevant_properties(query: str, limit: int = 20) -> List[Dict[str, Any]]:
     """Retrieve top-N properties from DB matching the query for RAG context."""
-    conn = await asyncpg.connect(DATABASE_URL)
+    conn = await _connect()
     try:
         rows = await conn.fetch(
             """
@@ -50,7 +56,7 @@ async def get_relevant_properties(query: str, limit: int = 20) -> List[Dict[str,
 
 async def get_all_active_properties(limit: int = 200) -> List[Dict[str, Any]]:
     """Fetch properties for the scoring service."""
-    conn = await asyncpg.connect(DATABASE_URL)
+    conn = await _connect()
     try:
         rows = await conn.fetch(
             """

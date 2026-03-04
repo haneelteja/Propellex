@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Haneel Teja/.claude/projects/c--Users-Haneel-Teja-Cursor-Applications-Propellex-Propellex/memory/**)",
+      "Bash(npm install)",
+      "Bash(docker compose up postgres redis -d)",
+      "Read(//c/Program Files/Docker/Docker/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Haneel Teja\\.claude\\projects\\c--Users-Haneel-Teja-Cursor-Applications-Propellex-Propellex\\memory"
+    ]
+  }
+}
