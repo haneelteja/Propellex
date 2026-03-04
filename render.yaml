@@ -20,6 +20,21 @@ services:
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: AI_SERVICE_URL
-        value: http://localhost:8001
+        sync: false
       - key: CORS_ORIGIN
         sync: false
+
+  # ── AI Service (Python FastAPI) ─────────────────────────────────────────────
+  - type: web
+    name: propellex-ai
+    runtime: python
+    buildCommand: cd ai-service && pip install -r requirements.txt
+    startCommand: cd ai-service && uvicorn main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production
