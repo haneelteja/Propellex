@@ -1,4 +1,4 @@
-import type { Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -39,7 +39,7 @@ export class AppError extends Error {
 }
 
 export const asyncHandler =
-  (fn: Function) =>
-  (req: unknown, res: unknown, next: Function) => {
+  (fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>) =>
+  (req: Request, res: Response, next: NextFunction): void => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };

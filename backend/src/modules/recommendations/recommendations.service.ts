@@ -120,7 +120,7 @@ export async function getRecommendations(userId: string, limit = 20) {
   const scored: ScoredProperty[] = properties
     .map((p) => {
       const { score, reason } = scoreProperty(p as Record<string, unknown>, prefs);
-      return { ...serializeMoney(p as Record<string, unknown>), match_score: score, why_recommended: reason };
+      return { ...serializeMoney(p as Record<string, unknown>), match_score: score, why_recommended: reason } as ScoredProperty;
     })
     .sort((a, b) => b.match_score - a.match_score)
     .slice(0, limit);
