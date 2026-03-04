@@ -65,6 +65,22 @@ async function start() {
   } catch (err) {
     console.warn('[Server] Redis unavailable — freemium limits disabled:', (err as Error).message);
   }
+
+  // Test DB connection at startup so we know immediately if Neon is reachable
+  try {
+    const client = await pool.connect();
+    console.info('[DB] Startup connection test: SUCCESS');
+    client.release();
+  } catch (err: unknown) {
+    const e = err as Error & { errors?: Error[]; code?: string };
+    console.error('[DB] Startup connection test: FAILED');
+    console.error('[DB] Error name:', e.name, '| code:', e.code, '| message:', e.message);
+    if (e.errors?.length) {
+      e.errors.forEach((sub, i) => console.error(`[DB]   sub[${i}]:`, sub.message));
+    }
+    // Continue starting — the error will surface per-request too
+  }
+
   const server = app.listen(PORT, () => {
     console.info(`[Server] Propellex API running on :${PORT} (${process.env.NODE_ENV})`);
   });

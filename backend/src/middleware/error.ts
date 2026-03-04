@@ -15,6 +15,10 @@ export function errorHandler(
       : err.message;
 
   console.error(`[Error] ${req.method} ${req.url} → ${status}: ${err.message}`, err.stack ?? err);
+  const agg = err as Error & { errors?: Error[]; code?: string };
+  if (agg.errors?.length) {
+    agg.errors.forEach((sub, i) => console.error(`[Error]   sub[${i}]:`, sub.message));
+  }
 
   res.status(status).json({ success: false, error: message });
 }
