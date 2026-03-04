@@ -41,12 +41,12 @@ async function setOTP(email: string, code: string): Promise<void> {
 
 async function getOTP(email: string): Promise<string | null> {
   try {
-    return await redis.get(`otp:${email}`);
-  } catch {
-    const entry = otpMemory.get(email);
-    if (!entry || Date.now() > entry.expiresAt) { otpMemory.delete(email); return null; }
-    return entry.code;
-  }
+    const val = await redis.get(`otp:${email}`);
+    if (val !== null) return val;
+  } catch { /* fall through to memory */ }
+  const entry = otpMemory.get(email);
+  if (!entry || Date.now() > entry.expiresAt) { otpMemory.delete(email); return null; }
+  return entry.code;
 }
 
 async function delOTP(email: string): Promise<void> {

@@ -67,7 +67,7 @@ export const auth = {
   verifyOtp: (email: string, code: string) =>
     request<{ token: string; user: User }>('/api/auth/verify-otp', {
       method: 'POST',
-      body: JSON.stringify({ email, code }),
+      body: JSON.stringify({ email, otp: code }),
     }),
 
   getProfile: () => request<User>('/api/auth/profile'),
