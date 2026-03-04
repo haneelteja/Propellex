@@ -14,7 +14,7 @@ export function errorHandler(
       ? 'Internal server error'
       : err.message;
 
-  console.error(`[Error] ${req.method} ${req.url} → ${status}: ${err.message}`);
+  console.error(`[Error] ${req.method} ${req.url} → ${status}: ${err.message}`, err.stack ?? err);
 
   res.status(status).json({ success: false, error: message });
 }

@@ -3,8 +3,11 @@ import { Pool } from 'pg';
 // Neon.tech and other cloud PG providers require SSL in production
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Strip channel_binding param — node-postgres doesn't support it
+const connectionString = (process.env.DATABASE_URL ?? '').replace(/[?&]channel_binding=[^&]*/g, '').replace(/\?$/, '');
+
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
   max: 20,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 10_000,
