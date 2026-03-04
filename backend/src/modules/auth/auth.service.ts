@@ -28,14 +28,42 @@ interface User {
 
 const OTP_TTL_SECONDS = 600; // 10 minutes
 
+// In-memory fallback when Redis is unavailable (single-instance safe)
+const otpMemory = new Map<string, { code: string; expiresAt: number }>();
+
+async function setOTP(email: string, code: string): Promise<void> {
+  try {
+    await redis.set(`otp:${email}`, code, 'EX', OTP_TTL_SECONDS);
+  } catch {
+    otpMemory.set(email, { code, expiresAt: Date.now() + OTP_TTL_SECONDS * 1_000 });
+  }
+}
+
+async function getOTP(email: string): Promise<string | null> {
+  try {
+    return await redis.get(`otp:${email}`);
+  } catch {
+    const entry = otpMemory.get(email);
+    if (!entry || Date.now() > entry.expiresAt) { otpMemory.delete(email); return null; }
+    return entry.code;
+  }
+}
+
+async function delOTP(email: string): Promise<void> {
+  try {
+    await redis.del(`otp:${email}`);
+  } catch {
+    otpMemory.delete(email);
+  }
+}
+
 function generateOTP(): string {
   return String(Math.floor(100_000 + Math.random() * 900_000));
 }
 
 export async function sendOTP(email: string): Promise<void> {
   const otp = generateOTP();
-  const key = `otp:${email}`;
-  await redis.set(key, otp, 'EX', OTP_TTL_SECONDS);
+  await setOTP(email, otp);
 
   // In dev: log to console. In prod: send via SMS/email provider.
   console.info(`[OTP] ${email} → ${otp} (expires in ${OTP_TTL_SECONDS}s)`);
@@ -45,12 +73,11 @@ export async function verifyOTP(
   email: string,
   code: string,
 ): Promise<{ token: string; user: User; isNew: boolean }> {
-  const key = `otp:${email}`;
-  const stored = await redis.get(key);
+  const stored = await getOTP(email);
   if (!stored || stored !== code) {
     throw new AppError('Invalid or expired OTP', 400);
   }
-  await redis.del(key);
+  await delOTP(email);
 
   // Upsert user
   let user = await queryOne<User>(
