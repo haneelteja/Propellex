@@ -3,15 +3,19 @@ import { Pool } from 'pg';
 // Neon.tech and other cloud PG providers require SSL in production
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Strip channel_binding param — node-postgres doesn't support it
-const connectionString = (process.env.DATABASE_URL ?? '').replace(/[?&]channel_binding=[^&]*/g, '').replace(/\?$/, '');
+// Strip unsupported params and force sslmode=require for Neon
+const rawUrl = process.env.DATABASE_URL ?? '';
+const cleanUrl = rawUrl
+  .replace(/[?&]channel_binding=[^&]*/g, '')
+  .replace(/[?&]sslmode=[^&]*/g, '')
+  .replace(/\?$/, '');
+const connectionString = cleanUrl + (cleanUrl.includes('?') ? '&' : '?') + 'sslmode=no-verify';
 
 export const pool = new Pool({
   connectionString,
-  max: 20,
+  max: 5,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 10_000,
-  ssl: isProduction ? { rejectUnauthorized: false } : false,
 });
 
 pool.on('error', (err) => {
