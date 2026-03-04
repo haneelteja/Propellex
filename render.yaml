@@ -3,9 +3,8 @@ services:
   - type: web
     name: propellex-backend
     runtime: node
-    root: backend
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: cd backend && npm install --include=dev && npm run build
+    startCommand: cd backend && node dist/server.js
     plan: free
     envVars:
       - key: NODE_ENV
@@ -21,6 +20,6 @@ services:
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: AI_SERVICE_URL
-        value: http://localhost:8001   # AI service disabled — no Anthropic key
+        value: http://localhost:8001
       - key: CORS_ORIGIN
         sync: false
