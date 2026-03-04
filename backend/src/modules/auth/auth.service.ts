@@ -80,23 +80,36 @@ export async function verifyOTP(
   await delOTP(email);
 
   // Upsert user
-  let user = await queryOne<User>(
-    `SELECT id, email, phone, name, user_type, subscription_tier,
-            preferences, interaction_count, created_at
-     FROM users WHERE email = $1`,
-    [email],
-  );
+  let user: User | null;
+  try {
+    user = await queryOne<User>(
+      `SELECT id, email, phone, name, user_type, subscription_tier,
+              preferences, interaction_count, created_at
+       FROM users WHERE email = $1`,
+      [email],
+    );
+    console.info('[Auth] SELECT user result:', user ? user.id : 'not found');
+  } catch (e) {
+    console.error('[Auth] SELECT user failed:', e);
+    throw new AppError('Database error (select)', 500);
+  }
 
   const isNew = !user;
   if (!user) {
     const name = email.split('@')[0] ?? 'User';
-    user = await queryOne<User>(
-      `INSERT INTO users (id, email, name, preferences)
-       VALUES ($1, $2, $3, '{}')
-       RETURNING id, email, phone, name, user_type, subscription_tier,
-                 preferences, interaction_count, created_at`,
-      [uuidv4(), email, name],
-    );
+    try {
+      user = await queryOne<User>(
+        `INSERT INTO users (id, email, name, preferences)
+         VALUES ($1, $2, $3, '{}')
+         RETURNING id, email, phone, name, user_type, subscription_tier,
+                   preferences, interaction_count, created_at`,
+        [uuidv4(), email, name],
+      );
+      console.info('[Auth] INSERT user result:', user ? user.id : 'null');
+    } catch (e) {
+      console.error('[Auth] INSERT user failed:', e);
+      throw new AppError('Database error (insert)', 500);
+    }
   }
 
   if (!user) throw new AppError('Failed to create user', 500);

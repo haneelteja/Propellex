@@ -1,9 +1,11 @@
 import Redis from 'ioredis';
 
 export const redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
-  retryStrategy: (times) => Math.min(times * 100, 3_000),
-  maxRetriesPerRequest: 3,
+  // Stop retrying after 10 attempts — wrong URL (redis:// vs rediss://) won't self-heal
+  retryStrategy: (times) => (times > 10 ? null : Math.min(times * 500, 3_000)),
+  maxRetriesPerRequest: 1,
   lazyConnect: true,
+  enableOfflineQueue: false,
 });
 
 redis.on('connect', () => console.info('[Redis] Connected'));
