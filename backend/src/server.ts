@@ -60,7 +60,11 @@ app.use(errorHandler);
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 async function start() {
-  await connectRedis();
+  try {
+    await connectRedis();
+  } catch (err) {
+    console.warn('[Server] Redis unavailable — freemium limits disabled:', (err as Error).message);
+  }
   const server = app.listen(PORT, () => {
     console.info(`[Server] Propellex API running on :${PORT} (${process.env.NODE_ENV})`);
   });
