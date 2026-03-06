@@ -14,3 +14,4 @@ authRouter.post('/send-otp', asyncHandler(handleSendOTP));
 authRouter.post('/verify-otp', asyncHandler(handleVerifyOTP));
 authRouter.get('/profile', requireAuth, asyncHandler(handleGetProfile));
 authRouter.put('/profile', requireAuth, asyncHandler(handleUpdateProfile));
+authRouter.patch('/profile', requireAuth, asyncHandler(handleUpdateProfile));
