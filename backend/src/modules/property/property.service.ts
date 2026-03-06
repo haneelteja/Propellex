@@ -219,7 +219,7 @@ export async function getInvestmentAnalysis(id: string) {
   };
 }
 
-export async function createProperty(agencyId: string, input: PropertyInput) {
+export async function createProperty(agencyId: string | null, input: PropertyInput, uploadedBy?: string) {
   const pricePaise = Math.round(input.price_cr * 1_00_00_000 * 100); // cr → rupees → paise
   const pricePerSqft = Math.round(pricePaise / input.area_sqft);
   const id = uuidv4();
@@ -229,9 +229,9 @@ export async function createProperty(agencyId: string, input: PropertyInput) {
        price, price_per_sqft, area_sqft, bedrooms, bathrooms,
        locality, city, pincode, lat, lng,
        amenities, builder_name, rera_number, rera_status,
-       photos, agency_id, is_active, published_at
+       photos, agency_id, uploaded_by, is_active, published_at
      ) VALUES (
-       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'Hyderabad',$12,$13,$14,$15,$16,$17,'pending',$18,$19,true,NOW()
+       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'Hyderabad',$12,$13,$14,$15,$16,$17,'pending',$18,$19,$20,true,NOW()
      ) RETURNING *`,
     [
       id,
@@ -253,6 +253,7 @@ export async function createProperty(agencyId: string, input: PropertyInput) {
       input.rera_number ?? null,
       JSON.stringify(input.photos ?? []),
       agencyId,
+      uploadedBy ?? null,
     ],
   );
   if (!row) throw new AppError('Failed to create property', 500);
@@ -261,7 +262,8 @@ export async function createProperty(agencyId: string, input: PropertyInput) {
 
 export async function updateProperty(
   propertyId: string,
-  agencyId: string,
+  agencyId: string | null,
+  role: string,
   input: Partial<PropertyInput>,
 ) {
   const existing = await queryOne<{ agency_id: string }>(
@@ -269,7 +271,10 @@ export async function updateProperty(
     [propertyId],
   );
   if (!existing) throw new AppError('Property not found', 404);
-  if (existing.agency_id !== agencyId) throw new AppError('Not authorized to edit this property', 403);
+  // Manager can edit any property; admin restricted to their agency's properties
+  if (role !== 'manager' && existing.agency_id !== agencyId) {
+    throw new AppError('Not authorized to edit this property', 403);
+  }
 
   const pricePaise = input.price_cr != null ? Math.round(input.price_cr * 1_00_00_000 * 100) : null;
   const row = await queryOne(
@@ -307,12 +312,14 @@ export async function updateProperty(
   return serializeMoney(row as Record<string, unknown>);
 }
 
-export async function deleteProperty(propertyId: string, agencyId: string) {
+export async function deleteProperty(propertyId: string, agencyId: string | null, role: string) {
   const existing = await queryOne<{ agency_id: string }>(
     'SELECT agency_id FROM properties WHERE id = $1',
     [propertyId],
   );
   if (!existing) throw new AppError('Property not found', 404);
-  if (existing.agency_id !== agencyId) throw new AppError('Not authorized to delete this property', 403);
+  if (role !== 'manager' && existing.agency_id !== agencyId) {
+    throw new AppError('Not authorized to delete this property', 403);
+  }
   await query('UPDATE properties SET is_active = false WHERE id = $1', [propertyId]);
 }

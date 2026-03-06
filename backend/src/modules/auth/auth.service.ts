@@ -19,6 +19,7 @@ interface User {
   phone: string | null;
   name: string;
   user_type: string;
+  role: 'client' | 'admin' | 'manager';
   subscription_tier: 'free' | 'premium';
   preferences: UserPreferences;
   interaction_count: number;
@@ -90,7 +91,7 @@ export async function verifyOTP(
   let user: User | null;
   try {
     user = await queryOne<User>(
-      `SELECT id, email, phone, name, user_type, subscription_tier,
+      `SELECT id, email, phone, name, user_type, role, subscription_tier,
               preferences, interaction_count, created_at
        FROM users WHERE email = $1`,
       [email],
@@ -108,7 +109,7 @@ export async function verifyOTP(
       user = await queryOne<User>(
         `INSERT INTO users (id, email, name, preferences)
          VALUES ($1, $2, $3, '{}')
-         RETURNING id, email, phone, name, user_type, subscription_tier,
+         RETURNING id, email, phone, name, user_type, role, subscription_tier,
                    preferences, interaction_count, created_at`,
         [uuidv4(), email, name],
       );
@@ -127,6 +128,7 @@ export async function verifyOTP(
     userId: user.id,
     email: user.email,
     subscriptionTier: user.subscription_tier,
+    role: user.role ?? 'client',
   });
 
   return { token, user, isNew };
@@ -134,7 +136,7 @@ export async function verifyOTP(
 
 export async function getProfile(userId: string): Promise<User> {
   const user = await queryOne<User>(
-    `SELECT id, email, phone, name, user_type, subscription_tier,
+    `SELECT id, email, phone, name, user_type, role, subscription_tier,
             preferences, interaction_count, created_at
      FROM users WHERE id = $1`,
     [userId],
@@ -154,7 +156,7 @@ export async function updateProfile(
          user_type = COALESCE($3, user_type),
          preferences = CASE WHEN $4::jsonb IS NOT NULL THEN $4::jsonb ELSE preferences END
      WHERE id = $5
-     RETURNING id, email, phone, name, user_type, subscription_tier,
+     RETURNING id, email, phone, name, user_type, role, subscription_tier,
                preferences, interaction_count, created_at`,
     [
       data.name ?? null,

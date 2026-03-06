@@ -105,13 +105,13 @@ export default function AgencyDashboard() {
     }));
   }
 
-  if (user?.user_type !== 'agency_manager') {
+  if (user?.role !== 'admin' && user?.role !== 'manager') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <p className="text-lg font-semibold text-gray-700 mb-2">Agency Portal</p>
-        <p className="text-gray-500 mb-6">This area is for agency managers only.</p>
+        <p className="text-lg font-semibold text-gray-700 mb-2">Admin Portal</p>
+        <p className="text-gray-500 mb-6">This area is for admin users only.</p>
         <p className="text-sm text-gray-400">
-          To become an agency manager, update your account type in Profile → User Type → Agency Manager.
+          Contact your manager to grant admin access to your account.
         </p>
       </div>
     );
@@ -122,8 +122,8 @@ export default function AgencyDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-navy">Agency Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your property listings</p>
+          <h1 className="text-2xl font-bold text-navy">Admin Dashboard</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage property listings</p>
         </div>
         <Button onClick={() => { setEditingId(null); setForm({ ...EMPTY_FORM }); setShowForm(true); setError(''); }}>
           + Add Property

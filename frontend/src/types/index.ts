@@ -2,6 +2,7 @@
 
 export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
 export type UserType = 'resident_hni' | 'nri' | 'institutional' | 'home_buyer' | 'agency_manager';
+export type UserRole = 'client' | 'admin' | 'manager';
 export type RiskAppetite = 'low' | 'medium' | 'high';
 
 export interface UserPreferences {
@@ -18,8 +19,10 @@ export interface User {
   email: string;
   name: string;
   user_type: UserType;
+  role: UserRole;
   subscription_tier: SubscriptionTier;
   preferences: UserPreferences;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -77,6 +80,18 @@ export interface PropertyFilters {
   price_max: number | '';
   rera_status: ReraStatus | '';
   sort: 'price_asc' | 'price_desc' | 'area_desc' | 'published_desc';
+}
+
+// ── Manager / Admin ───────────────────────────────────────────────────────────
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  is_active: boolean;
+  created_at: string;
+  last_login: string | null;
 }
 
 // ── Agency ────────────────────────────────────────────────────────────────────

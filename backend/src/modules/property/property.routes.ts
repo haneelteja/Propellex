@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { asyncHandler } from '../../utils/response';
-import { requireAuth, optionalAuth } from '../../middleware/auth';
+import { requireAuth, optionalAuth, requireRole } from '../../middleware/auth';
 import { freemiumGate } from '../../middleware/freemium';
 import {
   handleSearch,
@@ -15,9 +15,9 @@ import {
 export const propertyRouter = Router();
 
 propertyRouter.get('/', optionalAuth, freemiumGate('search'), asyncHandler(handleSearch));
-propertyRouter.post('/', requireAuth, asyncHandler(handleCreate));
+propertyRouter.post('/', requireAuth, requireRole('admin', 'manager'), asyncHandler(handleCreate));
 propertyRouter.get('/:id', optionalAuth, asyncHandler(handleGetOne));
 propertyRouter.get('/:id/comparables', optionalAuth, asyncHandler(handleComparables));
 propertyRouter.get('/:id/analysis', requireAuth, asyncHandler(handleAnalysis));
-propertyRouter.put('/:id', requireAuth, asyncHandler(handleUpdate));
-propertyRouter.delete('/:id', requireAuth, asyncHandler(handleDelete));
+propertyRouter.put('/:id', requireAuth, requireRole('admin', 'manager'), asyncHandler(handleUpdate));
+propertyRouter.delete('/:id', requireAuth, requireRole('admin', 'manager'), asyncHandler(handleDelete));

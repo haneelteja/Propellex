@@ -69,7 +69,7 @@ async function run() {
   const client = await pool.connect();
   try {
     // Run migrations
-    for (const file of ['001_initial.sql', '002_agency_intent.sql']) {
+    for (const file of ['001_initial.sql', '002_agency_intent.sql', '003_roles.sql']) {
       const sql = fs.readFileSync(path.join(__dirname, '../migrations', file), 'utf8');
       await client.query(sql);
       console.info(`[Seed] Migration applied: ${file}`);
@@ -153,6 +153,15 @@ async function run() {
     }
     console.info(`[Seed] ${inserted} properties created`);
 
+    // Manager account (role = 'manager')
+    await client.query(
+      `INSERT INTO users (id, email, name, role, preferences)
+       VALUES ($1,$2,$3,'manager','{}')
+       ON CONFLICT (email) DO UPDATE SET role = 'manager'`,
+      [uuidv4(), 'manager@propellex.dev', 'Platform Manager'],
+    );
+    console.info('[Seed] Manager account: manager@propellex.dev');
+
     // Users (10)
     const userTypes = ['resident_hni', 'nri', 'institutional', 'home_buyer'];
     for (let i = 0; i < 10; i++) {
@@ -177,7 +186,7 @@ async function run() {
         ],
       );
     }
-    console.info('[Seed] 10 users created');
+    console.info('[Seed] 10 investor users created');
 
     // Market intelligence (20)
     const newsItems = [

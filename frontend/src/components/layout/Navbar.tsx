@@ -31,9 +31,18 @@ export function Navbar() {
           {/* Nav links */}
           {user && (
             <div className="hidden md:flex items-center gap-6 text-sm">
-              {user.user_type === 'agency_manager' ? (
+              {user.role === 'manager' ? (
+                <>
+                  <Link to="/manager" className={isActive('/manager')}>
+                    User Management
+                  </Link>
+                  <Link to="/agency" className={isActive('/agency')}>
+                    Listings
+                  </Link>
+                </>
+              ) : user.role === 'admin' ? (
                 <Link to="/agency" className={isActive('/agency')}>
-                  My Listings
+                  Manage Listings
                 </Link>
               ) : (
                 <>
@@ -55,8 +64,13 @@ export function Navbar() {
           <div className="flex items-center gap-3">
             {user ? (
               <>
-                <span className="hidden sm:block text-white/70 text-sm">
+                <span className="hidden sm:flex items-center gap-2 text-white/70 text-sm">
                   {user.name}
+                  {user.role !== 'client' && (
+                    <span className="bg-gold/20 text-gold text-xs px-2 py-0.5 rounded-full font-medium capitalize">
+                      {user.role}
+                    </span>
+                  )}
                 </span>
                 <Link
                   to="/profile"

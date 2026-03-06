@@ -57,25 +57,28 @@ async function getAgencyForUser(userId: string): Promise<{ id: string } | null> 
 
 export async function handleCreate(req: Request, res: Response): Promise<void> {
   if (!req.user) { res.status(401).json({ success: false, error: 'Authentication required' }); return; }
+  // Admin/manager can pass agency_id in body or use their linked agency
   const agencyRow = await getAgencyForUser(req.user.userId);
-  if (!agencyRow) { res.status(403).json({ success: false, error: 'No agency linked to this account. Ask your admin to link you to an agency.' }); return; }
-  const property = await createProperty(agencyRow.id, req.body as PropertyInput);
+  const body = req.body as PropertyInput & { agency_id?: string };
+  const agencyId = agencyRow?.id ?? body.agency_id ?? null;
+  const property = await createProperty(agencyId, body, req.user.userId);
   ok(res, property, 201);
 }
 
 export async function handleUpdate(req: Request, res: Response): Promise<void> {
   if (!req.user) { res.status(401).json({ success: false, error: 'Authentication required' }); return; }
   const agencyRow = await getAgencyForUser(req.user.userId);
-  if (!agencyRow) { res.status(403).json({ success: false, error: 'Not an agency user' }); return; }
-  const property = await updateProperty(req.params.id!, agencyRow.id, req.body as Partial<PropertyInput>);
+  const agencyId = agencyRow?.id ?? null;
+  // Manager can edit any property; admin restricted to their agency's properties
+  const property = await updateProperty(req.params.id!, agencyId, req.user.role ?? 'client', req.body as Partial<PropertyInput>);
   ok(res, property);
 }
 
 export async function handleDelete(req: Request, res: Response): Promise<void> {
   if (!req.user) { res.status(401).json({ success: false, error: 'Authentication required' }); return; }
   const agencyRow = await getAgencyForUser(req.user.userId);
-  if (!agencyRow) { res.status(403).json({ success: false, error: 'Not an agency user' }); return; }
-  await deleteProperty(req.params.id!, agencyRow.id);
+  const agencyId = agencyRow?.id ?? null;
+  await deleteProperty(req.params.id!, agencyId, req.user.role ?? 'client');
   ok(res, { message: 'Property deleted' });
 }
 

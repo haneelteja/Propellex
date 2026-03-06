@@ -10,6 +10,7 @@ import { propertyRouter } from './modules/property/property.routes';
 import { portfolioRouter } from './modules/portfolio/portfolio.routes';
 import { recommendationsRouter } from './modules/recommendations/recommendations.routes';
 import { chatRouter } from './modules/chat/chat.routes';
+import { managerRouter } from './modules/manager/manager.routes';
 
 const app = express();
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
@@ -51,6 +52,7 @@ app.use('/api/properties', propertyRouter);
 app.use('/api/portfolio', portfolioRouter);
 app.use('/api/recommendations', recommendationsRouter);
 app.use('/api/chat', chatRouter);
+app.use('/api/manager', managerRouter);
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ success: false, error: 'Route not found' }));

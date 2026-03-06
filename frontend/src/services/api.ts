@@ -11,6 +11,7 @@ import type {
   User,
   UserPreferences,
   AgencyPropertyForm,
+  AdminUser,
 } from '@/types';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
@@ -161,6 +162,27 @@ export const portfolio = {
 export const market = {
   getNews: (locality?: string, limit = 10) =>
     request<MarketNews[]>(`/api/properties/market/news${buildQuery({ locality, limit } as Record<string, string | number | undefined>)}`),
+};
+
+// ── Manager (admin user management) ──────────────────────────────────────────
+
+export const manager = {
+  listAdmins: () => request<AdminUser[]>('/api/manager/admins'),
+
+  createAdmin: (email: string, name?: string) =>
+    request<AdminUser>('/api/manager/admins', {
+      method: 'POST',
+      body: JSON.stringify({ email, name }),
+    }),
+
+  deactivateAdmin: (id: string) =>
+    request<{ message: string }>(`/api/manager/admins/${id}`, { method: 'DELETE' }),
+
+  reactivateAdmin: (id: string) =>
+    request<{ message: string }>(`/api/manager/admins/${id}/reactivate`, { method: 'PATCH' }),
+
+  listClients: (search?: string) =>
+    request<AdminUser[]>(`/api/manager/clients${search ? `?search=${encodeURIComponent(search)}` : ''}`),
 };
 
 export { ApiError };

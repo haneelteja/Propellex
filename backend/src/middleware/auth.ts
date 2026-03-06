@@ -6,6 +6,7 @@ export interface JwtPayload {
   userId: string;
   email: string;
   subscriptionTier: 'free' | 'premium';
+  role: 'client' | 'admin' | 'manager';
 }
 
 declare global {
@@ -45,6 +46,16 @@ export function optionalAuth(req: Request, _res: Response, next: NextFunction): 
     }
   }
   next();
+}
+
+export function requireRole(...roles: Array<'client' | 'admin' | 'manager'>) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) { fail(res, 'Authentication required', 401); return; }
+    if (!roles.includes(req.user.role)) {
+      fail(res, 'Access denied', 403); return;
+    }
+    next();
+  };
 }
 
 export function signToken(payload: JwtPayload): string {
