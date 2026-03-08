@@ -7,6 +7,7 @@ import {
   createProperty,
   updateProperty,
   deleteProperty,
+  analyzePropertyWithAI,
   type PropertyInput,
 } from './property.service';
 import { ok, paginated } from '../../utils/response';
@@ -80,6 +81,11 @@ export async function handleDelete(req: Request, res: Response): Promise<void> {
   const agencyId = agencyRow?.id ?? null;
   await deleteProperty(req.params.id!, agencyId, req.user.role ?? 'client');
   ok(res, { message: 'Property deleted' });
+}
+
+export async function handleAiAnalyze(req: Request, res: Response): Promise<void> {
+  await analyzePropertyWithAI(req.params.id!);
+  ok(res, { message: 'AI analysis complete' });
 }
 
 // Re-export for type usage

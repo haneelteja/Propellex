@@ -7,6 +7,7 @@ import {
   handleGetOne,
   handleComparables,
   handleAnalysis,
+  handleAiAnalyze,
   handleCreate,
   handleUpdate,
   handleDelete,
@@ -19,5 +20,6 @@ propertyRouter.post('/', requireAuth, requireRole('admin', 'manager'), asyncHand
 propertyRouter.get('/:id', optionalAuth, asyncHandler(handleGetOne));
 propertyRouter.get('/:id/comparables', optionalAuth, asyncHandler(handleComparables));
 propertyRouter.get('/:id/analysis', requireAuth, asyncHandler(handleAnalysis));
+propertyRouter.post('/:id/ai-analyze', requireAuth, requireRole('admin', 'manager'), asyncHandler(handleAiAnalyze));
 propertyRouter.put('/:id', requireAuth, requireRole('admin', 'manager'), asyncHandler(handleUpdate));
 propertyRouter.delete('/:id', requireAuth, requireRole('admin', 'manager'), asyncHandler(handleDelete));

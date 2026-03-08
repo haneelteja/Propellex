@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import chat, recommendations
+from routers import chat, recommendations, analysis
 import os
 
 app = FastAPI(title="Propellex AI Service", version="1.0.0")
@@ -14,6 +14,7 @@ app.add_middleware(
 
 app.include_router(chat.router)
 app.include_router(recommendations.router)
+app.include_router(analysis.router)
 
 @app.get("/health")
 async def health():

@@ -6,6 +6,89 @@ import { Badge } from '@/components/shared/Badge';
 import { Button } from '@/components/shared/Button';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { formatRupeesCr, formatRupees, formatDate, riskLabel } from '@/lib/utils';
+import type { AiPropertyAnalysis } from '@/types';
+
+function AiAnalysisPanel({ analysis, analyzedAt }: { analysis: AiPropertyAnalysis; analyzedAt: string | null }) {
+  const scoreColor =
+    analysis.overall_score >= 8 ? 'text-emerald-600' :
+    analysis.overall_score >= 5 ? 'text-amber-600' : 'text-red-600';
+
+  return (
+    <div className="bg-white border border-blue-100 rounded-2xl p-5 space-y-5">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-navy flex items-center gap-2">
+          <span className="text-brand">✦</span> AI Investment Analysis
+        </h2>
+        <div className="flex items-center gap-3">
+          <span className={`text-2xl font-bold ${scoreColor}`}>{analysis.overall_score}/10</span>
+          {analyzedAt && (
+            <span className="text-xs text-gray-400">Updated {formatDate(analyzedAt)}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Recommendation */}
+      <div className="bg-surface rounded-xl p-4">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Investment Recommendation</p>
+        <p className="text-sm text-gray-700 leading-relaxed">{analysis.investment_recommendation}</p>
+      </div>
+
+      {/* Market Insights */}
+      <div className="bg-surface rounded-xl p-4">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Market Insights</p>
+        <p className="text-sm text-gray-700 leading-relaxed">{analysis.market_insights}</p>
+      </div>
+
+      {/* Best Suited For */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Best Suited For</p>
+        <p className="text-sm text-navy font-medium">{analysis.best_suited_for}</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Advantages */}
+        <div>
+          <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-2">Advantages</p>
+          <ul className="space-y-1.5">
+            {analysis.advantages.map((adv, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                <span className="text-emerald-500 mt-0.5 shrink-0">✓</span>
+                {adv}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Disadvantages */}
+        <div>
+          <p className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2">Disadvantages</p>
+          <ul className="space-y-1.5">
+            {analysis.disadvantages.map((dis, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                <span className="text-red-400 mt-0.5 shrink-0">✗</span>
+                {dis}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Risk Factors */}
+      {analysis.risk_factors.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2">Risk Factors</p>
+          <div className="flex flex-wrap gap-2">
+            {analysis.risk_factors.map((rf, i) => (
+              <span key={i} className="bg-amber-50 text-amber-800 text-xs px-2.5 py-1 rounded-full border border-amber-200">
+                {rf}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function PropertyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -106,6 +189,18 @@ export default function PropertyDetail() {
             <p className="text-xs text-gray-500 mb-1">Builder</p>
             <p className="font-semibold text-navy">{property.builder_name}</p>
           </div>
+
+          {/* AI Analysis */}
+          {property.ai_analysis ? (
+            <AiAnalysisPanel
+              analysis={property.ai_analysis}
+              analyzedAt={property.ai_analyzed_at}
+            />
+          ) : (
+            <div className="bg-surface border border-dashed border-gray-200 rounded-2xl p-6 text-center">
+              <p className="text-sm text-gray-400">AI analysis will appear here once generated (runs daily).</p>
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -131,14 +226,23 @@ export default function PropertyDetail() {
                 <Badge variant={riskVariant}>{risk}</Badge>
               </div>
               {analysis && (
-                <>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Price/sqft</span>
-                    <span className="font-medium">
-                      ₹{Math.round(analysis.price_per_sqft / 100).toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                </>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Price/sqft</span>
+                  <span className="font-medium">
+                    ₹{Math.round(analysis.price_per_sqft / 100).toLocaleString('en-IN')}
+                  </span>
+                </div>
+              )}
+              {property.ai_analysis && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">AI Score</span>
+                  <span className={`font-bold ${
+                    property.ai_analysis.overall_score >= 8 ? 'text-emerald-600' :
+                    property.ai_analysis.overall_score >= 5 ? 'text-amber-600' : 'text-red-600'
+                  }`}>
+                    {property.ai_analysis.overall_score}/10
+                  </span>
+                </div>
               )}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Listed on</span>

@@ -11,6 +11,7 @@ import { portfolioRouter } from './modules/portfolio/portfolio.routes';
 import { recommendationsRouter } from './modules/recommendations/recommendations.routes';
 import { chatRouter } from './modules/chat/chat.routes';
 import { managerRouter } from './modules/manager/manager.routes';
+import { scheduleDailyAnalysis } from './jobs/analyzeProperties';
 
 const app = express();
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
@@ -86,6 +87,9 @@ async function start() {
   const server = app.listen(PORT, () => {
     console.info(`[Server] Propellex API running on :${PORT} (${process.env.NODE_ENV})`);
   });
+
+  // Start daily AI property analysis job
+  scheduleDailyAnalysis();
 
   const shutdown = async (signal: string) => {
     console.info(`[Server] ${signal} received — shutting down`);

@@ -323,3 +323,65 @@ export async function deleteProperty(propertyId: string, agencyId: string | null
   }
   await query('UPDATE properties SET is_active = false WHERE id = $1', [propertyId]);
 }
+
+export async function getAllActivePropertyIds(): Promise<string[]> {
+  const rows = await query<{ id: string }>('SELECT id FROM properties WHERE is_active = true');
+  return rows.map((r) => r.id);
+}
+
+export async function analyzePropertyWithAI(id: string): Promise<void> {
+  const prop = await queryOne<{
+    id: string; title: string; property_type: string; status: string;
+    price: string; price_per_sqft: string; area_sqft: number;
+    bedrooms: number | null; bathrooms: number | null;
+    locality: string; city: string; amenities: string[];
+    builder_name: string | null; rera_status: string;
+    roi_estimate_3yr: string; risk_score: number;
+    lat: number | null; lng: number | null; description: string;
+  }>(
+    `SELECT id, title, property_type, status, price, price_per_sqft, area_sqft,
+            bedrooms, bathrooms, locality, city, amenities, builder_name,
+            rera_status, roi_estimate_3yr, risk_score, lat, lng, description
+     FROM properties WHERE id = $1 AND is_active = true`,
+    [id],
+  );
+  if (!prop) throw new AppError('Property not found', 404);
+
+  const aiServiceUrl = process.env.AI_SERVICE_URL ?? 'http://localhost:8001';
+  const response = await fetch(`${aiServiceUrl}/analyze/property`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: prop.id,
+      title: prop.title,
+      property_type: prop.property_type,
+      status: prop.status,
+      price: Number(prop.price) / 100,               // paise → rupees
+      price_per_sqft: Number(prop.price_per_sqft) / 100,
+      area_sqft: prop.area_sqft,
+      bedrooms: prop.bedrooms,
+      bathrooms: prop.bathrooms,
+      locality: prop.locality,
+      city: prop.city,
+      amenities: prop.amenities ?? [],
+      builder_name: prop.builder_name,
+      rera_status: prop.rera_status,
+      roi_estimate_3yr: parseFloat(prop.roi_estimate_3yr) || 0,
+      risk_score: prop.risk_score,
+      lat: prop.lat,
+      lng: prop.lng,
+      description: prop.description ?? '',
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new AppError(`AI service error: ${errorText}`, 502);
+  }
+
+  const analysis = await response.json() as Record<string, unknown>;
+  await query(
+    'UPDATE properties SET ai_analysis = $1, ai_analyzed_at = NOW() WHERE id = $2',
+    [JSON.stringify(analysis), id],
+  );
+}

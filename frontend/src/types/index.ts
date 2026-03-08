@@ -37,6 +37,16 @@ export type PropertyType = 'residential' | 'commercial' | 'plot';
 export type PropertyStatus = 'ready_to_move' | 'under_construction';
 export type ReraStatus = 'verified' | 'pending' | 'flagged';
 
+export interface AiPropertyAnalysis {
+  advantages: string[];
+  disadvantages: string[];
+  investment_recommendation: string;
+  market_insights: string;
+  risk_factors: string[];
+  best_suited_for: string;
+  overall_score: number;   // 1–10
+}
+
 export interface Property {
   id: string;
   rera_number: string;
@@ -63,6 +73,8 @@ export interface Property {
   is_active: boolean;
   published_at: string;
   agency_id: string;
+  ai_analysis: AiPropertyAnalysis | null;
+  ai_analyzed_at: string | null;
 }
 
 export interface ScoredProperty extends Property {
