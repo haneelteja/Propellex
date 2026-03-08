@@ -39,8 +39,10 @@ export default function AgencyDashboard() {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState<AgencyPropertyForm>({ ...EMPTY_FORM });
   const [error, setError] = useState('');
+  const [deleteError, setDeleteError] = useState('');
 
   // Load this agency's properties (search with no filters shows all active)
   const { data: allProps, isLoading } = useQuery({
@@ -63,7 +65,12 @@ export default function AgencyDashboard() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => propertiesApi.remove(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['agency-properties'] }),
+    onSuccess: () => {
+      setConfirmDeleteId(null);
+      setDeleteError('');
+      qc.invalidateQueries({ queryKey: ['agency-properties'] });
+    },
+    onError: (e: Error) => setDeleteError(e.message),
   });
 
   function handleSubmit(e: React.FormEvent) {
@@ -329,6 +336,7 @@ export default function AgencyDashboard() {
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="font-semibold text-gray-800">My Listings</h2>
+          {deleteError && <p className="text-xs text-red-500 mt-1">{deleteError}</p>}
         </div>
         {isLoading ? (
           <div className="p-8 text-center text-gray-400 text-sm">Loading properties...</div>
@@ -363,19 +371,40 @@ export default function AgencyDashboard() {
                   </span>
                 </div>
                 {/* Actions */}
-                <div className="flex gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => startEdit(prop)}
-                    className="text-xs text-brand hover:text-navy font-medium px-2 py-1 rounded hover:bg-gray-100"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => { if (confirm('Delete this property?')) deleteMutation.mutate(prop.id); }}
-                    className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50"
-                  >
-                    Delete
-                  </button>
+                <div className="flex-shrink-0">
+                  {confirmDeleteId === prop.id ? (
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-500 mr-1">Delete?</span>
+                      <button
+                        onClick={() => deleteMutation.mutate(prop.id)}
+                        disabled={deleteMutation.isPending}
+                        className="text-xs bg-red-500 text-white font-medium px-2 py-1 rounded hover:bg-red-600 disabled:opacity-50"
+                      >
+                        {deleteMutation.isPending ? '...' : 'Yes'}
+                      </button>
+                      <button
+                        onClick={() => { setConfirmDeleteId(null); setDeleteError(''); }}
+                        className="text-xs text-gray-500 font-medium px-2 py-1 rounded hover:bg-gray-100"
+                      >
+                        No
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEdit(prop)}
+                        className="text-xs text-brand hover:text-navy font-medium px-2 py-1 rounded hover:bg-gray-100"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => { setConfirmDeleteId(prop.id); setDeleteError(''); }}
+                        className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
