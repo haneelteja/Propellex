@@ -28,11 +28,26 @@ const EMPTY_FORM: AgencyPropertyForm = {
   bathrooms: 2,
   locality: 'Gachibowli',
   pincode: '',
+  lat: null,
+  lng: null,
   builder_name: '',
   rera_number: '',
   amenities: [],
   photos: [],
 };
+
+function parseGoogleMapsUrl(url: string): { lat: number; lng: number } | null {
+  // Format 1: /@lat,lng,zoom (most common share link)
+  const atMatch = url.match(/@(-?\d+\.?\d+),(-?\d+\.?\d+)/);
+  if (atMatch) return { lat: parseFloat(atMatch[1]!), lng: parseFloat(atMatch[2]!) };
+  // Format 2: ?q=lat,lng or &q=lat,lng
+  const qMatch = url.match(/[?&]q=(-?\d+\.?\d+),(-?\d+\.?\d+)/);
+  if (qMatch) return { lat: parseFloat(qMatch[1]!), lng: parseFloat(qMatch[2]!) };
+  // Format 3: ?ll=lat,lng
+  const llMatch = url.match(/[?&]ll=(-?\d+\.?\d+),(-?\d+\.?\d+)/);
+  if (llMatch) return { lat: parseFloat(llMatch[1]!), lng: parseFloat(llMatch[2]!) };
+  return null;
+}
 
 export default function AgencyDashboard() {
   const user = useAuthStore((s) => s.user);
@@ -43,6 +58,8 @@ export default function AgencyDashboard() {
   const [form, setForm] = useState<AgencyPropertyForm>({ ...EMPTY_FORM });
   const [error, setError] = useState('');
   const [deleteError, setDeleteError] = useState('');
+  const [mapsUrl, setMapsUrl] = useState('');
+  const [mapsError, setMapsError] = useState('');
 
   // Load this agency's properties (search with no filters shows all active)
   const { data: allProps, isLoading } = useQuery({
@@ -53,13 +70,13 @@ export default function AgencyDashboard() {
 
   const createMutation = useMutation({
     mutationFn: (data: AgencyPropertyForm) => propertiesApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['agency-properties'] }); setShowForm(false); setForm({ ...EMPTY_FORM }); setError(''); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['agency-properties'] }); setShowForm(false); setForm({ ...EMPTY_FORM }); setMapsUrl(''); setMapsError(''); setError(''); },
     onError: (e: Error) => setError(e.message),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AgencyPropertyForm> }) => propertiesApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['agency-properties'] }); setShowForm(false); setEditingId(null); setForm({ ...EMPTY_FORM }); setError(''); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['agency-properties'] }); setShowForm(false); setEditingId(null); setForm({ ...EMPTY_FORM }); setMapsUrl(''); setMapsError(''); setError(''); },
     onError: (e: Error) => setError(e.message),
   });
 
@@ -132,7 +149,7 @@ export default function AgencyDashboard() {
           <h1 className="text-2xl font-bold text-navy">Admin Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">Manage property listings</p>
         </div>
-        <Button onClick={() => { setEditingId(null); setForm({ ...EMPTY_FORM }); setShowForm(true); setError(''); }}>
+        <Button onClick={() => { setEditingId(null); setForm({ ...EMPTY_FORM }); setMapsUrl(''); setMapsError(''); setShowForm(true); setError(''); }}>
           + Add Property
         </Button>
       </div>
@@ -286,6 +303,38 @@ export default function AgencyDashboard() {
               </div>
             </div>
 
+            {/* Google Maps location */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Google Maps Link
+                <span className="ml-1 text-xs text-gray-400 font-normal">(paste to auto-fill coordinates)</span>
+              </label>
+              <input
+                type="url"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                value={mapsUrl}
+                onChange={(e) => {
+                  const url = e.target.value;
+                  setMapsUrl(url);
+                  if (!url) { setMapsError(''); return; }
+                  const coords = parseGoogleMapsUrl(url);
+                  if (coords) {
+                    setForm((f) => ({ ...f, lat: coords.lat, lng: coords.lng }));
+                    setMapsError('');
+                  } else {
+                    setMapsError('Could not extract coordinates. Paste the full Google Maps share link.');
+                  }
+                }}
+                placeholder="https://www.google.com/maps/place/.../@17.4401,78.3489,..."
+              />
+              {mapsError && <p className="text-xs text-red-500 mt-1">{mapsError}</p>}
+              {form.lat != null && form.lng != null && !mapsError && (
+                <p className="text-xs text-green-600 mt-1">
+                  Coordinates detected: {form.lat.toFixed(6)}, {form.lng.toFixed(6)}
+                </p>
+              )}
+            </div>
+
             {/* Amenities */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
@@ -323,7 +372,7 @@ export default function AgencyDashboard() {
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => { setShowForm(false); setEditingId(null); setForm({ ...EMPTY_FORM }); setError(''); }}
+                onClick={() => { setShowForm(false); setEditingId(null); setForm({ ...EMPTY_FORM }); setMapsUrl(''); setMapsError(''); setError(''); }}
               >
                 Cancel
               </Button>

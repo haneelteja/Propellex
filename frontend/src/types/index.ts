@@ -107,6 +107,8 @@ export interface AgencyPropertyForm {
   bathrooms?: number | null;
   locality: string;
   pincode?: string;
+  lat?: number | null;
+  lng?: number | null;
   amenities?: string[];
   builder_name?: string;
   rera_number?: string;
