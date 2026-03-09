@@ -2,6 +2,7 @@ import { query, queryOne } from '../../config/db';
 import { signToken } from '../../middleware/auth';
 import { AppError } from '../../utils/response';
 import { v4 as uuidv4 } from 'uuid';
+import { sendOtpEmail } from '../../config/email';
 
 export interface UserPreferences {
   budget_min?: number;   // paise
@@ -72,9 +73,7 @@ function generateOTP(): string {
 export async function sendOTP(email: string): Promise<void> {
   const otp = generateOTP();
   await setOTP(email, otp);
-
-  // In dev: log to console. In prod: send via SMS/email provider.
-  console.info(`[OTP] ${email} → ${otp} (expires in ${OTP_TTL_SECONDS}s)`);
+  await sendOtpEmail(email, otp);
 }
 
 export async function verifyOTP(
