@@ -324,8 +324,15 @@ export async function deleteProperty(propertyId: string, agencyId: string | null
   await query('UPDATE properties SET is_active = false WHERE id = $1', [propertyId]);
 }
 
-export async function getAllActivePropertyIds(): Promise<string[]> {
-  const rows = await query<{ id: string }>('SELECT id FROM properties WHERE is_active = true');
+/** Returns IDs of properties that haven't been AI-analyzed yet,
+ *  or whose analysis is older than 23 hours (stale). */
+export async function getPropertiesNeedingAnalysis(): Promise<string[]> {
+  const rows = await query<{ id: string }>(
+    `SELECT id FROM properties
+     WHERE is_active = true
+       AND (ai_analyzed_at IS NULL OR ai_analyzed_at < NOW() - INTERVAL '23 hours')
+     ORDER BY ai_analyzed_at ASC NULLS FIRST`,
+  );
   return rows.map((r) => r.id);
 }
 

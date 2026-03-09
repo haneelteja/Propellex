@@ -1,4 +1,4 @@
-import { getAllActivePropertyIds, analyzePropertyWithAI } from '../modules/property/property.service';
+import { getPropertiesNeedingAnalysis, analyzePropertyWithAI } from '../modules/property/property.service';
 
 const DELAY_BETWEEN_PROPERTIES_MS = 3000; // 3s between calls to avoid rate limits
 
@@ -9,15 +9,25 @@ async function sleep(ms: number) {
 export async function runDailyAnalysis(): Promise<void> {
   console.info('[Cron] Starting daily property AI analysis...');
 
+  // Skip if AI service key is not configured — nothing will succeed
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.warn('[Cron] ANTHROPIC_API_KEY not set — skipping AI analysis. Add it to Render env vars.');
+    return;
+  }
+
   let ids: string[];
   try {
-    ids = await getAllActivePropertyIds();
+    ids = await getPropertiesNeedingAnalysis();
   } catch (err) {
     console.error('[Cron] Failed to fetch property IDs:', err);
     return;
   }
 
-  console.info(`[Cron] Analyzing ${ids.length} properties`);
+  if (ids.length === 0) {
+    console.info('[Cron] All properties already analyzed — nothing to do.');
+    return;
+  }
+  console.info(`[Cron] Analyzing ${ids.length} properties (unanalyzed or stale)`);
   let success = 0;
   let failed = 0;
 

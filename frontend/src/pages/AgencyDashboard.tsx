@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { properties as propertiesApi } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
@@ -60,6 +60,8 @@ export default function AgencyDashboard() {
   const [deleteError, setDeleteError] = useState('');
   const [mapsUrl, setMapsUrl] = useState('');
   const [mapsError, setMapsError] = useState('');
+  const [mapsResolving, setMapsResolving] = useState(false);
+  const resolveDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load this agency's properties (search with no filters shows all active)
   const { data: allProps, isLoading } = useQuery({
@@ -307,7 +309,7 @@ export default function AgencyDashboard() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Google Maps Link
-                <span className="ml-1 text-xs text-gray-400 font-normal">(paste to auto-fill coordinates)</span>
+                <span className="ml-1 text-xs text-gray-400 font-normal">(paste any Google Maps or maps.app.goo.gl link)</span>
               </label>
               <input
                 type="url"
@@ -316,19 +318,37 @@ export default function AgencyDashboard() {
                 onChange={(e) => {
                   const url = e.target.value;
                   setMapsUrl(url);
-                  if (!url) { setMapsError(''); return; }
+                  setMapsError('');
+                  if (!url) { setForm((f) => ({ ...f, lat: null, lng: null })); return; }
+
+                  // Try client-side parse first (works for full Google Maps URLs)
                   const coords = parseGoogleMapsUrl(url);
                   if (coords) {
                     setForm((f) => ({ ...f, lat: coords.lat, lng: coords.lng }));
-                    setMapsError('');
-                  } else {
-                    setMapsError('Could not extract coordinates. Paste the full Google Maps share link.');
+                    return;
                   }
+
+                  // Short URL or unrecognised format — resolve via backend after 500ms debounce
+                  if (resolveDebounce.current) clearTimeout(resolveDebounce.current);
+                  resolveDebounce.current = setTimeout(async () => {
+                    setMapsResolving(true);
+                    setMapsError('');
+                    try {
+                      const result = await propertiesApi.resolveMapsUrl(url);
+                      setForm((f) => ({ ...f, lat: result.lat, lng: result.lng }));
+                    } catch {
+                      setMapsError('Could not extract coordinates. Paste a valid Google Maps link.');
+                      setForm((f) => ({ ...f, lat: null, lng: null }));
+                    } finally {
+                      setMapsResolving(false);
+                    }
+                  }, 500);
                 }}
-                placeholder="https://www.google.com/maps/place/.../@17.4401,78.3489,..."
+                placeholder="https://maps.app.goo.gl/... or https://www.google.com/maps/..."
               />
-              {mapsError && <p className="text-xs text-red-500 mt-1">{mapsError}</p>}
-              {form.lat != null && form.lng != null && !mapsError && (
+              {mapsResolving && <p className="text-xs text-gray-400 mt-1">Resolving link...</p>}
+              {mapsError && !mapsResolving && <p className="text-xs text-red-500 mt-1">{mapsError}</p>}
+              {form.lat != null && form.lng != null && !mapsError && !mapsResolving && (
                 <p className="text-xs text-green-600 mt-1">
                   Coordinates detected: {form.lat.toFixed(6)}, {form.lng.toFixed(6)}
                 </p>

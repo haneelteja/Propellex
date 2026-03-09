@@ -8,6 +8,7 @@ import {
   handleComparables,
   handleAnalysis,
   handleAiAnalyze,
+  handleResolveMapsUrl,
   handleCreate,
   handleUpdate,
   handleDelete,
@@ -17,6 +18,8 @@ export const propertyRouter = Router();
 
 propertyRouter.get('/', optionalAuth, freemiumGate('search'), asyncHandler(handleSearch));
 propertyRouter.post('/', requireAuth, requireRole('admin', 'manager'), asyncHandler(handleCreate));
+// Must be before /:id routes to avoid param capture
+propertyRouter.post('/resolve-maps-url', requireAuth, requireRole('admin', 'manager'), asyncHandler(handleResolveMapsUrl));
 propertyRouter.get('/:id', optionalAuth, asyncHandler(handleGetOne));
 propertyRouter.get('/:id/comparables', optionalAuth, asyncHandler(handleComparables));
 propertyRouter.get('/:id/analysis', requireAuth, asyncHandler(handleAnalysis));

@@ -88,6 +88,38 @@ export async function handleAiAnalyze(req: Request, res: Response): Promise<void
   ok(res, { message: 'AI analysis complete' });
 }
 
+/** Resolve a Google Maps URL (including short maps.app.goo.gl links) server-side
+ *  and return the extracted lat/lng coordinates. */
+export async function handleResolveMapsUrl(req: Request, res: Response): Promise<void> {
+  const { url } = req.body as { url?: string };
+  if (!url) { res.status(400).json({ success: false, error: 'url is required' }); return; }
+
+  // Follow all redirects server-side (no CORS restrictions here)
+  let finalUrl: string;
+  try {
+    const response = await fetch(url, {
+      redirect: 'follow',
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Propellex/1.0)' },
+    });
+    finalUrl = response.url;
+  } catch {
+    res.status(400).json({ success: false, error: 'Could not resolve the URL' });
+    return;
+  }
+
+  // Try all known Google Maps coordinate formats
+  const atMatch = finalUrl.match(/@(-?\d+\.?\d+),(-?\d+\.?\d+)/);
+  if (atMatch) { ok(res, { lat: parseFloat(atMatch[1]!), lng: parseFloat(atMatch[2]!) }); return; }
+
+  const qMatch = finalUrl.match(/[?&]q=(-?\d+\.?\d+),(-?\d+\.?\d+)/);
+  if (qMatch) { ok(res, { lat: parseFloat(qMatch[1]!), lng: parseFloat(qMatch[2]!) }); return; }
+
+  const llMatch = finalUrl.match(/[?&]ll=(-?\d+\.?\d+),(-?\d+\.?\d+)/);
+  if (llMatch) { ok(res, { lat: parseFloat(llMatch[1]!), lng: parseFloat(llMatch[2]!) }); return; }
+
+  res.status(400).json({ success: false, error: 'Could not extract coordinates from the URL' });
+}
+
 // Re-export for type usage
 import type { PropertyFilter } from './property.service';
 export type { PropertyFilter };

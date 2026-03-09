@@ -124,6 +124,12 @@ export const properties = {
 
   remove: (id: string) =>
     request<{ message: string }>(`/api/properties/${id}`, { method: 'DELETE' }),
+
+  resolveMapsUrl: (url: string) =>
+    request<{ lat: number; lng: number }>('/api/properties/resolve-maps-url', {
+      method: 'POST',
+      body: JSON.stringify({ url }),
+    }),
 };
 
 // ── Recommendations ───────────────────────────────────────────────────────────
