@@ -9,9 +9,9 @@ async function sleep(ms: number) {
 export async function runDailyAnalysis(): Promise<void> {
   console.info('[Cron] Starting daily property AI analysis...');
 
-  // Skip if AI service key is not configured — nothing will succeed
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.warn('[Cron] ANTHROPIC_API_KEY not set — skipping AI analysis. Add it to Render env vars.');
+  // Skip if AI service URL is not configured
+  if (!process.env.AI_SERVICE_URL) {
+    console.warn('[Cron] AI_SERVICE_URL not set — skipping AI analysis.');
     return;
   }
 

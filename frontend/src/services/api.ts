@@ -12,6 +12,7 @@ import type {
   UserPreferences,
   AgencyPropertyForm,
   AdminUser,
+  CompareResult,
 } from '@/types';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
@@ -129,6 +130,12 @@ export const properties = {
     request<{ lat: number; lng: number }>('/api/properties/resolve-maps-url', {
       method: 'POST',
       body: JSON.stringify({ url }),
+    }),
+
+  compare: (ids: string[]) =>
+    request<{ properties: Property[]; ai_comparison: CompareResult }>('/api/properties/compare', {
+      method: 'POST',
+      body: JSON.stringify({ ids }),
     }),
 };
 

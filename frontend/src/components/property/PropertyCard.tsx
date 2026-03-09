@@ -8,17 +8,54 @@ interface PropertyCardProps {
   property: Property | ScoredProperty;
   onShortlist?: (id: string) => void;
   shortlisted?: boolean;
+  compareMode?: boolean;
+  compareSelected?: boolean;
+  onCompareToggle?: (id: string) => void;
+  compareDisabled?: boolean; // max 4 reached and this one not selected
 }
 
 function isScored(p: Property | ScoredProperty): p is ScoredProperty {
   return 'match_score' in p;
 }
 
-export function PropertyCard({ property, onShortlist, shortlisted }: PropertyCardProps) {
+export function PropertyCard({
+  property,
+  onShortlist,
+  shortlisted,
+  compareMode,
+  compareSelected,
+  onCompareToggle,
+  compareDisabled,
+}: PropertyCardProps) {
   const scored = isScored(property);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
+    <div
+      className={`bg-white rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden group relative ${
+        compareMode && compareSelected ? 'ring-2 ring-brand' : ''
+      } ${compareMode && compareDisabled ? 'opacity-50' : ''}`}
+    >
+      {/* Compare checkbox overlay */}
+      {compareMode && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            if (!compareDisabled || compareSelected) onCompareToggle?.(property.id);
+          }}
+          className={`absolute top-2 left-2 z-10 w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+            compareSelected
+              ? 'bg-brand border-brand'
+              : 'bg-white/90 border-gray-300 hover:border-brand'
+          } ${compareDisabled && !compareSelected ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+        >
+          {compareSelected && (
+            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </button>
+      )}
+
       {/* Image */}
       <div className="relative h-48 overflow-hidden bg-gray-100">
         <img
@@ -28,13 +65,13 @@ export function PropertyCard({ property, onShortlist, shortlisted }: PropertyCar
           loading="lazy"
         />
         {/* Match score badge */}
-        {scored && (
+        {scored && !compareMode && (
           <div className="absolute top-2 left-2 bg-navy text-white text-xs font-bold px-2 py-1 rounded-lg">
             {Math.round(property.match_score)}% match
           </div>
         )}
         {/* Shortlist button */}
-        {onShortlist && (
+        {onShortlist && !compareMode && (
           <button
             onClick={(e) => {
               e.preventDefault();

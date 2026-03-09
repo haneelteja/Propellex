@@ -77,6 +77,20 @@ export interface Property {
   ai_analyzed_at: string | null;
 }
 
+export interface PropertyRating {
+  id: string;
+  overall_score: number;
+  strengths: string[];
+  weaknesses: string[];
+}
+
+export interface CompareResult {
+  ratings: PropertyRating[];
+  best_pick_id: string;
+  best_pick_reason: string;
+  summary: string;
+}
+
 export interface ScoredProperty extends Property {
   match_score: number;       // 0–100
   why_recommended: string;   // top-scoring factor label

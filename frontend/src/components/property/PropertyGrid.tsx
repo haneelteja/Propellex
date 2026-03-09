@@ -8,6 +8,9 @@ interface PropertyGridProps {
   shortlistedIds?: Set<string>;
   onShortlist?: (id: string) => void;
   emptyMessage?: string;
+  compareMode?: boolean;
+  compareSelectedIds?: Set<string>;
+  onCompareToggle?: (id: string) => void;
 }
 
 export function PropertyGrid({
@@ -16,6 +19,9 @@ export function PropertyGrid({
   shortlistedIds,
   onShortlist,
   emptyMessage = 'No properties found.',
+  compareMode,
+  compareSelectedIds,
+  onCompareToggle,
 }: PropertyGridProps) {
   if (loading) {
     return (
@@ -46,6 +52,14 @@ export function PropertyGrid({
           property={p}
           shortlisted={shortlistedIds?.has(p.id)}
           onShortlist={onShortlist}
+          compareMode={compareMode}
+          compareSelected={compareSelectedIds?.has(p.id)}
+          onCompareToggle={onCompareToggle}
+          compareDisabled={
+            compareMode &&
+            (compareSelectedIds?.size ?? 0) >= 4 &&
+            !compareSelectedIds?.has(p.id)
+          }
         />
       ))}
     </div>

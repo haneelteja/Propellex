@@ -49,6 +49,8 @@ function parseGoogleMapsUrl(url: string): { lat: number; lng: number } | null {
   return null;
 }
 
+const PAGE_SIZE = 10;
+
 export default function AgencyDashboard() {
   const user = useAuthStore((s) => s.user);
   const qc = useQueryClient();
@@ -62,13 +64,17 @@ export default function AgencyDashboard() {
   const [mapsError, setMapsError] = useState('');
   const [mapsResolving, setMapsResolving] = useState(false);
   const resolveDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [listPage, setListPage] = useState(1);
 
   // Load this agency's properties (search with no filters shows all active)
   const { data: allProps, isLoading } = useQuery({
     queryKey: ['agency-properties'],
-    queryFn: () => propertiesApi.search({ limit: 100 }),
+    queryFn: () => propertiesApi.search({ limit: 200 }),
     select: (res) => res.data ?? [],
   });
+
+  const totalPages = Math.ceil((allProps?.length ?? 0) / PAGE_SIZE);
+  const pagedProps = allProps?.slice((listPage - 1) * PAGE_SIZE, listPage * PAGE_SIZE) ?? [];
 
   const createMutation = useMutation({
     mutationFn: (data: AgencyPropertyForm) => propertiesApi.create(data),
@@ -403,81 +409,126 @@ export default function AgencyDashboard() {
 
       {/* Listings Table */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-800">My Listings</h2>
-          {deleteError && <p className="text-xs text-red-500 mt-1">{deleteError}</p>}
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h2 className="font-semibold text-gray-800">My Listings</h2>
+            {allProps && (
+              <p className="text-xs text-gray-400 mt-0.5">{allProps.length} total properties</p>
+            )}
+          </div>
+          {deleteError && <p className="text-xs text-red-500">{deleteError}</p>}
         </div>
         {isLoading ? (
           <div className="p-8 text-center text-gray-400 text-sm">Loading properties...</div>
         ) : !allProps?.length ? (
           <div className="p-8 text-center text-gray-400 text-sm">No properties yet. Click "Add Property" to get started.</div>
         ) : (
-          <div className="divide-y divide-gray-50">
-            {allProps.map((prop) => (
-              <div key={prop.id} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors">
-                {/* Photo thumbnail */}
-                <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                  {prop.photos?.[0] ? (
-                    <img src={prop.photos[0]} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">No photo</div>
-                  )}
+          <>
+            <div className="divide-y divide-gray-50">
+              {pagedProps.map((prop) => (
+                <div key={prop.id} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors">
+                  {/* Photo thumbnail */}
+                  <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                    {prop.photos?.[0] ? (
+                      <img src={prop.photos[0]} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">No photo</div>
+                    )}
+                  </div>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-800 text-sm truncate">{prop.title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{prop.locality} · {prop.area_sqft.toLocaleString()} sq.ft</p>
+                  </div>
+                  {/* Price */}
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-semibold text-navy text-sm">{formatRupeesCr(prop.price * 100)}</p>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      prop.rera_status === 'verified' ? 'bg-green-50 text-green-700' :
+                      prop.rera_status === 'pending' ? 'bg-yellow-50 text-yellow-700' :
+                      'bg-red-50 text-red-700'
+                    }`}>
+                      RERA {prop.rera_status}
+                    </span>
+                  </div>
+                  {/* Actions */}
+                  <div className="flex-shrink-0">
+                    {confirmDeleteId === prop.id ? (
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-gray-500 mr-1">Delete?</span>
+                        <button
+                          onClick={() => deleteMutation.mutate(prop.id)}
+                          disabled={deleteMutation.isPending}
+                          className="text-xs bg-red-500 text-white font-medium px-2 py-1 rounded hover:bg-red-600 disabled:opacity-50"
+                        >
+                          {deleteMutation.isPending ? '...' : 'Yes'}
+                        </button>
+                        <button
+                          onClick={() => { setConfirmDeleteId(null); setDeleteError(''); }}
+                          className="text-xs text-gray-500 font-medium px-2 py-1 rounded hover:bg-gray-100"
+                        >
+                          No
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => startEdit(prop)}
+                          className="text-xs text-brand hover:text-navy font-medium px-2 py-1 rounded hover:bg-gray-100"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => { setConfirmDeleteId(prop.id); setDeleteError(''); }}
+                          className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-800 text-sm truncate">{prop.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{prop.locality} · {prop.area_sqft.toLocaleString()} sq.ft</p>
-                </div>
-                {/* Price */}
-                <div className="text-right flex-shrink-0">
-                  <p className="font-semibold text-navy text-sm">{formatRupeesCr(prop.price * 100)}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    prop.rera_status === 'verified' ? 'bg-green-50 text-green-700' :
-                    prop.rera_status === 'pending' ? 'bg-yellow-50 text-yellow-700' :
-                    'bg-red-50 text-red-700'
-                  }`}>
-                    RERA {prop.rera_status}
-                  </span>
-                </div>
-                {/* Actions */}
-                <div className="flex-shrink-0">
-                  {confirmDeleteId === prop.id ? (
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-gray-500 mr-1">Delete?</span>
-                      <button
-                        onClick={() => deleteMutation.mutate(prop.id)}
-                        disabled={deleteMutation.isPending}
-                        className="text-xs bg-red-500 text-white font-medium px-2 py-1 rounded hover:bg-red-600 disabled:opacity-50"
-                      >
-                        {deleteMutation.isPending ? '...' : 'Yes'}
-                      </button>
-                      <button
-                        onClick={() => { setConfirmDeleteId(null); setDeleteError(''); }}
-                        className="text-xs text-gray-500 font-medium px-2 py-1 rounded hover:bg-gray-100"
-                      >
-                        No
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => startEdit(prop)}
-                        className="text-xs text-brand hover:text-navy font-medium px-2 py-1 rounded hover:bg-gray-100"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => { setConfirmDeleteId(prop.id); setDeleteError(''); }}
-                        className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50">
+                <p className="text-xs text-gray-500">
+                  Showing {(listPage - 1) * PAGE_SIZE + 1}–{Math.min(listPage * PAGE_SIZE, allProps.length)} of {allProps.length}
+                </p>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setListPage((p) => Math.max(1, p - 1))}
+                    disabled={listPage <= 1}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    ← Prev
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setListPage(p)}
+                      className={`w-8 h-7 text-xs font-medium rounded-lg transition-colors ${
+                        p === listPage
+                          ? 'bg-brand text-white'
+                          : 'border border-gray-200 text-gray-600 hover:bg-white'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setListPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={listPage >= totalPages}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next →
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>

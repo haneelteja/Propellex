@@ -325,6 +325,87 @@ export async function deleteProperty(propertyId: string, agencyId: string | null
   await query('UPDATE properties SET is_active = false WHERE id = $1', [propertyId]);
 }
 
+export interface CompareResult {
+  ratings: Array<{ id: string; overall_score: number; strengths: string[]; weaknesses: string[] }>;
+  best_pick_id: string;
+  best_pick_reason: string;
+  summary: string;
+}
+
+/** Compare up to 4 properties using the AI service and return holistic analysis. */
+export async function comparePropertiesWithAI(ids: string[]): Promise<{
+  properties: ReturnType<typeof serializeMoney>[];
+  ai_comparison: CompareResult;
+}> {
+  if (ids.length < 2 || ids.length > 4) {
+    throw new AppError('Provide 2–4 property IDs to compare', 400);
+  }
+
+  const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+  const rows = await query<{
+    id: string; title: string; property_type: string; status: string;
+    price: string; price_per_sqft: string; area_sqft: number;
+    bedrooms: number | null; bathrooms: number | null;
+    locality: string; city: string; amenities: string[];
+    builder_name: string | null; rera_status: string;
+    roi_estimate_3yr: string; risk_score: number;
+    lat: number | null; lng: number | null; description: string;
+    ai_analysis: unknown; ai_analyzed_at: string | null;
+    pincode: string; photos: string[]; rera_number: string;
+    is_active: boolean; published_at: string; agency_id: string;
+  }>(
+    `SELECT id, title, property_type, status, price, price_per_sqft, area_sqft,
+            bedrooms, bathrooms, locality, city, pincode, amenities, builder_name,
+            rera_number, rera_status, photos, risk_score, roi_estimate_3yr,
+            lat, lng, description, is_active, published_at, agency_id,
+            ai_analysis, ai_analyzed_at
+     FROM properties WHERE id IN (${placeholders}) AND is_active = true`,
+    ids,
+  );
+
+  if (rows.length < 2) throw new AppError('At least 2 valid properties required for comparison', 400);
+
+  const aiServiceUrl = process.env.AI_SERVICE_URL ?? 'http://localhost:8001';
+  const aiPayload = rows.map((p) => ({
+    id: p.id,
+    title: p.title,
+    property_type: p.property_type,
+    status: p.status,
+    price: Number(p.price) / 100,
+    price_per_sqft: Number(p.price_per_sqft) / 100,
+    area_sqft: p.area_sqft,
+    bedrooms: p.bedrooms,
+    bathrooms: p.bathrooms,
+    locality: p.locality,
+    city: p.city,
+    amenities: p.amenities ?? [],
+    builder_name: p.builder_name,
+    rera_status: p.rera_status,
+    roi_estimate_3yr: parseFloat(p.roi_estimate_3yr) || 0,
+    risk_score: p.risk_score,
+    lat: p.lat,
+    lng: p.lng,
+    description: p.description ?? '',
+  }));
+
+  const aiResponse = await fetch(`${aiServiceUrl}/analyze/compare`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ properties: aiPayload }),
+  });
+
+  if (!aiResponse.ok) {
+    const errText = await aiResponse.text();
+    throw new AppError(`AI service error: ${errText}`, 502);
+  }
+
+  const ai_comparison = await aiResponse.json() as CompareResult;
+  return {
+    properties: rows.map((r) => serializeMoney(r as Record<string, unknown>)),
+    ai_comparison,
+  };
+}
+
 /** Returns IDs of properties that haven't been AI-analyzed yet,
  *  or whose analysis is older than 23 hours (stale). */
 export async function getPropertiesNeedingAnalysis(): Promise<string[]> {

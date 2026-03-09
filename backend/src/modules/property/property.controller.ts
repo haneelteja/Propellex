@@ -8,6 +8,7 @@ import {
   updateProperty,
   deleteProperty,
   analyzePropertyWithAI,
+  comparePropertiesWithAI,
   type PropertyInput,
 } from './property.service';
 import { ok, paginated } from '../../utils/response';
@@ -118,6 +119,16 @@ export async function handleResolveMapsUrl(req: Request, res: Response): Promise
   if (llMatch) { ok(res, { lat: parseFloat(llMatch[1]!), lng: parseFloat(llMatch[2]!) }); return; }
 
   res.status(400).json({ success: false, error: 'Could not extract coordinates from the URL' });
+}
+
+export async function handleCompare(req: Request, res: Response): Promise<void> {
+  const { ids } = req.body as { ids?: unknown };
+  if (!Array.isArray(ids) || ids.length < 2 || ids.length > 4) {
+    res.status(400).json({ success: false, error: 'Provide an array of 2–4 property IDs' });
+    return;
+  }
+  const result = await comparePropertiesWithAI(ids as string[]);
+  ok(res, result);
 }
 
 // Re-export for type usage
