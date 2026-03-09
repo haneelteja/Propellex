@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { connectRedis, closeRedis } from './config/redis';
-import { pool } from './config/db';
+import { pool, startDbKeepAlive } from './config/db';
 import { errorHandler } from './middleware/error';
 import { authRouter } from './modules/auth/auth.routes';
 import { propertyRouter } from './modules/property/property.routes';
@@ -87,6 +87,9 @@ async function start() {
   const server = app.listen(PORT, () => {
     console.info(`[Server] Propellex API running on :${PORT} (${process.env.NODE_ENV})`);
   });
+
+  // Keep Neon DB alive (ping every 4 min — Neon suspends after ~5 min idle)
+  startDbKeepAlive();
 
   // Start daily AI property analysis job
   scheduleDailyAnalysis();
