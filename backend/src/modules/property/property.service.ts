@@ -271,8 +271,8 @@ export async function updateProperty(
     [propertyId],
   );
   if (!existing) throw new AppError('Property not found', 404);
-  // Manager can edit any property; admin restricted to their agency's properties
-  if (role !== 'manager' && existing.agency_id !== agencyId) {
+  // Manager and admin can edit any property; only pure client accounts are blocked
+  if (role !== 'manager' && role !== 'admin' && existing.agency_id !== agencyId) {
     throw new AppError('Not authorized to edit this property', 403);
   }
 
@@ -318,7 +318,8 @@ export async function deleteProperty(propertyId: string, agencyId: string | null
     [propertyId],
   );
   if (!existing) throw new AppError('Property not found', 404);
-  if (role !== 'manager' && existing.agency_id !== agencyId) {
+  // Manager and admin can delete any property
+  if (role !== 'manager' && role !== 'admin' && existing.agency_id !== agencyId) {
     throw new AppError('Not authorized to delete this property', 403);
   }
   await query('UPDATE properties SET is_active = false WHERE id = $1', [propertyId]);
