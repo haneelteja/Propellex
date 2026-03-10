@@ -61,25 +61,36 @@ function otpHtml(otp: string): string {
 </html>`;
 }
 
-// ── Gmail SMTP (Nodemailer) ───────────────────────────────────────────────────
-// Requires SMTP_USER (Gmail address) + SMTP_APP_PASSWORD (Gmail App Password)
-// Works for ANY recipient without domain setup.
+// ── Generic SMTP (Nodemailer) ─────────────────────────────────────────────────
+// Works with any SMTP relay — recommended: Brevo (smtp-relay.brevo.com)
+// Brevo free tier: 300 emails/day, no custom domain needed, any recipient.
+//
+// Set these in Render env:
+//   SMTP_HOST=smtp-relay.brevo.com
+//   SMTP_PORT=587
+//   SMTP_USER=your-brevo-login-email
+//   SMTP_PASS=your-brevo-smtp-key   (Settings → SMTP & API → SMTP Keys)
 
 function hasSmtpConfig(): boolean {
-  return !!(process.env.SMTP_USER && process.env.SMTP_APP_PASSWORD);
+  return !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
 }
 
 async function sendViaSmtp(to: string, otp: string): Promise<void> {
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT ?? '587', 10),
+    secure: false,  // STARTTLS on port 587
     auth: {
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_APP_PASSWORD,
+      pass: process.env.SMTP_PASS,
     },
   });
 
+  const fromName = process.env.SMTP_FROM_NAME ?? 'Propellex';
+  const fromAddr = process.env.SMTP_USER!;
+
   await transporter.sendMail({
-    from: `Propellex <${process.env.SMTP_USER}>`,
+    from: `${fromName} <${fromAddr}>`,
     to,
     subject: `${otp} — your Propellex login code`,
     html: otpHtml(otp),
@@ -138,6 +149,6 @@ export async function sendOtpEmail(to: string, otp: string): Promise<void> {
 
   // No transport configured — OTP is in Render logs, user must retrieve it there
   if (!hasSmtpConfig() && !process.env.RESEND_API_KEY) {
-    console.warn('[OTP] No email transport configured. Set SMTP_USER+SMTP_APP_PASSWORD (Gmail) or RESEND_API_KEY.');
+    console.warn('[OTP] No email transport configured. Set SMTP_HOST+SMTP_USER+SMTP_PASS (e.g. Brevo) or RESEND_API_KEY.');
   }
 }
