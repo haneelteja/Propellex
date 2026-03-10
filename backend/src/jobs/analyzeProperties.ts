@@ -36,7 +36,14 @@ export async function runDailyAnalysis(): Promise<void> {
       await analyzePropertyWithAI(id);
       success++;
     } catch (err) {
-      console.error(`[Cron] Failed to analyze property ${id}:`, (err as Error).message);
+      const msg = (err as Error).message;
+      console.error(`[Cron] Failed to analyze property ${id}:`, msg);
+      // If AI service is unreachable (returns HTML error page), abort — no point
+      // hammering all 50 properties and filling logs with the same error.
+      if (msg.includes('service unavailable')) {
+        console.warn('[Cron] AI service appears to be down — aborting batch.');
+        break;
+      }
       failed++;
     }
     await sleep(DELAY_BETWEEN_PROPERTIES_MS);

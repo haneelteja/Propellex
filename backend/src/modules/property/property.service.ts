@@ -396,7 +396,8 @@ export async function comparePropertiesWithAI(ids: string[]): Promise<{
 
   if (!aiResponse.ok) {
     const errText = await aiResponse.text();
-    throw new AppError(`AI service error: ${errText}`, 502);
+    const isHtml = errText.trimStart().startsWith('<');
+    throw new AppError(`AI service error: ${isHtml ? `HTTP ${aiResponse.status} (service unavailable)` : errText.slice(0, 200)}`, 502);
   }
 
   const ai_comparison = await aiResponse.json() as CompareResult;
@@ -465,7 +466,8 @@ export async function analyzePropertyWithAI(id: string): Promise<void> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new AppError(`AI service error: ${errorText}`, 502);
+    const isHtml = errorText.trimStart().startsWith('<');
+    throw new AppError(`AI service error: ${isHtml ? `HTTP ${response.status} (service unavailable)` : errorText.slice(0, 200)}`, 502);
   }
 
   const analysis = await response.json() as Record<string, unknown>;
