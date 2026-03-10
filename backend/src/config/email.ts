@@ -1,9 +1,7 @@
+import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-// From address — use your verified domain in prod, or the Resend sandbox for testing
-const FROM = process.env.EMAIL_FROM ?? 'Propellex <onboarding@resend.dev>';
+// ── HTML template ─────────────────────────────────────────────────────────────
 
 function otpHtml(otp: string): string {
   return `<!DOCTYPE html>
@@ -41,7 +39,7 @@ function otpHtml(otp: string): string {
               </div>
 
               <p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.6;">
-                If you didn't request this code, you can safely ignore this email. Someone may have entered your email address by mistake.
+                If you didn't request this code, you can safely ignore this email.
               </p>
             </td>
           </tr>
@@ -63,28 +61,83 @@ function otpHtml(otp: string): string {
 </html>`;
 }
 
-export async function sendOtpEmail(to: string, otp: string): Promise<void> {
-  if (!process.env.RESEND_API_KEY) {
-    // No API key — fall back to console log (local dev)
-    console.info(`[OTP] No RESEND_API_KEY — logging: ${to} → ${otp}`);
-    return;
-  }
+// ── Gmail SMTP (Nodemailer) ───────────────────────────────────────────────────
+// Requires SMTP_USER (Gmail address) + SMTP_APP_PASSWORD (Gmail App Password)
+// Works for ANY recipient without domain setup.
 
-  // Always log to console as a fallback (visible in Render logs)
-  console.info(`[OTP] Sending to ${to} — code: ${otp}`);
+function hasSmtpConfig(): boolean {
+  return !!(process.env.SMTP_USER && process.env.SMTP_APP_PASSWORD);
+}
+
+async function sendViaSmtp(to: string, otp: string): Promise<void> {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_APP_PASSWORD,
+    },
+  });
+
+  await transporter.sendMail({
+    from: `Propellex <${process.env.SMTP_USER}>`,
+    to,
+    subject: `${otp} — your Propellex login code`,
+    html: otpHtml(otp),
+  });
+}
+
+// ── Resend ────────────────────────────────────────────────────────────────────
+// Requires RESEND_API_KEY + a verified sending domain in EMAIL_FROM.
+// onboarding@resend.dev only delivers to the Resend account owner's email.
+
+async function sendViaResend(to: string, otp: string): Promise<void> {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const from = process.env.EMAIL_FROM ?? 'Propellex <onboarding@resend.dev>';
 
   const { error } = await resend.emails.send({
-    from: FROM,
+    from,
     to,
     subject: `${otp} — your Propellex login code`,
     html: otpHtml(otp),
   });
 
   if (error) {
-    // Log but never throw — OTP is in DB, user can proceed even if email is delayed
-    console.error('[Email] Resend delivery failed (OTP still valid in DB):', error);
-    return;
+    throw new Error(`Resend error: ${JSON.stringify(error)}`);
+  }
+}
+
+// ── Public entry point ────────────────────────────────────────────────────────
+
+export async function sendOtpEmail(to: string, otp: string): Promise<void> {
+  // Always log — OTP is visible in Render logs as a guaranteed fallback
+  console.info(`[OTP] Sending to ${to} — code: ${otp}`);
+
+  // Priority 1: Gmail SMTP (works for any recipient, no domain needed)
+  if (hasSmtpConfig()) {
+    try {
+      await sendViaSmtp(to, otp);
+      console.info(`[OTP] Delivered via Gmail SMTP to ${to}`);
+      return;
+    } catch (err) {
+      console.error('[Email] Gmail SMTP failed:', (err as Error).message);
+      // fall through to Resend
+    }
   }
 
-  console.info(`[OTP] Email delivered to ${to}`);
+  // Priority 2: Resend (requires verified domain for arbitrary recipients)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      await sendViaResend(to, otp);
+      console.info(`[OTP] Delivered via Resend to ${to}`);
+      return;
+    } catch (err) {
+      console.error('[Email] Resend failed:', (err as Error).message);
+      // fall through — OTP is in DB, user can still log in
+    }
+  }
+
+  // No transport configured — OTP is in Render logs, user must retrieve it there
+  if (!hasSmtpConfig() && !process.env.RESEND_API_KEY) {
+    console.warn('[OTP] No email transport configured. Set SMTP_USER+SMTP_APP_PASSWORD (Gmail) or RESEND_API_KEY.');
+  }
 }
