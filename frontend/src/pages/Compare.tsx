@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { properties as propertiesApi } from '@/services/api';
 import { formatRupeesCr } from '@/lib/utils';
 import { Skeleton } from '@/components/shared/Skeleton';
-import type { Property, CompareResult, PropertyRating } from '@/types';
+import type { Property, PropertyRating } from '@/types';
 
 // ── Score badge ───────────────────────────────────────────────────────────────
 
