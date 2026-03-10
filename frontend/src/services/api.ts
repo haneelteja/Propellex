@@ -33,27 +33,48 @@ function getToken(): string | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { state?: { token?: string } };
     return parsed?.state?.token ?? null;
-  } catch {
+  } catch (err) {
+    console.warn('[API] Failed to parse auth token from localStorage:', err);
     return null;
   }
+}
+
+function authHeaders(): Record<string, string> {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 async function request<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const token = getToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
+    ...authHeaders(),
   };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
-  const json = (await res.json()) as ApiResponse<T>;
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  } catch (err) {
+    // Network-level failure (no connection, DNS, CORS preflight)
+    const msg = (err as Error).message ?? String(err);
+    console.error(`[API] Network error on ${path}:`, msg);
+    throw new ApiError(0, 'Cannot reach the server — check your connection');
+  }
+
+  // Parse response body safely — server may return HTML on 502/503
+  let json: ApiResponse<T>;
+  try {
+    json = (await res.json()) as ApiResponse<T>;
+  } catch {
+    console.error(`[API] Non-JSON response from ${path} — status ${res.status}`);
+    throw new ApiError(res.status, `Server error (${res.status}) — please try again`);
+  }
 
   if (!res.ok || !json.success) {
-    throw new ApiError(res.status, json.error ?? 'Request failed');
+    throw new ApiError(res.status, json.error ?? `Request failed (${res.status})`);
   }
   return json.data;
 }
@@ -95,22 +116,34 @@ function buildQuery(filters: Partial<PropertyFilters> & { page?: number; limit?:
 }
 
 export const properties = {
-  search: (filters: Partial<PropertyFilters> & { page?: number; limit?: number }) =>
-    fetch(`${BASE_URL}/api/properties${buildQuery(filters)}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
-      },
-    })
-      .then((r) => r.json())
-      .then((j: PaginatedResponse<Property>) => j),
+  search: async (filters: Partial<PropertyFilters> & { page?: number; limit?: number }): Promise<PaginatedResponse<Property>> => {
+    let res: Response;
+    try {
+      res = await fetch(`${BASE_URL}/api/properties${buildQuery(filters)}`, {
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      });
+    } catch (err) {
+      console.error('[API] properties.search network error:', (err as Error).message);
+      throw new ApiError(0, 'Cannot reach the server — check your connection');
+    }
+
+    let json: PaginatedResponse<Property>;
+    try {
+      json = await res.json() as PaginatedResponse<Property>;
+    } catch {
+      console.error(`[API] properties.search non-JSON response — status ${res.status}`);
+      throw new ApiError(res.status, `Server error (${res.status}) — please try again`);
+    }
+
+    if (!res.ok) throw new ApiError(res.status, (json as unknown as ApiResponse<Property>).error ?? `Search failed (${res.status})`);
+    return json;
+  },
 
   getById: (id: string) => request<Property>(`/api/properties/${id}`),
 
   getAnalysis: (id: string) =>
     request<InvestmentAnalysis>(`/api/properties/${id}/analysis`),
 
-  // Agency manager: create / update / delete
   create: (data: AgencyPropertyForm) =>
     request<Property>('/api/properties', {
       method: 'POST',

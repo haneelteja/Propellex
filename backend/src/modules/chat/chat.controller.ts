@@ -51,7 +51,13 @@ export async function handleChat(req: Request, res: Response): Promise<void> {
     });
 
     if (!aiRes.ok || !aiRes.body) {
-      res.write(`data: ${JSON.stringify({ error: 'AI service unavailable' })}\n\n`);
+      const status = aiRes.status;
+      const isHtml = aiRes.headers.get('content-type')?.includes('text/html');
+      const detail = isHtml
+        ? `HTTP ${status} (AI service unavailable)`
+        : await aiRes.text().catch(() => `HTTP ${status}`);
+      console.error(`[Chat] AI service error — ${detail}`);
+      res.write(`data: ${JSON.stringify({ error: `AI service unavailable (${status})` })}\n\n`);
       res.end();
       return;
     }
@@ -60,15 +66,25 @@ export async function handleChat(req: Request, res: Response): Promise<void> {
     const reader = aiRes.body.getReader();
     const decoder = new TextDecoder();
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      res.write(decoder.decode(value, { stream: true }));
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        res.write(decoder.decode(value, { stream: true }));
+      }
+    } catch (streamErr) {
+      console.error('[Chat] Stream read error:', (streamErr as Error).message);
+      res.write(`data: ${JSON.stringify({ error: 'Stream interrupted — please try again' })}\n\n`);
+    } finally {
+      // Always release the reader, even on error
+      reader.cancel().catch(() => {});
+      res.end();
     }
-
-    res.end();
   } catch (err) {
-    res.write(`data: ${JSON.stringify({ error: 'Chat service error' })}\n\n`);
+    const msg = (err as Error).message ?? String(err);
+    const isNetwork = msg.includes('ECONNREFUSED') || msg.includes('ETIMEDOUT') || msg.includes('fetch failed');
+    console.error('[Chat] Unexpected error:', msg);
+    res.write(`data: ${JSON.stringify({ error: isNetwork ? 'Could not reach AI service — it may be starting up, try again in 30s' : 'Chat service error' })}\n\n`);
     res.end();
   }
 }

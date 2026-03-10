@@ -1,5 +1,6 @@
 import anthropic
 import json
+import traceback
 from typing import List, Dict, Any, AsyncGenerator
 
 client = anthropic.AsyncAnthropic()
@@ -36,21 +37,44 @@ async def stream_chat(
     property_context: List[Dict[str, Any]],
 ) -> AsyncGenerator[str, None]:
     """Stream Claude response as SSE data chunks."""
-    context_str = json.dumps(property_context, indent=2, default=str)
+    try:
+        context_str = json.dumps(property_context, indent=2, default=str)
+    except Exception as e:
+        print(f"[Claude] Failed to serialize property context: {e}")
+        context_str = "[]"
+
     system = SYSTEM_PROMPT.replace("{property_context}", context_str)
 
-    messages = [
-        {"role": m["role"], "content": m["content"]}
-        for m in conversation_history[-10:]  # last 10 turns
-    ] + [{"role": "user", "content": message}]
+    # Sanitise history — only keep valid role/content pairs
+    messages = []
+    for m in conversation_history[-10:]:
+        role = m.get("role", "")
+        content = m.get("content", "")
+        if role in ("user", "assistant") and isinstance(content, str) and content.strip():
+            messages.append({"role": role, "content": content})
+    messages.append({"role": "user", "content": message})
 
-    async with client.messages.stream(
-        model="claude-sonnet-4-20250514",
-        max_tokens=1024,
-        system=system,
-        messages=messages,
-    ) as stream:
-        async for text in stream.text_stream:
-            yield f"data: {json.dumps({'text': text})}\n\n"
+    try:
+        async with client.messages.stream(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            system=system,
+            messages=messages,
+        ) as stream:
+            async for text in stream.text_stream:
+                yield f"data: {json.dumps({'text': text})}\n\n"
+    except anthropic.AuthenticationError:
+        print("[Claude] AuthenticationError — check ANTHROPIC_API_KEY")
+        yield f"data: {json.dumps({'error': 'AI authentication failed — contact support'})}\n\n"
+    except anthropic.RateLimitError:
+        print("[Claude] RateLimitError — Anthropic quota exceeded")
+        yield f"data: {json.dumps({'error': 'AI rate limit reached — please try again in a moment'})}\n\n"
+    except anthropic.APIStatusError as e:
+        print(f"[Claude] APIStatusError {e.status_code}: {e.message}")
+        yield f"data: {json.dumps({'error': f'AI service error ({e.status_code})'})}\n\n"
+    except Exception as e:
+        print(f"[Claude] Unexpected stream error: {type(e).__name__}: {e}")
+        traceback.print_exc()
+        yield f"data: {json.dumps({'error': 'Unexpected AI error — please try again'})}\n\n"
 
     yield "data: [DONE]\n\n"

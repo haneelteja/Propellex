@@ -4,6 +4,7 @@ from typing import Optional
 import google.generativeai as genai
 import os
 import json
+import traceback
 
 router = APIRouter(prefix="/analyze", tags=["analysis"])
 
@@ -96,9 +97,12 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, no extra 
         data = json.loads(text)
         return PropertyAnalysis(**data)
     except json.JSONDecodeError as e:
-        raise HTTPException(status_code=502, detail=f"AI returned invalid JSON: {e}")
+        print(f"[Analysis] Gemini returned invalid JSON for property {req.id}: {e}\nRaw: {text[:300]}")
+        raise HTTPException(status_code=502, detail="AI returned malformed response — will retry on next analysis cycle")
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"AI service error: {e}")
+        print(f"[Analysis] Unexpected error for property {req.id}: {type(e).__name__}: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=502, detail=f"AI analysis failed ({type(e).__name__})")
 
 
 # ── Compare endpoint ──────────────────────────────────────────────────────────
@@ -175,6 +179,9 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, no extra 
         data = json.loads(text)
         return CompareResult(**data)
     except json.JSONDecodeError as e:
-        raise HTTPException(status_code=502, detail=f"AI returned invalid JSON: {e}")
+        print(f"[Compare] Gemini returned invalid JSON: {e}\nRaw: {text[:300]}")
+        raise HTTPException(status_code=502, detail="AI returned malformed comparison — please try again")
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"AI service error: {e}")
+        print(f"[Compare] Unexpected error: {type(e).__name__}: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=502, detail=f"AI comparison failed ({type(e).__name__})")

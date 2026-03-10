@@ -1,5 +1,6 @@
 import asyncpg
 import os
+import traceback
 from typing import List, Dict, Any
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://propellex:propellex@localhost:5432/propellex")
@@ -7,8 +8,12 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://propellex:propellex@local
 # Neon.tech requires SSL in production
 _ssl = "require" if os.getenv("NODE_ENV") == "production" or "neon.tech" in DATABASE_URL else None
 
-async def _connect():
-    return await asyncpg.connect(DATABASE_URL, ssl=_ssl)
+async def _connect() -> asyncpg.Connection:
+    try:
+        return await asyncpg.connect(DATABASE_URL, ssl=_ssl)
+    except Exception as e:
+        print(f"[RAG] DB connection failed: {type(e).__name__}: {e}")
+        raise
 
 async def get_relevant_properties(query: str, limit: int = 20) -> List[Dict[str, Any]]:
     """Retrieve top-N properties from DB matching the query for RAG context."""
@@ -50,6 +55,10 @@ async def get_relevant_properties(query: str, limit: int = 20) -> List[Dict[str,
             }
             for r in rows
         ]
+    except Exception as e:
+        print(f"[RAG] get_relevant_properties query failed: {type(e).__name__}: {e}")
+        traceback.print_exc()
+        raise
     finally:
         await conn.close()
 
@@ -70,5 +79,9 @@ async def get_all_active_properties(limit: int = 200) -> List[Dict[str, Any]]:
             limit
         )
         return [dict(r) for r in rows]
+    except Exception as e:
+        print(f"[RAG] get_all_active_properties query failed: {type(e).__name__}: {e}")
+        traceback.print_exc()
+        raise
     finally:
         await conn.close()

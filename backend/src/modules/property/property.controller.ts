@@ -11,7 +11,7 @@ import {
   comparePropertiesWithAI,
   type PropertyInput,
 } from './property.service';
-import { ok, paginated } from '../../utils/response';
+import { ok, paginated, AppError } from '../../utils/response';
 import { queryOne } from '../../config/db';
 
 export async function handleSearch(req: Request, res: Response): Promise<void> {
@@ -58,8 +58,7 @@ async function getAgencyForUser(userId: string): Promise<{ id: string } | null> 
 }
 
 export async function handleCreate(req: Request, res: Response): Promise<void> {
-  if (!req.user) { res.status(401).json({ success: false, error: 'Authentication required' }); return; }
-  // Admin/manager can pass agency_id in body or use their linked agency
+  if (!req.user) throw new AppError('Authentication required', 401);
   const agencyRow = await getAgencyForUser(req.user.userId);
   const body = req.body as PropertyInput & { agency_id?: string };
   const agencyId = agencyRow?.id ?? body.agency_id ?? null;
@@ -68,16 +67,15 @@ export async function handleCreate(req: Request, res: Response): Promise<void> {
 }
 
 export async function handleUpdate(req: Request, res: Response): Promise<void> {
-  if (!req.user) { res.status(401).json({ success: false, error: 'Authentication required' }); return; }
+  if (!req.user) throw new AppError('Authentication required', 401);
   const agencyRow = await getAgencyForUser(req.user.userId);
   const agencyId = agencyRow?.id ?? null;
-  // Manager can edit any property; admin restricted to their agency's properties
   const property = await updateProperty(req.params.id!, agencyId, req.user.role ?? 'client', req.body as Partial<PropertyInput>);
   ok(res, property);
 }
 
 export async function handleDelete(req: Request, res: Response): Promise<void> {
-  if (!req.user) { res.status(401).json({ success: false, error: 'Authentication required' }); return; }
+  if (!req.user) throw new AppError('Authentication required', 401);
   const agencyRow = await getAgencyForUser(req.user.userId);
   const agencyId = agencyRow?.id ?? null;
   await deleteProperty(req.params.id!, agencyId, req.user.role ?? 'client');
@@ -93,9 +91,8 @@ export async function handleAiAnalyze(req: Request, res: Response): Promise<void
  *  and return the extracted lat/lng coordinates. */
 export async function handleResolveMapsUrl(req: Request, res: Response): Promise<void> {
   const { url } = req.body as { url?: string };
-  if (!url) { res.status(400).json({ success: false, error: 'url is required' }); return; }
+  if (!url) throw new AppError('url is required', 400);
 
-  // Follow all redirects server-side (no CORS restrictions here)
   let finalUrl: string;
   try {
     const response = await fetch(url, {
@@ -103,9 +100,9 @@ export async function handleResolveMapsUrl(req: Request, res: Response): Promise
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Propellex/1.0)' },
     });
     finalUrl = response.url;
-  } catch {
-    res.status(400).json({ success: false, error: 'Could not resolve the URL' });
-    return;
+  } catch (err) {
+    console.error('[Maps] URL resolution failed:', (err as Error).message);
+    throw new AppError('Could not resolve the URL — check it is a valid Google Maps link', 400);
   }
 
   // Try all known Google Maps coordinate formats
@@ -118,14 +115,13 @@ export async function handleResolveMapsUrl(req: Request, res: Response): Promise
   const llMatch = finalUrl.match(/[?&]ll=(-?\d+\.?\d+),(-?\d+\.?\d+)/);
   if (llMatch) { ok(res, { lat: parseFloat(llMatch[1]!), lng: parseFloat(llMatch[2]!) }); return; }
 
-  res.status(400).json({ success: false, error: 'Could not extract coordinates from the URL' });
+  throw new AppError('Could not extract coordinates from the URL — ensure the link includes a location pin', 400);
 }
 
 export async function handleCompare(req: Request, res: Response): Promise<void> {
   const { ids } = req.body as { ids?: unknown };
   if (!Array.isArray(ids) || ids.length < 2 || ids.length > 4) {
-    res.status(400).json({ success: false, error: 'Provide an array of 2–4 property IDs' });
-    return;
+    throw new AppError('Provide an array of 2–4 property IDs', 400);
   }
   const result = await comparePropertiesWithAI(ids as string[]);
   ok(res, result);

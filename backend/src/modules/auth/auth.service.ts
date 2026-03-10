@@ -97,8 +97,9 @@ export async function verifyOTP(
     );
     console.info('[Auth] SELECT user result:', user ? user.id : 'not found');
   } catch (e) {
-    console.error('[Auth] SELECT user failed:', e);
-    throw new AppError('Database error (select)', 500);
+    const err = e as Error & { code?: string };
+    console.error('[Auth] SELECT user failed — code:', err.code, '| message:', err.message);
+    throw new AppError(`Database error looking up user (${err.code ?? err.name})`, 500);
   }
 
   const isNew = !user;
@@ -114,8 +115,9 @@ export async function verifyOTP(
       );
       console.info('[Auth] INSERT user result:', user ? user.id : 'null');
     } catch (e) {
-      console.error('[Auth] INSERT user failed:', e);
-      throw new AppError('Database error (insert)', 500);
+      const err = e as Error & { code?: string };
+      console.error('[Auth] INSERT user failed — code:', err.code, '| message:', err.message);
+      throw new AppError(`Database error creating user (${err.code ?? err.name})`, 500);
     }
   }
 

@@ -25,21 +25,12 @@ export function useChat() {
     async (text: string) => {
       if (!text.trim() || isStreaming || isAtLimit) return;
 
-      const userMsg = {
-        role: 'user' as const,
-        content: text.trim(),
-        timestamp: new Date().toISOString(),
-      };
-      addMessage(userMsg);
-
-      const assistantMsg = {
-        role: 'assistant' as const,
-        content: '',
-        timestamp: new Date().toISOString(),
-      };
-      addMessage(assistantMsg);
+      addMessage({ role: 'user', content: text.trim(), timestamp: new Date().toISOString() });
+      addMessage({ role: 'assistant', content: '', timestamp: new Date().toISOString() });
       setStreaming(true);
       incrementCount();
+
+      let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
 
       try {
         const res = await fetch(`${AI_BASE}/api/chat`, {
@@ -54,9 +45,18 @@ export function useChat() {
           }),
         });
 
-        if (!res.ok || !res.body) throw new Error('Stream failed');
+        if (!res.ok || !res.body) {
+          const status = res.status;
+          const errMsg =
+            status === 429 ? 'Daily chat limit reached — upgrade to Premium for unlimited' :
+            status === 401 ? 'Session expired — please log in again' :
+            status >= 500 ? 'AI service is starting up — please try again in 30s' :
+            `Request failed (${status})`;
+          appendToLast(`\n\n[${errMsg}]`);
+          return;
+        }
 
-        const reader = res.body.getReader();
+        reader = res.body.getReader();
         const decoder = new TextDecoder();
 
         while (true) {
@@ -64,36 +64,34 @@ export function useChat() {
           if (done) break;
 
           const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
+          for (const line of chunk.split('\n')) {
             if (!line.startsWith('data: ')) continue;
             const data = line.slice(6).trim();
             if (data === '[DONE]') break;
             try {
-              const parsed = JSON.parse(data) as { text?: string };
-              if (parsed.text) appendToLast(parsed.text);
+              const parsed = JSON.parse(data) as { text?: string; error?: string };
+              if (parsed.error) {
+                appendToLast(`\n\n[${parsed.error}]`);
+              } else if (parsed.text) {
+                appendToLast(parsed.text);
+              }
             } catch {
-              // Skip malformed SSE lines
+              // Skip malformed SSE lines silently
             }
           }
         }
       } catch (err) {
-        appendToLast('\n\n[Error: could not connect to AI service]');
-        console.error('[Chat] Stream error:', err);
+        const msg = (err as Error).message ?? String(err);
+        const isNetwork = msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('ECONNREFUSED');
+        console.error('[Chat] Stream error:', msg);
+        appendToLast(`\n\n[${isNetwork ? 'No connection — check your internet and try again' : 'Unexpected error — please try again'}]`);
       } finally {
+        if (reader) reader.cancel().catch(() => {});
         setStreaming(false);
       }
     },
     [messages, isStreaming, isAtLimit, token, addMessage, appendToLast, setStreaming, incrementCount],
   );
 
-  return {
-    messages,
-    isStreaming,
-    dailyCount,
-    isAtLimit,
-    freeLimit: FREE_LIMIT,
-    sendMessage,
-  };
+  return { messages, isStreaming, dailyCount, isAtLimit, freeLimit: FREE_LIMIT, sendMessage };
 }
