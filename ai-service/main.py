@@ -1,13 +1,18 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import chat, recommendations, analysis
-import os
 
 app = FastAPI(title="Propellex AI Service", version="1.0.0")
 
+# Accept any origin (AI service is called server-to-server, never from the browser)
+# but lock down to known patterns if ALLOWED_ORIGINS is set.
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "*")
+_origins = [o.strip() for o in _raw_origins.split(",")] if _raw_origins != "*" else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001", "http://localhost:5173"],
+    allow_origins=_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
