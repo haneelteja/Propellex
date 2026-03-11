@@ -1,17 +1,20 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-import google.generativeai as genai
+from google import genai
 import os
 import json
 import traceback
 
 router = APIRouter(prefix="/analyze", tags=["analysis"])
 
-# Configure Gemini with API key from environment
-_api_key = os.getenv("GEMINI_API_KEY")
-if _api_key:
-    genai.configure(api_key=_api_key)
+_GEMINI_MODEL = "gemini-2.0-flash"
+
+def _gemini_client() -> genai.Client:
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY not configured")
+    return genai.Client(api_key=api_key)
 
 
 class PropertyAnalysisRequest(BaseModel):
@@ -86,8 +89,8 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, no extra 
 }}"""
 
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = await model.generate_content_async(prompt)
+        client = _gemini_client()
+        response = await client.aio.models.generate_content(model=_GEMINI_MODEL, contents=prompt)
         text = response.text.strip()
 
         # Strip accidental markdown fences
@@ -169,8 +172,8 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, no extra 
 }}"""
 
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = await model.generate_content_async(prompt)
+        client = _gemini_client()
+        response = await client.aio.models.generate_content(model=_GEMINI_MODEL, contents=prompt)
         text = response.text.strip()
 
         if text.startswith("```"):
