@@ -49,14 +49,14 @@ export async function runDailyAnalysis(): Promise<void> {
     await sleep(DELAY_BETWEEN_PROPERTIES_MS);
   }
 
-  console.info(`[Cron] Daily analysis complete — ${success} succeeded, ${failed} failed`);
+  console.info(`[Cron] Analysis complete — ${success} succeeded, ${failed} failed`);
 }
 
-/** Schedule daily analysis using native Node.js timers.
- *  Runs once at startup (after INITIAL_DELAY_MS) then every 24 hours. */
+/** Schedule analysis using native Node.js timers.
+ *  Runs once at startup (after INITIAL_DELAY_MS) then every 6 hours. */
 export function scheduleDailyAnalysis() {
-  const INITIAL_DELAY_MS = 60_000;        // 1 minute after startup
-  const INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+  const INITIAL_DELAY_MS = 60_000;           // 1 minute after startup
+  const INTERVAL_MS = 6 * 60 * 60 * 1000;   // every 6 hours
 
   setTimeout(() => {
     runDailyAnalysis().catch((err) => console.error('[Cron] Unhandled error:', err));
@@ -65,5 +65,5 @@ export function scheduleDailyAnalysis() {
     }, INTERVAL_MS);
   }, INITIAL_DELAY_MS);
 
-  console.info('[Cron] Daily property analysis scheduled (first run in 1 min)');
+  console.info('[Cron] Property analysis scheduled (first run in 1 min, then every 6 hours)');
 }
