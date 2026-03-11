@@ -84,6 +84,9 @@ async function sendViaSmtp(to: string, otp: string): Promise<void> {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
+    connectionTimeout: 5_000,  // 5s to establish TCP connection
+    greetingTimeout: 5_000,    // 5s to receive SMTP server greeting
+    socketTimeout: 10_000,     // 10s max for any SMTP command
   });
 
   const fromName = process.env.SMTP_FROM_NAME ?? 'Propellex';

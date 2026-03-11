@@ -72,8 +72,13 @@ function generateOTP(): string {
 
 export async function sendOTP(email: string): Promise<void> {
   const otp = generateOTP();
-  await setOTP(email, otp);
-  await sendOtpEmail(email, otp);
+  await setOTP(email, otp); // OTP saved — safe to return 200 now
+
+  // Fire email in background so the API responds immediately.
+  // The OTP is already in the DB; email delivery is best-effort.
+  sendOtpEmail(email, otp).catch((err: unknown) =>
+    console.error('[OTP] Background email send failed:', (err as Error).message),
+  );
 }
 
 export async function verifyOTP(
