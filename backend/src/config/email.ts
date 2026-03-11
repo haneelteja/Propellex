@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 
 // ── HTML template ─────────────────────────────────────────────────────────────
 
+
 function otpHtml(otp: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -61,11 +62,46 @@ function otpHtml(otp: string): string {
 </html>`;
 }
 
-// ── Generic SMTP (Nodemailer) ─────────────────────────────────────────────────
-// Works with any SMTP relay — recommended: Brevo (smtp-relay.brevo.com)
-// Brevo free tier: 300 emails/day, no custom domain needed, any recipient.
+// ── Brevo HTTP API ────────────────────────────────────────────────────────────
+// Uses port 443 (HTTPS) — never blocked by cloud providers like Render.
+// Brevo free tier: 300 emails/day, any recipient, no verified domain needed.
 //
 // Set these in Render env:
+//   BREVO_API_KEY=your-brevo-api-key   (Brevo → Settings → API Keys → Create)
+//   BREVO_SENDER_EMAIL=your-verified-sender@yourdomain.com  (or your Brevo login)
+
+async function sendViaBrevoApi(to: string, otp: string): Promise<void> {
+  const apiKey = process.env.BREVO_API_KEY!;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL ?? process.env.SMTP_USER!;
+  const senderName = process.env.SMTP_FROM_NAME ?? 'Propellex';
+
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': apiKey,
+      'content-type': 'application/json',
+      'accept': 'application/json',
+    },
+    body: JSON.stringify({
+      sender: { name: senderName, email: senderEmail },
+      to: [{ email: to }],
+      subject: `${otp} — your Propellex login code`,
+      htmlContent: otpHtml(otp),
+    }),
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Brevo API ${res.status}: ${body.slice(0, 200)}`);
+  }
+}
+
+// ── Generic SMTP (Nodemailer) ─────────────────────────────────────────────────
+// Fallback option — Render blocks outbound port 587, so this only works in
+// local dev or on providers that allow SMTP egress.
+//
+// Set these in Render env (optional — Brevo API is preferred):
 //   SMTP_HOST=smtp-relay.brevo.com
 //   SMTP_PORT=587
 //   SMTP_USER=your-brevo-login-email
@@ -126,7 +162,19 @@ export async function sendOtpEmail(to: string, otp: string): Promise<void> {
   // Always log — OTP is visible in Render logs as a guaranteed fallback
   console.info(`[OTP] Sending to ${to} — code: ${otp}`);
 
-  // Priority 1: Gmail SMTP (works for any recipient, no domain needed)
+  // Priority 1: Brevo HTTP API (port 443 — works on Render, no SMTP egress needed)
+  if (process.env.BREVO_API_KEY) {
+    try {
+      await sendViaBrevoApi(to, otp);
+      console.info(`[OTP] Delivered via Brevo API to ${to}`);
+      return;
+    } catch (err) {
+      console.error('[Email] Brevo API failed:', (err as Error).message);
+      // fall through to SMTP
+    }
+  }
+
+  // Priority 2: Generic SMTP (works locally; Render blocks port 587)
   if (hasSmtpConfig()) {
     try {
       await sendViaSmtp(to, otp);
@@ -138,7 +186,7 @@ export async function sendOtpEmail(to: string, otp: string): Promise<void> {
     }
   }
 
-  // Priority 2: Resend (requires verified domain for arbitrary recipients)
+  // Priority 3: Resend (requires verified domain for arbitrary recipients)
   if (process.env.RESEND_API_KEY) {
     try {
       await sendViaResend(to, otp);
@@ -146,12 +194,11 @@ export async function sendOtpEmail(to: string, otp: string): Promise<void> {
       return;
     } catch (err) {
       console.error('[Email] Resend failed:', (err as Error).message);
-      // fall through — OTP is in DB, user can still log in
     }
   }
 
   // No transport configured — OTP is in Render logs, user must retrieve it there
-  if (!hasSmtpConfig() && !process.env.RESEND_API_KEY) {
-    console.warn('[OTP] No email transport configured. Set SMTP_HOST+SMTP_USER+SMTP_PASS (e.g. Brevo) or RESEND_API_KEY.');
+  if (!process.env.BREVO_API_KEY && !hasSmtpConfig() && !process.env.RESEND_API_KEY) {
+    console.warn('[OTP] No email transport configured. Set BREVO_API_KEY (recommended) or SMTP_HOST+SMTP_USER+SMTP_PASS.');
   }
 }
