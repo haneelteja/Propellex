@@ -413,8 +413,15 @@ export async function getPropertiesNeedingAnalysis(): Promise<string[]> {
   const rows = await query<{ id: string }>(
     `SELECT id FROM properties
      WHERE is_active = true
-       AND (ai_analyzed_at IS NULL OR ai_analyzed_at < NOW() - INTERVAL '23 hours')
-     ORDER BY ai_analyzed_at ASC NULLS FIRST`,
+       AND (
+         (analysis_priority = 'high'   AND (ai_analyzed_at IS NULL OR ai_analyzed_at < NOW() - INTERVAL '6 hours'))
+      OR (analysis_priority = 'medium' AND (ai_analyzed_at IS NULL OR ai_analyzed_at < NOW() - INTERVAL '1 day'))
+      OR (analysis_priority = 'low'    AND (ai_analyzed_at IS NULL OR ai_analyzed_at < NOW() - INTERVAL '4 days'))
+      OR (analysis_priority IS NULL    AND (ai_analyzed_at IS NULL OR ai_analyzed_at < NOW() - INTERVAL '1 day'))
+       )
+     ORDER BY
+       CASE analysis_priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
+       ai_analyzed_at ASC NULLS FIRST`,
   );
   return rows.map((r) => r.id);
 }
@@ -471,8 +478,16 @@ export async function analyzePropertyWithAI(id: string): Promise<void> {
   }
 
   const analysis = await response.json() as Record<string, unknown>;
+  const aiPriority = analysis.analysis_priority;
+  const validPriority = (aiPriority === 'high' || aiPriority === 'medium' || aiPriority === 'low')
+    ? aiPriority : null;
+
   await query(
-    'UPDATE properties SET ai_analysis = $1, ai_analyzed_at = NOW() WHERE id = $2',
-    [JSON.stringify(analysis), id],
+    `UPDATE properties
+     SET ai_analysis = $1,
+         ai_analyzed_at = NOW(),
+         analysis_priority = COALESCE($3, analysis_priority)
+     WHERE id = $2`,
+    [JSON.stringify(analysis), id, validPriority],
   );
 }

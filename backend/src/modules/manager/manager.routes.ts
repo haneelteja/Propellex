@@ -7,6 +7,7 @@ import {
   handleDeactivateAdmin,
   handleReactivateAdmin,
   handleListClients,
+  handleSetPropertyPriority,
 } from './manager.controller';
 
 export const managerRouter = Router();
@@ -19,3 +20,4 @@ managerRouter.post('/admins', asyncHandler(handleCreateAdmin));
 managerRouter.delete('/admins/:id', asyncHandler(handleDeactivateAdmin));
 managerRouter.patch('/admins/:id/reactivate', asyncHandler(handleReactivateAdmin));
 managerRouter.get('/clients', asyncHandler(handleListClients));
+managerRouter.patch('/properties/:id/priority', asyncHandler(handleSetPropertyPriority));

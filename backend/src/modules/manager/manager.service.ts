@@ -74,6 +74,21 @@ export async function reactivateAdmin(adminId: string): Promise<void> {
   if (!result) throw new AppError('Admin not found', 404);
 }
 
+/** Set analysis_priority on a property (manager override) */
+export async function setPropertyPriority(
+  propertyId: string,
+  priority: 'high' | 'medium' | 'low',
+): Promise<{ id: string; analysis_priority: string }> {
+  const result = await queryOne<{ id: string; analysis_priority: string }>(
+    `UPDATE properties SET analysis_priority = $1
+     WHERE id = $2 AND is_active = true
+     RETURNING id, analysis_priority`,
+    [priority, propertyId],
+  );
+  if (!result) throw new AppError('Property not found', 404);
+  return result;
+}
+
 /** List all clients with optional search */
 export async function listClients(search?: string): Promise<AdminUser[]> {
   return query<AdminUser>(

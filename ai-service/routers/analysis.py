@@ -48,6 +48,7 @@ class PropertyAnalysis(BaseModel):
     risk_factors: list[str]
     best_suited_for: str
     overall_score: int  # 1–10
+    analysis_priority: str  # 'high' | 'medium' | 'low'
 
 
 @router.post("/property", response_model=PropertyAnalysis)
@@ -86,7 +87,8 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, no extra 
   "market_insights": "<1-2 sentences about the Hyderabad micro-market>",
   "risk_factors": ["<risk 1>", "<risk 2>"],
   "best_suited_for": "<type of buyer this property suits best>",
-  "overall_score": <integer 1 to 10>
+  "overall_score": <integer 1 to 10>,
+  "analysis_priority": "<high|medium|low — high for premium/rapidly-changing properties or score≥8, medium for standard investments score 5-7, low for stable/slow-moving assets score≤4>"
 }}"""
 
     try:
