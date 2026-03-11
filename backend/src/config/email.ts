@@ -130,10 +130,10 @@ export async function sendOtpEmail(to: string, otp: string): Promise<void> {
   if (hasSmtpConfig()) {
     try {
       await sendViaSmtp(to, otp);
-      console.info(`[OTP] Delivered via Gmail SMTP to ${to}`);
+      console.info(`[OTP] Delivered via SMTP (${process.env.SMTP_HOST}) to ${to}`);
       return;
     } catch (err) {
-      console.error('[Email] Gmail SMTP failed:', (err as Error).message);
+      console.error(`[Email] SMTP failed (host: ${process.env.SMTP_HOST}):`, (err as Error).message);
       // fall through to Resend
     }
   }
