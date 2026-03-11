@@ -414,7 +414,8 @@ export async function getPropertiesNeedingAnalysis(): Promise<string[]> {
     `SELECT id FROM properties
      WHERE is_active = true
        AND (ai_analyzed_at IS NULL OR ai_analyzed_at < NOW() - INTERVAL '23 hours')
-     ORDER BY ai_analyzed_at ASC NULLS FIRST`,
+     ORDER BY ai_analyzed_at ASC NULLS FIRST
+     LIMIT 10`,
   );
   return rows.map((r) => r.id);
 }
