@@ -8,7 +8,7 @@ import traceback
 
 router = APIRouter(prefix="/analyze", tags=["analysis"])
 
-_GEMINI_MODEL = "gemini-2.0-flash"
+_GEMINI_MODEL = "gemini-1.5-flash"
 
 def _gemini_client() -> genai.Client:
     api_key = os.getenv("GEMINI_API_KEY")
