@@ -91,6 +91,21 @@ async function start() {
   // Keep Neon DB alive (ping every 4 min — Neon suspends after ~5 min idle)
   startDbKeepAlive();
 
+  // Keep AI service alive — ping its /health every 10 min from the backend.
+  // The AI service's own self-ping only works when already awake; this wakes
+  // it up after Render's 15-min idle sleep so cron jobs don't hit a cold 502.
+  const aiUrl = process.env.AI_SERVICE_URL;
+  if (aiUrl) {
+    const pingAi = () => {
+      fetch(`${aiUrl}/health`, { signal: AbortSignal.timeout(15_000) })
+        .then((r) => { if (!r.ok) console.warn(`[AI KeepAlive] Unhealthy response: ${r.status}`); })
+        .catch((e: Error) => console.warn(`[AI KeepAlive] Ping failed: ${e.message}`));
+    };
+    // First ping after 3 min (let server fully start), then every 10 min
+    setTimeout(() => { pingAi(); setInterval(pingAi, 10 * 60_000); }, 3 * 60_000);
+    console.info('[AI KeepAlive] Scheduled (first ping in 3 min, then every 10 min)');
+  }
+
   // Start daily AI property analysis job
   scheduleDailyAnalysis();
 
