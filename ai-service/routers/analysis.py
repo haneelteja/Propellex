@@ -8,13 +8,14 @@ import traceback
 
 router = APIRouter(prefix="/analyze", tags=["analysis"])
 
-_GEMINI_MODEL = "gemini-1.5-flash"
+_GEMINI_MODEL = "gemini-2.0-flash"
 
 def _gemini_client() -> genai.Client:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY not configured")
-    return genai.Client(api_key=api_key)
+    # Force v1 — this API key doesn't have v1beta access (default in google-genai SDK)
+    return genai.Client(api_key=api_key, http_options={'api_version': 'v1'})
 
 
 class PropertyAnalysisRequest(BaseModel):
