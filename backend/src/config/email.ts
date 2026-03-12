@@ -72,8 +72,9 @@ function otpHtml(otp: string): string {
 
 async function sendViaBrevoApi(to: string, otp: string): Promise<void> {
   const apiKey = process.env.BREVO_API_KEY!;
-  const senderEmail = process.env.BREVO_SENDER_EMAIL ?? process.env.SMTP_USER!;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL ?? process.env.SMTP_USER ?? 'noreply@propellex.ai';
   const senderName = process.env.SMTP_FROM_NAME ?? 'Propellex';
+  console.info(`[Email] Sending via Brevo API — from: ${senderEmail} → to: ${to}`);
 
   const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
@@ -93,8 +94,10 @@ async function sendViaBrevoApi(to: string, otp: string): Promise<void> {
 
   if (!res.ok) {
     const body = await res.text().catch(() => '');
+    console.error(`[Email] Brevo API rejected (${res.status}) — body: ${body.slice(0, 400)}`);
     throw new Error(`Brevo API ${res.status}: ${body.slice(0, 200)}`);
   }
+  console.info(`[Email] Brevo API accepted (${res.status})`);
 }
 
 // ── Generic SMTP (Nodemailer) ─────────────────────────────────────────────────

@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { connectRedis, closeRedis } from './config/redis';
-import { pool, startDbKeepAlive } from './config/db';
+import { pool, query, startDbKeepAlive } from './config/db';
 import { errorHandler } from './middleware/error';
 import { authRouter } from './modules/auth/auth.routes';
 import { propertyRouter } from './modules/property/property.routes';
@@ -12,6 +12,7 @@ import { recommendationsRouter } from './modules/recommendations/recommendations
 import { chatRouter } from './modules/chat/chat.routes';
 import { managerRouter } from './modules/manager/manager.routes';
 import { scheduleDailyAnalysis } from './jobs/analyzeProperties';
+import { markOtpTableReady } from './modules/auth/auth.service';
 
 const app = express();
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
@@ -69,11 +70,22 @@ async function start() {
     console.warn('[Server] Redis unavailable — freemium limits disabled:', (err as Error).message);
   }
 
-  // Test DB connection at startup so we know immediately if Neon is reachable
+  // Test DB connection at startup so we know immediately if Neon is reachable.
+  // Using query() instead of pool.connect() so withRetry() handles Neon cold-starts —
+  // this warms up the pool before any user request arrives.
   try {
-    const client = await pool.connect();
+    await query('SELECT 1');
     console.info('[DB] Startup connection test: SUCCESS');
-    client.release();
+    // Pre-create the OTP table so the first /auth/otp request skips the DDL round-trip
+    await query(`
+      CREATE TABLE IF NOT EXISTS otp_codes (
+        email TEXT PRIMARY KEY,
+        code TEXT NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL
+      )
+    `);
+    markOtpTableReady();
+    console.info('[DB] OTP table ready');
   } catch (err: unknown) {
     const e = err as Error & { errors?: Error[]; code?: string };
     console.error('[DB] Startup connection test: FAILED');

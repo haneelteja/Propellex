@@ -29,8 +29,11 @@ interface User {
 
 const OTP_TTL_SECONDS = 600; // 10 minutes
 
-// Ensure otp_codes table exists (runs once on startup path)
+// Ensure otp_codes table exists.
+// Server startup pre-creates the table (server.ts) and calls markOtpTableReady()
+// so the first user request skips this DDL round-trip entirely.
 let otpTableReady = false;
+export function markOtpTableReady() { otpTableReady = true; }
 async function ensureOtpTable(): Promise<void> {
   if (otpTableReady) return;
   await query(`
