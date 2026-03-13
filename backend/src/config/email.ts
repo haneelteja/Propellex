@@ -72,7 +72,10 @@ function otpHtml(otp: string): string {
 
 async function sendViaBrevoApi(to: string, otp: string): Promise<void> {
   const apiKey = process.env.BREVO_API_KEY!;
-  const senderEmail = process.env.BREVO_SENDER_EMAIL ?? process.env.SMTP_USER ?? 'noreply@propellex.ai';
+  // BREVO_SENDER_EMAIL must be a verified sender in Brevo (Senders & IPs).
+  // Falls back to SMTP_USER (a49bc3001@smtp-brevo.com) which Brevo allows for its own domain
+  // but may land in spam — set BREVO_SENDER_EMAIL in Render for better deliverability.
+  const senderEmail = process.env.BREVO_SENDER_EMAIL ?? process.env.SMTP_USER!;
   const senderName = process.env.SMTP_FROM_NAME ?? 'Propellex';
   console.info(`[Email] Sending via Brevo API — from: ${senderEmail} → to: ${to}`);
 
