@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
+import { google } from 'googleapis';
 
 // ── HTML template ─────────────────────────────────────────────────────────────
 
@@ -60,6 +61,53 @@ function otpHtml(otp: string): string {
   </table>
 </body>
 </html>`;
+}
+
+// ── Gmail API (OAuth2) ────────────────────────────────────────────────────────
+// Sends via Gmail's own servers → 100% inbox delivery, never blocked by Render.
+// Required env vars (set in Render):
+//   GMAIL_CLIENT_ID      — Google Cloud Console → APIs → Gmail API → OAuth2 client
+//   GMAIL_CLIENT_SECRET  — same credential
+//   GMAIL_REFRESH_TOKEN  — from OAuth2 Playground (developers.google.com/oauthplayground)
+//   GMAIL_SENDER_EMAIL   — the Gmail address to send from (e.g. pega2023test@gmail.com)
+
+function hasGmailConfig(): boolean {
+  return !!(
+    process.env.GMAIL_CLIENT_ID &&
+    process.env.GMAIL_CLIENT_SECRET &&
+    process.env.GMAIL_REFRESH_TOKEN &&
+    process.env.GMAIL_SENDER_EMAIL
+  );
+}
+
+async function sendViaGmailApi(to: string, otp: string): Promise<void> {
+  const oauth2 = new google.auth.OAuth2(
+    process.env.GMAIL_CLIENT_ID!,
+    process.env.GMAIL_CLIENT_SECRET!,
+    'https://developers.google.com/oauthplayground',
+  );
+  oauth2.setCredentials({ refresh_token: process.env.GMAIL_REFRESH_TOKEN! });
+
+  const gmail = google.gmail({ version: 'v1', auth: oauth2 });
+  const sender = process.env.GMAIL_SENDER_EMAIL!;
+  const senderName = process.env.SMTP_FROM_NAME ?? 'Propellex';
+  const subject = `${otp} — your Propellex login code`;
+
+  // RFC 2822 raw message, base64url-encoded as required by Gmail API
+  const raw = [
+    `From: "${senderName}" <${sender}>`,
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/html; charset=utf-8',
+    '',
+    otpHtml(otp),
+  ].join('\r\n');
+
+  await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: { raw: Buffer.from(raw).toString('base64url') },
+  });
 }
 
 // ── Brevo HTTP API ────────────────────────────────────────────────────────────
@@ -168,7 +216,19 @@ export async function sendOtpEmail(to: string, otp: string): Promise<void> {
   // Always log — OTP is visible in Render logs as a guaranteed fallback
   console.info(`[OTP] Sending to ${to} — code: ${otp}`);
 
-  // Priority 1: Brevo HTTP API (port 443 — works on Render, no SMTP egress needed)
+  // Priority 1: Gmail API (OAuth2 HTTP — sends from Gmail's own servers, perfect deliverability)
+  if (hasGmailConfig()) {
+    try {
+      await sendViaGmailApi(to, otp);
+      console.info(`[OTP] Delivered via Gmail API to ${to}`);
+      return;
+    } catch (err) {
+      console.error('[Email] Gmail API failed:', (err as Error).message);
+      // fall through to Brevo
+    }
+  }
+
+  // Priority 2: Brevo HTTP API (port 443 — works on Render, no SMTP egress needed)
   if (process.env.BREVO_API_KEY) {
     try {
       await sendViaBrevoApi(to, otp);
@@ -180,7 +240,7 @@ export async function sendOtpEmail(to: string, otp: string): Promise<void> {
     }
   }
 
-  // Priority 2: Generic SMTP (works locally; Render blocks port 587)
+  // Priority 3: Generic SMTP (works locally; Render blocks port 587)
   if (hasSmtpConfig()) {
     try {
       await sendViaSmtp(to, otp);
@@ -192,7 +252,7 @@ export async function sendOtpEmail(to: string, otp: string): Promise<void> {
     }
   }
 
-  // Priority 3: Resend (requires verified domain for arbitrary recipients)
+  // Priority 4: Resend (requires verified domain for arbitrary recipients)
   if (process.env.RESEND_API_KEY) {
     try {
       await sendViaResend(to, otp);
