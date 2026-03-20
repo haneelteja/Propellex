@@ -9,20 +9,29 @@ import asyncio
 
 router = APIRouter(prefix="/analyze", tags=["analysis"])
 
-_GEMINI_MODEL = "gemini-2.0-flash"   # gemini-1.5-flash alias not found in v1; 2.0-flash is
+# v1beta is the SDK default and supports gemini-1.5-flash + gemini-2.0-flash on free API keys.
+# v1 stable requires billing-enabled projects for gemini-2.0-flash — causes immediate 429.
+_GEMINI_MODEL = "gemini-2.0-flash"
 
 async def _generate_with_retry(client: genai.Client, model: str, prompt: str, max_retries: int = 3) -> str:
-    """Call Gemini with exponential backoff on 429 rate-limit errors."""
+    """Call Gemini with exponential backoff on 429 / RESOURCE_EXHAUSTED errors."""
     for attempt in range(max_retries):
         try:
             response = await client.aio.models.generate_content(model=model, contents=prompt)
             return response.text.strip()
         except Exception as e:
             err_str = str(e)
-            is_rate_limit = "429" in err_str or "Too Many Requests" in err_str or "RESOURCE_EXHAUSTED" in err_str
+            print(f"[Analysis] Gemini error (attempt {attempt + 1}): {type(e).__name__}: {err_str[:200]}")
+            is_rate_limit = (
+                "429" in err_str
+                or "Too Many Requests" in err_str
+                or "RESOURCE_EXHAUSTED" in err_str
+                or "ResourceExhausted" in err_str
+                or "quota" in err_str.lower()
+            )
             if is_rate_limit and attempt < max_retries - 1:
                 wait_s = 30 * (attempt + 1)  # 30s, 60s
-                print(f"[Analysis] Gemini rate limited — waiting {wait_s}s (attempt {attempt + 1}/{max_retries})")
+                print(f"[Analysis] Rate limited — waiting {wait_s}s before retry {attempt + 2}/{max_retries}")
                 await asyncio.sleep(wait_s)
                 continue
             raise
@@ -33,8 +42,9 @@ def _gemini_client() -> genai.Client:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY not configured")
-    # Force v1 — this API key doesn't have v1beta access (default in google-genai SDK)
-    return genai.Client(api_key=api_key, http_options={'api_version': 'v1'})
+    # Use SDK default (v1beta) — works with free-tier API keys for gemini-2.0-flash.
+    # Do NOT force v1 stable: it requires billing-enabled projects and returns 429 on free keys.
+    return genai.Client(api_key=api_key)
 
 
 class PropertyAnalysisRequest(BaseModel):
