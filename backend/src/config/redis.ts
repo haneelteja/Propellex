@@ -27,8 +27,28 @@ redis.on('error', (err: Error) => {
   }
 });
 
+/** Connect to Redis and wait until it is truly ready (survives Upstash cold-start drops).
+ *  Upstash free-tier pauses databases on inactivity; the first TCP connection is accepted
+ *  then immediately closed while Upstash wakes up. We wait for the 'ready' event (fires
+ *  after ioredis reconnects and the connection is stable) with a 15s timeout. */
 export async function connectRedis(): Promise<void> {
-  await redis.connect();
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      redis.off('ready', onReady);
+      reject(new Error('Redis connection timed out after 15s'));
+    }, 15_000);
+
+    const onReady = () => {
+      clearTimeout(timeout);
+      resolve();
+    };
+
+    redis.once('ready', onReady);
+    // Trigger the connection attempt; errors are handled by retryStrategy + the ready event
+    redis.connect().catch(() => {
+      // Initial connect may throw on Upstash cold-start — retryStrategy reconnects automatically
+    });
+  });
 }
 
 export async function closeRedis(): Promise<void> {

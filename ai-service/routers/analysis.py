@@ -9,9 +9,9 @@ import asyncio
 
 router = APIRouter(prefix="/analyze", tags=["analysis"])
 
-# v1beta is the SDK default and supports gemini-1.5-flash + gemini-2.0-flash on free API keys.
-# v1 stable requires billing-enabled projects for gemini-2.0-flash — causes immediate 429.
-_GEMINI_MODEL = "gemini-2.0-flash"
+# gemini-1.5-flash on v1beta (SDK default) works with free API keys and no billing required.
+# gemini-2.0-flash requires billing-enabled projects even on free tier — causes 429.
+_GEMINI_MODEL = "gemini-1.5-flash"
 
 async def _generate_with_retry(client: genai.Client, model: str, prompt: str, max_retries: int = 3) -> str:
     """Call Gemini with exponential backoff on 429 / RESOURCE_EXHAUSTED errors."""
