@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 
@@ -5,97 +6,176 @@ export function Navbar() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+    setMobileOpen(false);
   };
 
-  const isActive = (path: string) =>
+  const navLinkClass = (path: string) =>
     location.pathname === path
-      ? 'text-gold font-semibold'
-      : 'text-white/80 hover:text-white';
+      ? 'text-primary border-b-2 border-primary-container pb-1 transition-colors duration-300'
+      : 'text-white/60 hover:text-primary transition-colors duration-300';
 
   return (
-    <nav className="bg-navy shadow-lg sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gold rounded-lg flex items-center justify-center">
-              <span className="text-navy font-bold text-sm">P</span>
-            </div>
-            <span className="text-white font-bold text-lg tracking-tight">Propellex</span>
-          </Link>
+    <header className="fixed top-0 w-full z-50 bg-background/70 backdrop-blur-xl shadow-[0_24px_48px_rgba(0,0,0,0.4)]">
+      <div className="flex justify-between items-center px-8 h-20">
+        {/* Brand */}
+        <Link to="/" className="text-2xl font-headline italic text-primary tracking-wide">
+          Propellex
+        </Link>
 
-          {/* Nav links */}
-          {user && (
-            <div className="hidden md:flex items-center gap-6 text-sm">
-              {user.role === 'manager' ? (
-                <>
-                  <Link to="/manager" className={isActive('/manager')}>
-                    User Management
-                  </Link>
-                  <Link to="/agency" className={isActive('/agency')}>
-                    Listings
-                  </Link>
-                </>
-              ) : user.role === 'admin' ? (
-                <Link to="/agency" className={isActive('/agency')}>
-                  Manage Listings
-                </Link>
-              ) : (
-                <>
-                  <Link to="/" className={isActive('/')}>
-                    Home
-                  </Link>
-                  <Link to="/search" className={isActive('/search')}>
-                    Search
-                  </Link>
-                  <Link to="/shortlist" className={isActive('/shortlist')}>
-                    Shortlist
-                  </Link>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Right side */}
-          <div className="flex items-center gap-3">
-            {user ? (
+        {/* Desktop nav links */}
+        {user && (
+          <nav className="hidden md:flex items-center gap-10 font-headline font-light tracking-wide">
+            {user.role === 'manager' ? (
               <>
-                <span className="hidden sm:flex items-center gap-2 text-white/70 text-sm">
-                  {user.name}
-                  {user.role !== 'client' && (
-                    <span className="bg-gold/20 text-gold text-xs px-2 py-0.5 rounded-full font-medium capitalize">
-                      {user.role}
-                    </span>
-                  )}
-                </span>
-                <Link
-                  to="/profile"
-                  className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white text-sm font-semibold"
-                >
-                  {user.name?.[0]?.toUpperCase() ?? 'U'}
+                <Link to="/manager" className={navLinkClass('/manager')}>
+                  User Management
                 </Link>
-                <button
-                  onClick={handleLogout}
-                  className="text-white/70 hover:text-white text-sm transition-colors"
-                >
-                  Sign out
-                </button>
+                <Link to="/agency" className={navLinkClass('/agency')}>
+                  Listings
+                </Link>
               </>
-            ) : (
-              <Link
-                to="/login"
-                className="bg-gold text-navy px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-gold-light transition-colors"
-              >
-                Sign in
+            ) : user.role === 'admin' ? (
+              <Link to="/agency" className={navLinkClass('/agency')}>
+                Manage Listings
               </Link>
+            ) : (
+              <>
+                <Link to="/" className={navLinkClass('/')}>
+                  Portfolio
+                </Link>
+                <Link to="/search" className={navLinkClass('/search')}>
+                  Discover
+                </Link>
+                <Link to="/shortlist" className={navLinkClass('/shortlist')}>
+                  Intelligence
+                </Link>
+              </>
             )}
-          </div>
+          </nav>
+        )}
+
+        {/* Right side actions */}
+        <div className="flex items-center gap-6">
+          {user ? (
+            <>
+              {/* Premium badge for non-free tiers */}
+              {user.subscription_tier !== 'free' && (
+                <span
+                  className="material-symbols-outlined text-white/60 cursor-pointer hover:text-primary transition-colors duration-300"
+                  title={user.subscription_tier}
+                >
+                  workspace_premium
+                </span>
+              )}
+
+              {/* Role chip */}
+              {user.role !== 'client' && (
+                <span className="hidden sm:block bg-primary/10 text-primary text-xs px-3 py-1 font-label font-semibold uppercase tracking-widest border border-primary/20">
+                  {user.role}
+                </span>
+              )}
+
+              {/* Avatar — links to profile */}
+              <Link
+                to="/profile"
+                className="w-9 h-9 bg-primary flex items-center justify-center text-on-primary text-sm font-label font-bold hover:bg-primary-container transition-colors duration-300"
+                title={user.name}
+              >
+                {user.name?.[0]?.toUpperCase() ?? 'U'}
+              </Link>
+
+              {/* Sign out */}
+              <button
+                onClick={handleLogout}
+                className="hidden sm:block text-white/60 hover:text-primary text-sm font-label transition-colors duration-300"
+              >
+                Sign out
+              </button>
+
+              {/* Mobile hamburger */}
+              <button
+                onClick={() => setMobileOpen((v) => !v)}
+                className="md:hidden text-white/60 hover:text-primary transition-colors duration-300"
+                aria-label="Toggle menu"
+              >
+                <span className="material-symbols-outlined">
+                  {mobileOpen ? 'close' : 'menu'}
+                </span>
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/login"
+              className="bg-primary text-on-primary px-5 py-2 text-sm font-label font-semibold uppercase tracking-widest hover:bg-primary-container transition-colors duration-300"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
       </div>
-    </nav>
+
+      {/* Mobile dropdown */}
+      {mobileOpen && user && (
+        <div className="md:hidden bg-surface-container-low border-t border-outline-variant px-8 py-4 flex flex-col gap-4 font-headline font-light tracking-wide">
+          {user.role === 'manager' ? (
+            <>
+              <Link
+                to="/manager"
+                onClick={() => setMobileOpen(false)}
+                className={navLinkClass('/manager')}
+              >
+                User Management
+              </Link>
+              <Link
+                to="/agency"
+                onClick={() => setMobileOpen(false)}
+                className={navLinkClass('/agency')}
+              >
+                Listings
+              </Link>
+            </>
+          ) : user.role === 'admin' ? (
+            <Link
+              to="/agency"
+              onClick={() => setMobileOpen(false)}
+              className={navLinkClass('/agency')}
+            >
+              Manage Listings
+            </Link>
+          ) : (
+            <>
+              <Link to="/" onClick={() => setMobileOpen(false)} className={navLinkClass('/')}>
+                Portfolio
+              </Link>
+              <Link
+                to="/search"
+                onClick={() => setMobileOpen(false)}
+                className={navLinkClass('/search')}
+              >
+                Discover
+              </Link>
+              <Link
+                to="/shortlist"
+                onClick={() => setMobileOpen(false)}
+                className={navLinkClass('/shortlist')}
+              >
+                Intelligence
+              </Link>
+            </>
+          )}
+          <button
+            onClick={handleLogout}
+            className="text-left text-white/60 hover:text-primary text-sm font-label transition-colors duration-300"
+          >
+            Sign out
+          </button>
+        </div>
+      )}
+    </header>
   );
 }

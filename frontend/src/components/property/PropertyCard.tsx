@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Badge } from '@/components/shared/Badge';
-import { RERABadge } from './RERABadge';
 import { formatRupeesCr } from '@/lib/utils';
-import type { Property, ScoredProperty } from '@/types';
+import type { Property, ScoredProperty, ReraStatus } from '@/types';
 
 interface PropertyCardProps {
   property: Property | ScoredProperty;
@@ -18,6 +16,32 @@ function isScored(p: Property | ScoredProperty): p is ScoredProperty {
   return 'match_score' in p;
 }
 
+// Inline RERA badge styled for the Sovereign design system
+function ReraChip({ status }: { status: ReraStatus }) {
+  if (status === 'verified') {
+    return (
+      <span className="inline-flex items-center gap-1 bg-secondary-container text-on-secondary-container px-3 py-1 text-[10px] font-label font-bold uppercase tracking-widest">
+        <span className="material-symbols-outlined text-[12px]">verified</span>
+        RERA
+      </span>
+    );
+  }
+  if (status === 'pending') {
+    return (
+      <span className="inline-flex items-center gap-1 bg-surface-container-high text-on-surface-variant px-3 py-1 text-[10px] font-label font-bold uppercase tracking-widest">
+        <span className="material-symbols-outlined text-[12px]">pending</span>
+        Pending
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 bg-error-container text-on-error-container px-3 py-1 text-[10px] font-label font-bold uppercase tracking-widest">
+      <span className="material-symbols-outlined text-[12px]">warning</span>
+      Flagged
+    </span>
+  );
+}
+
 export function PropertyCard({
   property,
   onShortlist,
@@ -28,12 +52,16 @@ export function PropertyCard({
   compareDisabled,
 }: PropertyCardProps) {
   const scored = isScored(property);
+  const roi = parseFloat(property.roi_estimate_3yr);
+  const isHighRoi = roi >= 12;
 
   return (
     <div
-      className={`bg-white rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden group relative ${
-        compareMode && compareSelected ? 'ring-2 ring-brand' : ''
-      } ${compareMode && compareDisabled ? 'opacity-50' : ''}`}
+      className={`group relative bg-surface-container-low overflow-hidden transition-all duration-300 hover:shadow-[0_16px_40px_rgba(0,0,0,0.5)] ${
+        compareMode && compareSelected
+          ? 'outline outline-2 outline-primary'
+          : 'outline outline-1 outline-outline-variant'
+      } ${compareMode && compareDisabled ? 'opacity-40' : ''}`}
     >
       {/* Compare checkbox overlay */}
       {compareMode && (
@@ -42,100 +70,122 @@ export function PropertyCard({
             e.preventDefault();
             if (!compareDisabled || compareSelected) onCompareToggle?.(property.id);
           }}
-          className={`absolute top-2 left-2 z-10 w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+          className={`absolute top-4 left-4 z-10 w-6 h-6 border-2 flex items-center justify-center transition-colors ${
             compareSelected
-              ? 'bg-brand border-brand'
-              : 'bg-white/90 border-gray-300 hover:border-brand'
+              ? 'bg-primary border-primary'
+              : 'bg-surface-container-high border-outline hover:border-primary'
           } ${compareDisabled && !compareSelected ? 'cursor-not-allowed' : 'cursor-pointer'}`}
         >
           {compareSelected && (
-            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
+            <span className="material-symbols-outlined text-on-primary text-[14px]">check</span>
           )}
         </button>
       )}
 
       {/* Image */}
-      <div className="relative h-48 overflow-hidden bg-gray-100">
+      <div className="aspect-[4/3] overflow-hidden bg-surface-container-high">
         <img
-          src={property.photos[0] ?? 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800'}
+          src={
+            property.photos[0] ??
+            'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800'
+          }
           alt={property.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           loading="lazy"
         />
-        {/* Match score badge */}
-        {scored && !compareMode && (
-          <div className="absolute top-2 left-2 bg-navy text-white text-xs font-bold px-2 py-1 rounded-lg">
-            {Math.round(property.match_score)}% match
-          </div>
-        )}
-        {/* Shortlist button */}
-        {onShortlist && !compareMode && (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              onShortlist(property.id);
-            }}
-            className="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors"
-          >
-            <svg
-              className={`w-4 h-4 ${shortlisted ? 'text-red-500 fill-red-500' : 'text-gray-400'}`}
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              fill={shortlisted ? 'currentColor' : 'none'}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
-          </button>
-        )}
-        {/* Status badge */}
-        <div className="absolute bottom-2 left-2">
-          <Badge variant={property.status === 'ready_to_move' ? 'success' : 'info'}>
-            {property.status === 'ready_to_move' ? 'Ready to Move' : 'Under Construction'}
-          </Badge>
-        </div>
       </div>
 
-      {/* Content */}
-      <Link to={`/property/${property.id}`} className="block p-4 space-y-2">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-sm font-semibold text-navy line-clamp-2 leading-snug">
-            {property.title}
-          </h3>
-          <RERABadge status={property.rera_status} />
-        </div>
-
-        <p className="text-xs text-gray-500">
-          {property.locality}, {property.city}
-        </p>
-
-        <div className="flex items-center gap-3 text-xs text-gray-600">
-          {property.bedrooms && (
-            <span>{property.bedrooms} BHK</span>
-          )}
-          <span>{property.area_sqft.toLocaleString('en-IN')} sqft</span>
-          <span>₹{Math.round(property.price_per_sqft / 100).toLocaleString('en-IN')}/sqft</span>
-        </div>
-
-        <div className="flex items-center justify-between pt-1">
-          <span className="text-lg font-bold text-navy">
-            {formatRupeesCr(property.price)}
+      {/* Top-left badge strip */}
+      <div className="absolute top-6 left-6 flex flex-wrap gap-2">
+        {isHighRoi && !compareMode && (
+          <span className="bg-secondary-container text-on-secondary-container px-4 py-1 text-[10px] font-label font-bold uppercase tracking-widest">
+            High ROI: {property.roi_estimate_3yr}%
           </span>
-          <span className="text-xs text-emerald-600 font-medium">
+        )}
+        {scored && !compareMode && (
+          <span className="bg-primary text-on-primary px-4 py-1 text-[10px] font-label font-bold uppercase tracking-widest">
+            {Math.round(property.match_score)}% Match
+          </span>
+        )}
+        {property.status === 'ready_to_move' && (
+          <span className="bg-surface-container-high/80 text-on-surface-variant px-4 py-1 text-[10px] font-label font-bold uppercase tracking-widest">
+            Ready to Move
+          </span>
+        )}
+      </div>
+
+      {/* Shortlist button */}
+      {onShortlist && !compareMode && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onShortlist(property.id);
+          }}
+          className="absolute top-6 right-6 z-10 w-9 h-9 bg-surface-container-high/80 flex items-center justify-center hover:bg-surface-container-high transition-colors duration-200"
+          title={shortlisted ? 'Remove from shortlist' : 'Add to shortlist'}
+        >
+          <span
+            className={`material-symbols-outlined text-[20px] ${
+              shortlisted ? 'text-error' : 'text-on-surface-variant hover:text-primary'
+            }`}
+            style={{ fontVariationSettings: shortlisted ? "'FILL' 1" : "'FILL' 0" }}
+          >
+            favorite
+          </span>
+        </button>
+      )}
+
+      {/* Card body */}
+      <Link to={`/property/${property.id}`} className="block p-6">
+        <div className="flex justify-between items-start mb-3 gap-4">
+          <div className="min-w-0">
+            <h3 className="text-lg font-headline text-on-surface leading-snug line-clamp-2 mb-1">
+              {property.title}
+            </h3>
+            <p className="text-on-surface-variant font-label text-xs uppercase tracking-widest">
+              {property.locality}, Hyderabad
+            </p>
+          </div>
+          <p className="text-xl font-headline text-primary shrink-0">
+            {formatRupeesCr(property.price)}
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div className="h-px bg-outline-variant/30 my-4" />
+
+        {/* Stats row */}
+        <div className="flex flex-wrap gap-6 text-on-surface-variant text-sm font-body mb-4">
+          {property.bedrooms !== null && (
+            <span className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[16px]">bed</span>
+              {property.bedrooms} BHK
+            </span>
+          )}
+          <span className="flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[16px]">straighten</span>
+            {property.area_sqft.toLocaleString('en-IN')} sqft
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[16px]">category</span>
+            {property.property_type.charAt(0).toUpperCase() + property.property_type.slice(1)}
+          </span>
+        </div>
+
+        {/* Bottom row: ROI + RERA */}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-secondary text-xs font-label font-semibold uppercase tracking-widest">
             {property.roi_estimate_3yr}% ROI (3yr)
           </span>
+          <ReraChip status={property.rera_status} />
         </div>
 
-        {/* Why recommended tag */}
+        {/* Why recommended */}
         {scored && (
-          <div className="pt-1">
-            <Badge variant="gold">{(property as ScoredProperty).why_recommended}</Badge>
+          <div className="mt-3 pt-3 border-t border-outline-variant/30">
+            <span className="inline-block bg-primary/10 text-primary px-3 py-1 text-[10px] font-label font-bold uppercase tracking-widest border border-primary/20">
+              {(property as ScoredProperty).why_recommended}
+            </span>
           </div>
         )}
       </Link>

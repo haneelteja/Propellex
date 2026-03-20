@@ -4,6 +4,12 @@ import { useChat } from '@/hooks/useChat';
 import { ChatMessage } from './ChatMessage';
 import { useAuthStore } from '@/store/authStore';
 
+const PROMPT_SUGGESTIONS = [
+  'Show 3BHK flats under ₹2 Cr in Gachibowli',
+  'Best ROI localities in Hyderabad?',
+  'Compare Kokapet vs Madhapur',
+] as const;
+
 export function ChatWidget() {
   const { isOpen, toggle, close } = useChatStore();
   const { messages, isStreaming, dailyCount, isAtLimit, freeLimit, sendMessage } = useChat();
@@ -34,50 +40,66 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* Floating button */}
-      <button
-        onClick={toggle}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-navy rounded-full shadow-lg flex items-center justify-center hover:bg-navy-light transition-colors group"
-      >
-        {isOpen ? (
-          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : (
-          <>
-            <svg className="w-6 h-6 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 3v-3z" />
-            </svg>
-            {isFree && (
-              <span className="absolute -top-1 -right-1 bg-gold text-navy text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                {freeLimit - dailyCount}
-              </span>
-            )}
-          </>
+      {/* Floating trigger */}
+      <div className="fixed bottom-10 right-10 z-[60] flex items-center gap-4 bg-background border border-primary/30 p-2 shadow-[0_32px_64px_rgba(0,0,0,0.6)] group">
+        {/* Hover label — only shown when chat is closed */}
+        {!isOpen && (
+          <div className="pl-4 pr-2 py-2 hidden group-hover:block">
+            <p className="font-body text-xs text-white/80 whitespace-nowrap">
+              Ask Propellex AI about this property
+            </p>
+          </div>
         )}
-      </button>
+
+        {/* Free tier remaining count pip */}
+        {isFree && !isOpen && (
+          <span className="absolute -top-2 -left-2 bg-primary text-on-primary text-[10px] font-label font-bold w-5 h-5 flex items-center justify-center">
+            {freeLimit - dailyCount}
+          </span>
+        )}
+
+        <button
+          onClick={toggle}
+          className="w-14 h-14 bg-primary text-on-primary flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200"
+          aria-label={isOpen ? 'Close AI chat' : 'Open AI chat'}
+        >
+          <span
+            className="material-symbols-outlined text-[28px]"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            {isOpen ? 'close' : 'psychology'}
+          </span>
+        </button>
+      </div>
 
       {/* Chat panel */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-100"
-          style={{ maxHeight: 'calc(100vh - 8rem)' }}
+        <div
+          className="fixed bottom-[6.5rem] right-10 z-[60] w-[400px] max-w-[calc(100vw-2.5rem)] bg-surface-container-low border border-outline-variant flex flex-col shadow-[0_32px_64px_rgba(0,0,0,0.6)] animate-fade-in"
+          style={{ maxHeight: 'calc(100vh - 9rem)' }}
         >
           {/* Header */}
-          <div className="bg-navy px-4 py-3 flex items-center justify-between">
+          <div className="bg-surface-container-low border-b border-outline-variant px-5 py-4 flex items-center justify-between shrink-0">
             <div>
-              <h3 className="text-white font-semibold text-sm">Propellex AI</h3>
-              <p className="text-white/60 text-xs">Real estate intelligence assistant</p>
+              <h3 className="font-headline italic text-primary text-base leading-tight">
+                Propellex AI
+              </h3>
+              <p className="text-on-surface-variant font-label text-[11px] uppercase tracking-widest mt-0.5">
+                Real estate intelligence
+              </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {isFree && (
-                <span className="text-white/70 text-xs">
-                  {dailyCount}/{freeLimit} queries
+                <span className="text-on-surface-variant font-label text-xs">
+                  {dailyCount}/{freeLimit}
                 </span>
               )}
-              <button onClick={close} className="text-white/70 hover:text-white">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+              <button
+                onClick={close}
+                className="text-on-surface-variant hover:text-primary transition-colors duration-200"
+                aria-label="Close chat"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
           </div>
@@ -85,22 +107,27 @@ export function ChatWidget() {
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
             {messages.length === 0 && (
-              <div className="text-center py-6">
-                <div className="w-12 h-12 bg-navy/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-navy font-bold text-lg">P</span>
+              <div className="py-6 flex flex-col items-center text-center">
+                <div className="w-12 h-12 bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
+                  <span
+                    className="material-symbols-outlined text-primary text-[28px]"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    psychology
+                  </span>
                 </div>
-                <p className="text-sm text-gray-600 font-medium">Hello! I'm your Propellex AI.</p>
-                <p className="text-xs text-gray-400 mt-1">Ask me about properties, localities, or investment insights.</p>
-                <div className="mt-3 space-y-1.5">
-                  {[
-                    'Show 3BHK flats under ₹2 Cr in Gachibowli',
-                    'Best ROI localities in Hyderabad?',
-                    'Compare Kokapet vs Madhapur',
-                  ].map((s) => (
+                <p className="text-on-surface font-body text-sm font-medium">
+                  Hello! I&apos;m your Propellex AI.
+                </p>
+                <p className="text-on-surface-variant font-body text-xs mt-1">
+                  Ask me about properties, localities, or investment insights.
+                </p>
+                <div className="mt-4 w-full space-y-2">
+                  {PROMPT_SUGGESTIONS.map((s) => (
                     <button
                       key={s}
                       onClick={() => void sendMessage(s)}
-                      className="block w-full text-left text-xs bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg px-3 py-2 transition-colors"
+                      className="block w-full text-left text-xs font-body bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface px-4 py-2.5 border border-outline-variant/50 transition-colors duration-200"
                     >
                       {s}
                     </button>
@@ -108,6 +135,7 @@ export function ChatWidget() {
                 </div>
               </div>
             )}
+
             {messages.map((msg, i) => (
               <ChatMessage
                 key={i}
@@ -118,12 +146,16 @@ export function ChatWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
-          <div className="border-t border-gray-100 p-3">
+          {/* Input area */}
+          <div className="border-t border-outline-variant p-3 shrink-0 bg-surface-container-low">
             {isAtLimit ? (
-              <div className="text-center py-2">
-                <p className="text-xs text-gray-500">Daily limit reached ({freeLimit} queries).</p>
-                <p className="text-xs text-brand">Upgrade to Pro for unlimited access.</p>
+              <div className="text-center py-3 space-y-1">
+                <p className="text-on-surface-variant font-body text-xs">
+                  Daily limit reached ({freeLimit} queries).
+                </p>
+                <p className="text-primary font-label text-xs font-semibold">
+                  Upgrade to Pro for unlimited access.
+                </p>
               </div>
             ) : (
               <div className="flex gap-2 items-end">
@@ -134,17 +166,16 @@ export function ChatWidget() {
                   placeholder="Ask about properties..."
                   rows={1}
                   disabled={isStreaming}
-                  className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand disabled:opacity-50"
+                  className="flex-1 resize-none bg-surface-container border border-outline-variant px-3 py-2.5 text-sm font-body text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:border-primary disabled:opacity-50 transition-colors duration-200"
                   style={{ maxHeight: '120px' }}
                 />
                 <button
                   onClick={() => void handleSend()}
                   disabled={!input.trim() || isStreaming}
-                  className="w-9 h-9 bg-navy rounded-xl flex items-center justify-center text-white disabled:opacity-40 hover:bg-navy-light transition-colors shrink-0"
+                  className="w-10 h-10 bg-primary text-on-primary flex items-center justify-center disabled:opacity-40 hover:bg-primary-container active:scale-95 transition-all duration-200 shrink-0"
+                  aria-label="Send message"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
+                  <span className="material-symbols-outlined text-[20px]">send</span>
                 </button>
               </div>
             )}
