@@ -1,12 +1,23 @@
 import { Link } from 'react-router-dom';
 import { useRecommendations } from '@/hooks/useRecommendations';
+import { useProperties } from '@/hooks/useProperties';
 import { useAuthStore } from '@/store/authStore';
+import { useFilterStore } from '@/store/filterStore';
 import { PropertyGrid } from '@/components/property/PropertyGrid';
+import { QuickPreferences } from '@/components/preferences/QuickPreferences';
 import { Button } from '@/components/shared/Button';
 
 export default function Home() {
   const user = useAuthStore((s) => s.user);
-  const { data, isLoading } = useRecommendations(12);
+  const { filters } = useFilterStore();
+
+  const hasActiveFilter =
+    !!filters.property_type || !!filters.locality || filters.price_min !== '';
+
+  const { data: recommendations, isLoading: recoLoading } = useRecommendations(12);
+  const { data: filteredProperties, isLoading: filteredLoading } = useProperties({
+    enabled: hasActiveFilter,
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -35,33 +46,62 @@ export default function Home() {
         </div>
       </div>
 
-      {/* AI Recommendations */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-xl font-bold text-navy">Recommended for You</h2>
-            <p className="text-sm text-gray-500">
-              Ranked by AI based on your preferences
-            </p>
-          </div>
-          <Link to="/search" className="text-brand text-sm hover:underline">
-            View all →
-          </Link>
+      {/* Preferences + Content */}
+      <div className="flex gap-6 items-start">
+        {/* Quick Preferences sidebar */}
+        <div className="w-56 shrink-0">
+          <QuickPreferences />
         </div>
-        <PropertyGrid
-          properties={data ?? []}
-          loading={isLoading}
-          emptyMessage="No recommendations yet. Update your preferences in Profile."
-        />
-      </section>
+
+        {/* Main content area */}
+        <div className="flex-1 min-w-0">
+          {hasActiveFilter ? (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-xl font-bold text-navy">Matching Properties</h2>
+                  <p className="text-sm text-gray-500">Filtered by your preferences</p>
+                </div>
+                <Link to="/search" className="text-brand text-sm hover:underline">
+                  Open in Search →
+                </Link>
+              </div>
+              <PropertyGrid
+                properties={filteredProperties ?? []}
+                loading={filteredLoading}
+                emptyMessage="No properties match the selected preferences."
+              />
+            </section>
+          ) : (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-xl font-bold text-navy">Recommended for You</h2>
+                  <p className="text-sm text-gray-500">
+                    Ranked by AI based on your preferences
+                  </p>
+                </div>
+                <Link to="/search" className="text-brand text-sm hover:underline">
+                  View all →
+                </Link>
+              </div>
+              <PropertyGrid
+                properties={recommendations ?? []}
+                loading={recoLoading}
+                emptyMessage="No recommendations yet. Update your preferences in Profile."
+              />
+            </section>
+          )}
+        </div>
+      </div>
 
       {/* Quick stats */}
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Properties Listed', value: '50+', icon: '🏢' },
-          { label: 'Localities Covered', value: '8', icon: '📍' },
-          { label: 'RERA Verified', value: '70%', icon: '✓' },
-          { label: 'Avg ROI (3yr)', value: '13%', icon: '📈' },
+          { label: 'Localities Covered', value: '8',   icon: '📍' },
+          { label: 'RERA Verified',      value: '70%', icon: '✓'  },
+          { label: 'Avg ROI (3yr)',      value: '13%', icon: '📈' },
         ].map((stat) => (
           <div key={stat.label} className="bg-white rounded-xl p-4 shadow-sm border border-gray-50">
             <div className="text-2xl mb-1">{stat.icon}</div>

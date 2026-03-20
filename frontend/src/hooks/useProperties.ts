@@ -2,13 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { properties } from '@/services/api';
 import { useFilterStore } from '@/store/filterStore';
 
-export function useProperties() {
+export function useProperties(options?: { enabled?: boolean }) {
   const { filters, page } = useFilterStore();
 
   const query = useQuery({
     queryKey: ['properties', filters, page],
     queryFn: () => properties.search({ ...filters, page, limit: 20 }),
     placeholderData: (prev) => prev,
+    enabled: options?.enabled ?? true,
   });
 
   return {

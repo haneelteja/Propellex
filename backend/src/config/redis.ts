@@ -35,6 +35,22 @@ export async function closeRedis(): Promise<void> {
   await redis.quit();
 }
 
+/** Ping Redis every `intervalMs` ms to prevent Upstash from archiving the DB due to inactivity.
+ *  Upstash free-tier databases are archived after extended idle periods.
+ *  Call once at server startup, after connectRedis() succeeds. */
+export function startRedisKeepAlive(intervalMs = 4 * 60_000) {
+  const ping = async () => {
+    try {
+      await redis.ping();
+      // silent success — do not spam logs
+    } catch (err) {
+      console.warn('[Redis] Keep-alive ping failed:', (err as Error).message);
+    }
+  };
+  setInterval(ping, intervalMs);
+  console.info(`[Redis] Keep-alive ping scheduled every ${intervalMs / 1000}s`);
+}
+
 /** Increment a daily usage counter. Returns the new count. */
 export async function incrementDailyUsage(
   userId: string,

@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { connectRedis, closeRedis } from './config/redis';
+import { connectRedis, closeRedis, startRedisKeepAlive } from './config/redis';
 import { pool, query, startDbKeepAlive } from './config/db';
 import { errorHandler } from './middleware/error';
 import { authRouter } from './modules/auth/auth.routes';
@@ -66,6 +66,7 @@ app.use(errorHandler);
 async function start() {
   try {
     await connectRedis();
+    startRedisKeepAlive(); // ping every 4 min — prevents Upstash from archiving due to inactivity
   } catch (err) {
     console.warn('[Server] Redis unavailable — freemium limits disabled:', (err as Error).message);
   }

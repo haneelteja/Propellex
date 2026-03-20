@@ -10,7 +10,7 @@ export function PropertyFilters() {
   const { filters, setFilter, reset } = useFilterStore();
 
   return (
-    <aside className="w-64 shrink-0 space-y-5">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-navy uppercase tracking-wide">Filters</h2>
         <button
@@ -142,6 +142,6 @@ export function PropertyFilters() {
       <Button variant="ghost" className="w-full" onClick={reset}>
         Reset Filters
       </Button>
-    </aside>
+    </div>
   );
 }

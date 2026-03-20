@@ -474,7 +474,15 @@ export async function analyzePropertyWithAI(id: string): Promise<void> {
   if (!response.ok) {
     const errorText = await response.text();
     const isHtml = errorText.trimStart().startsWith('<');
-    throw new AppError(`AI service error: ${isHtml ? `HTTP ${response.status} (service unavailable)` : errorText.slice(0, 200)}`, 502);
+    let errMsg: string;
+    if (isHtml) {
+      errMsg = `HTTP ${response.status} (service unavailable)`;
+    } else {
+      // FastAPI returns { "detail": "..." } — extract that so the cron can pattern-match cleanly
+      try { errMsg = (JSON.parse(errorText) as { detail?: string }).detail ?? errorText.slice(0, 200); }
+      catch { errMsg = errorText.slice(0, 200); }
+    }
+    throw new AppError(`AI service error: ${errMsg}`, response.status === 429 ? 429 : 502);
   }
 
   const analysis = await response.json() as Record<string, unknown>;

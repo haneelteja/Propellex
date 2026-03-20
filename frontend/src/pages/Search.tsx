@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
 import { useFilterStore } from '@/store/filterStore';
 import { PropertyFilters } from '@/components/property/PropertyFilters';
+import { QuickPreferences } from '@/components/preferences/QuickPreferences';
 import { PropertyGrid } from '@/components/property/PropertyGrid';
 import { PropertyMap } from '@/components/property/PropertyMap';
 import { Button } from '@/components/shared/Button';
@@ -95,7 +96,10 @@ export default function Search() {
 
       <div className="flex gap-6">
         {/* Filters sidebar */}
-        <PropertyFilters />
+        <div className="w-64 shrink-0 space-y-4">
+          <QuickPreferences />
+          <PropertyFilters />
+        </div>
 
         {/* Results area */}
         <div className="flex-1 min-w-0 space-y-4">
