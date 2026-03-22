@@ -31,25 +31,25 @@ export default function Profile() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-      <h1 className="text-2xl font-bold text-navy">Profile</h1>
+      <h1 className="text-2xl font-headline font-bold text-on-surface">Profile</h1>
 
       {/* Account info */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
-        <h2 className="text-base font-semibold text-navy">Account</h2>
+      <div className="bg-surface-container border border-outline-variant p-6 space-y-4">
+        <h2 className="text-base font-headline font-semibold text-on-surface">Account</h2>
 
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Email</label>
-          <p className="text-sm font-medium text-gray-800">{user.email}</p>
+          <label className="block text-xs text-on-surface-variant mb-1">Email</label>
+          <p className="text-sm font-medium text-on-surface">{user.email}</p>
         </div>
 
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Display Name</label>
+          <label className="block text-xs text-on-surface-variant mb-1">Display Name</label>
           <div className="flex gap-2">
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:border-transparent"
+              className="bg-surface-container-low border border-outline-variant text-on-surface focus:border-primary focus:outline-none px-3 py-2 text-sm w-full"
             />
             <Button size="sm" loading={saving} onClick={handleSaveName}>
               {saved ? 'Saved ✓' : 'Save'}
@@ -59,13 +59,13 @@ export default function Profile() {
 
         <div className="flex items-center gap-3">
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Plan</label>
+            <label className="block text-xs text-on-surface-variant mb-1">Plan</label>
             <Badge variant={user.subscription_tier === 'free' ? 'neutral' : 'gold'}>
               {user.subscription_tier ? user.subscription_tier.charAt(0).toUpperCase() + user.subscription_tier.slice(1) : 'Free'}
             </Badge>
           </div>
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Investor Type</label>
+            <label className="block text-xs text-on-surface-variant mb-1">Investor Type</label>
             <Badge variant="info">{user.user_type ? user.user_type.replace(/_/g, ' ').toUpperCase() : 'User'}</Badge>
           </div>
         </div>
@@ -73,27 +73,27 @@ export default function Profile() {
 
       {/* Investment preferences */}
       {prefs && Object.keys(prefs).length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
-          <h2 className="text-base font-semibold text-navy">Investment Preferences</h2>
+        <div className="bg-surface-container border border-outline-variant p-6 space-y-4">
+          <h2 className="text-base font-headline font-semibold text-on-surface">Investment Preferences</h2>
 
           <div className="grid grid-cols-2 gap-4 text-sm">
             {(prefs.budget_min != null || prefs.budget_max != null) && (
               <div>
-                <p className="text-xs text-gray-500 mb-0.5">Budget Range</p>
-                <p className="font-medium text-navy">
+                <p className="text-xs text-on-surface-variant mb-0.5">Budget Range</p>
+                <p className="font-medium text-on-surface">
                   {formatRupeesCr(prefs.budget_min ?? 0)} – {formatRupeesCr(prefs.budget_max ?? 0)}
                 </p>
               </div>
             )}
             {prefs.roi_target != null && (
               <div>
-                <p className="text-xs text-gray-500 mb-0.5">ROI Target</p>
-                <p className="font-medium text-navy">{prefs.roi_target}% over 3 years</p>
+                <p className="text-xs text-on-surface-variant mb-0.5">ROI Target</p>
+                <p className="font-medium text-on-surface">{prefs.roi_target}% over 3 years</p>
               </div>
             )}
             {prefs.risk_appetite && (
               <div>
-                <p className="text-xs text-gray-500 mb-0.5">Risk Appetite</p>
+                <p className="text-xs text-on-surface-variant mb-0.5">Risk Appetite</p>
                 <Badge
                   variant={
                     prefs.risk_appetite === 'low'
@@ -109,7 +109,7 @@ export default function Profile() {
             )}
             {prefs.property_types?.length > 0 && (
               <div>
-                <p className="text-xs text-gray-500 mb-0.5">Property Types</p>
+                <p className="text-xs text-on-surface-variant mb-0.5">Property Types</p>
                 <div className="flex flex-wrap gap-1">
                   {prefs.property_types.map((t) => (
                     <Badge key={t} variant="info">{t}</Badge>
@@ -121,7 +121,7 @@ export default function Profile() {
 
           {prefs.localities?.length > 0 && (
             <div>
-              <p className="text-xs text-gray-500 mb-2">Preferred Localities</p>
+              <p className="text-xs text-on-surface-variant mb-2">Preferred Localities</p>
               <div className="flex flex-wrap gap-1.5">
                 {prefs.localities.map((l) => (
                   <Badge key={l} variant="neutral">{l}</Badge>

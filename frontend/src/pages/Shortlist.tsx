@@ -14,8 +14,8 @@ export default function Shortlist() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-navy">My Shortlist</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-headline font-bold text-on-surface">My Shortlist</h1>
+          <p className="text-sm text-on-surface-variant mt-1">
             {items?.length ?? 0} properties saved
           </p>
         </div>
@@ -26,10 +26,8 @@ export default function Shortlist() {
           {Array.from({ length: 4 }).map((_, i) => <PropertyCardSkeleton key={i} />)}
         </div>
       ) : !items?.length ? (
-        <div className="text-center py-20 text-gray-400">
-          <svg className="w-16 h-16 mx-auto mb-4 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
+        <div className="text-center py-20 text-on-surface-variant">
+          <span className="material-symbols-outlined text-6xl mb-4 block opacity-30">favorite</span>
           <p className="text-sm mb-4">No properties shortlisted yet.</p>
           <Link to="/search">
             <Button>Browse Properties</Button>
@@ -42,7 +40,7 @@ export default function Shortlist() {
               <PropertyCard property={item.property} />
               <button
                 onClick={() => handleRemove(item.id)}
-                className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-2 right-2 bg-error text-on-error text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 Remove
               </button>
