@@ -81,8 +81,8 @@ export function PreferenceWizard({ onComplete }: PreferenceWizardProps) {
         {([1, 2, 3, 4] as Step[]).map((s) => (
           <div
             key={s}
-            className={`h-1.5 flex-1 rounded-full transition-colors ${
-              s <= step ? 'bg-brand' : 'bg-gray-200'
+            className={`h-1.5 flex-1 transition-colors ${
+              s <= step ? 'bg-primary' : 'bg-surface-container-high'
             }`}
           />
         ))}
@@ -91,14 +91,14 @@ export function PreferenceWizard({ onComplete }: PreferenceWizardProps) {
       {/* Step 1: Budget */}
       {step === 1 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-navy">What's your investment budget?</h3>
+          <h3 className="text-lg font-headline font-semibold text-on-surface">What's your investment budget?</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Minimum (₹)</label>
+              <label className="block text-xs text-on-surface-variant mb-1">Minimum (₹)</label>
               <select
                 value={prefs.budget_min}
                 onChange={(e) => setPrefs((p) => ({ ...p, budget_min: Number(e.target.value) }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:border-transparent"
+                className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
               >
                 <option value={5_000_000}>₹50 L</option>
                 <option value={10_000_000}>₹1 Cr</option>
@@ -107,11 +107,11 @@ export function PreferenceWizard({ onComplete }: PreferenceWizardProps) {
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Maximum (₹)</label>
+              <label className="block text-xs text-on-surface-variant mb-1">Maximum (₹)</label>
               <select
                 value={prefs.budget_max}
                 onChange={(e) => setPrefs((p) => ({ ...p, budget_max: Number(e.target.value) }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:border-transparent"
+                className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
               >
                 <option value={15_000_000}>₹1.5 Cr</option>
                 <option value={30_000_000}>₹3 Cr</option>
@@ -130,18 +130,18 @@ export function PreferenceWizard({ onComplete }: PreferenceWizardProps) {
       {/* Step 2: Localities */}
       {step === 2 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-navy">Preferred localities in Hyderabad</h3>
-          <p className="text-sm text-gray-500">Select one or more areas</p>
+          <h3 className="text-lg font-headline font-semibold text-on-surface">Preferred localities in Hyderabad</h3>
+          <p className="text-sm text-on-surface-variant">Select one or more areas</p>
           <div className="grid grid-cols-2 gap-2">
             {LOCALITIES.map((loc) => (
               <button
                 key={loc}
                 type="button"
                 onClick={() => toggleLocality(loc)}
-                className={`px-3 py-2 rounded-lg text-sm border transition-colors text-left ${
+                className={`px-3 py-2 text-sm border transition-colors text-left ${
                   prefs.localities.includes(loc)
-                    ? 'bg-navy text-white border-navy'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-navy'
+                    ? 'bg-primary text-on-primary border-primary'
+                    : 'bg-surface-container-low text-on-surface-variant border-outline-variant hover:border-primary'
                 }`}
               >
                 {loc}
@@ -162,17 +162,17 @@ export function PreferenceWizard({ onComplete }: PreferenceWizardProps) {
       {/* Step 3: Property types */}
       {step === 3 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-navy">Property types of interest</h3>
+          <h3 className="text-lg font-headline font-semibold text-on-surface">Property types of interest</h3>
           <div className="space-y-2">
             {PROPERTY_TYPES.map((pt) => (
               <button
                 key={pt.value}
                 type="button"
                 onClick={() => toggleType(pt.value)}
-                className={`w-full px-4 py-3 rounded-lg text-sm border transition-colors text-left ${
+                className={`w-full px-4 py-3 text-sm border transition-colors text-left ${
                   prefs.property_types.includes(pt.value)
-                    ? 'bg-navy text-white border-navy'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-navy'
+                    ? 'bg-primary text-on-primary border-primary'
+                    : 'bg-surface-container-low text-on-surface-variant border-outline-variant hover:border-primary'
                 }`}
               >
                 {pt.label}
@@ -193,11 +193,11 @@ export function PreferenceWizard({ onComplete }: PreferenceWizardProps) {
       {/* Step 4: ROI + Risk */}
       {step === 4 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-navy">ROI target & risk profile</h3>
+          <h3 className="text-lg font-headline font-semibold text-on-surface">ROI target & risk profile</h3>
 
           <div>
-            <label className="block text-sm text-gray-700 mb-1">
-              Target ROI: <strong>{prefs.roi_target}%</strong> over 3 years
+            <label className="block text-sm text-on-surface-variant mb-1">
+              Target ROI: <strong className="text-primary">{prefs.roi_target}%</strong> over 3 years
             </label>
             <input
               type="range"
@@ -206,29 +206,29 @@ export function PreferenceWizard({ onComplete }: PreferenceWizardProps) {
               step={1}
               value={prefs.roi_target}
               onChange={(e) => setPrefs((p) => ({ ...p, roi_target: Number(e.target.value) }))}
-              className="w-full accent-brand"
+              className="w-full accent-primary"
             />
-            <div className="flex justify-between text-xs text-gray-400 mt-1">
+            <div className="flex justify-between text-xs text-on-surface-variant mt-1">
               <span>8%</span>
               <span>25%</span>
             </div>
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm text-gray-700">Risk appetite</p>
+            <p className="text-sm text-on-surface-variant">Risk appetite</p>
             {RISK_OPTIONS.map((r) => (
               <button
                 key={r.value}
                 type="button"
                 onClick={() => setPrefs((p) => ({ ...p, risk_appetite: r.value }))}
-                className={`w-full px-4 py-3 rounded-lg text-sm border transition-colors text-left ${
+                className={`w-full px-4 py-3 text-sm border transition-colors text-left ${
                   prefs.risk_appetite === r.value
-                    ? 'bg-navy text-white border-navy'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-navy'
+                    ? 'bg-primary text-on-primary border-primary'
+                    : 'bg-surface-container-low text-on-surface-variant border-outline-variant hover:border-primary'
                 }`}
               >
                 <div className="font-medium">{r.label}</div>
-                <div className={`text-xs mt-0.5 ${prefs.risk_appetite === r.value ? 'text-white/70' : 'text-gray-500'}`}>
+                <div className={`text-xs mt-0.5 ${prefs.risk_appetite === r.value ? 'text-on-primary/70' : 'text-on-surface-variant'}`}>
                   {r.desc}
                 </div>
               </button>

@@ -12,11 +12,11 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const navyIcon = new L.DivIcon({
+const goldIcon = new L.DivIcon({
   className: '',
   html: `<div style="
-    width:28px;height:28px;background:#1E3A5F;border-radius:50% 50% 50% 0;
-    transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);
+    width:28px;height:28px;background:#f2ca50;border-radius:50% 50% 50% 0;
+    transform:rotate(-45deg);border:2px solid #131313;box-shadow:0 2px 8px rgba(0,0,0,0.5);
   "></div>`,
   iconSize: [28, 28],
   iconAnchor: [14, 28],
@@ -38,7 +38,7 @@ export function PropertyMap({
     <MapContainer
       center={center}
       zoom={zoom}
-      className="w-full h-full rounded-xl z-0"
+      className="w-full h-full z-0"
       scrollWheelZoom
     >
       <TileLayer
@@ -46,15 +46,16 @@ export function PropertyMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {properties.map((p) => (
-        <Marker key={p.id} position={[p.lat, p.lng]} icon={navyIcon}>
+        <Marker key={p.id} position={[p.lat, p.lng]} icon={goldIcon}>
           <Popup>
             <div className="text-sm max-w-[200px]">
-              <p className="font-semibold text-navy leading-snug mb-1">{p.title}</p>
-              <p className="text-gray-500 text-xs mb-2">{p.locality}</p>
-              <p className="font-bold text-navy text-base mb-2">{formatRupeesCr(p.price)}</p>
+              <p className="font-semibold leading-snug mb-1">{p.title}</p>
+              <p className="text-xs mb-2" style={{ color: '#99907c' }}>{p.locality}</p>
+              <p className="font-bold text-base mb-2">{formatRupeesCr(p.price)}</p>
               <Link
                 to={`/property/${p.id}`}
-                className="text-brand text-xs hover:underline"
+                className="text-xs hover:underline"
+                style={{ color: '#f2ca50' }}
               >
                 View details →
               </Link>

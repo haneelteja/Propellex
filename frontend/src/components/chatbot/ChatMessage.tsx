@@ -12,21 +12,21 @@ export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
   return (
     <div className={cn('flex gap-2', isUser ? 'justify-end' : 'justify-start')}>
       {!isUser && (
-        <div className="w-7 h-7 rounded-full bg-navy flex items-center justify-center shrink-0 mt-0.5">
-          <span className="text-gold text-xs font-bold">P</span>
+        <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5">
+          <span className="text-on-primary text-xs font-bold">P</span>
         </div>
       )}
       <div
         className={cn(
-          'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
+          'max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed',
           isUser
-            ? 'bg-navy text-white rounded-tr-sm'
-            : 'bg-gray-100 text-gray-800 rounded-tl-sm',
+            ? 'bg-primary text-on-primary'
+            : 'bg-surface-container-high text-on-surface',
         )}
       >
         {message.content}
         {isStreaming && !isUser && (
-          <span className="inline-block w-1.5 h-4 bg-brand ml-1 animate-pulse rounded-sm" />
+          <span className="inline-block w-1.5 h-4 bg-primary ml-1 animate-pulse" />
         )}
       </div>
     </div>

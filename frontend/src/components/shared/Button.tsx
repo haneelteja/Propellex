@@ -11,10 +11,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  primary: 'bg-navy text-white hover:bg-navy-light active:bg-navy-dark',
-  secondary: 'bg-brand text-white hover:bg-brand-light active:bg-brand-dark',
-  ghost: 'bg-transparent text-navy border border-navy hover:bg-navy hover:text-white',
-  danger: 'bg-red-600 text-white hover:bg-red-700',
+  primary: 'bg-primary text-on-primary hover:bg-primary-fixed-dim active:opacity-90',
+  secondary: 'bg-secondary-container text-on-secondary-container hover:opacity-90',
+  ghost: 'bg-transparent text-on-surface border border-outline-variant hover:bg-surface-container-high',
+  danger: 'bg-error text-on-error hover:opacity-90',
 };
 
 const sizeClasses: Record<Size, string> = {
@@ -36,7 +36,7 @@ export function Button({
     <button
       disabled={disabled || loading}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed',
+        'inline-flex items-center justify-center gap-2 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed',
         variantClasses[variant],
         sizeClasses[size],
         className,

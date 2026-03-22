@@ -8,7 +8,7 @@ export function Skeleton({ className }: SkeletonProps) {
   return (
     <div
       className={cn(
-        'animate-pulse rounded-md bg-gray-200',
+        'animate-pulse bg-surface-container-high',
         className,
       )}
     />
@@ -17,7 +17,7 @@ export function Skeleton({ className }: SkeletonProps) {
 
 export function PropertyCardSkeleton() {
   return (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-surface-container border border-outline-variant overflow-hidden">
       <Skeleton className="h-48 w-full rounded-none" />
       <div className="p-4 space-y-3">
         <Skeleton className="h-5 w-3/4" />

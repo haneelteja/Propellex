@@ -34,7 +34,6 @@ export function QuickPreferences() {
 
   const applyTier = (idx: number) => {
     if (activeTierIdx === idx) {
-      // Toggle off
       setFilters({ price_min: '', price_max: '' });
     } else {
       setFilters({ price_min: tiers[idx].min, price_max: tiers[idx].max });
@@ -51,7 +50,6 @@ export function QuickPreferences() {
 
   const saveTiers = () => {
     setTiers(draftTiers);
-    // If current selection no longer exists in new tiers, clear price
     const stillValid = draftTiers.some(
       (t) => t.min === filters.price_min && t.max === filters.price_max,
     );
@@ -61,10 +59,10 @@ export function QuickPreferences() {
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-4">
+      <div className="bg-surface-container border border-outline-variant p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-semibold text-navy uppercase tracking-wide">
+          <h3 className="text-xs font-semibold text-on-surface uppercase tracking-wide">
             Preferences
           </h3>
           {hasAnyFilter && (
@@ -72,7 +70,7 @@ export function QuickPreferences() {
               onClick={() =>
                 setFilters({ property_type: '', locality: '', price_min: '', price_max: '' })
               }
-              className="text-xs text-brand hover:underline"
+              className="text-xs text-primary hover:underline"
             >
               Clear
             </button>
@@ -81,7 +79,7 @@ export function QuickPreferences() {
 
         {/* Property Type */}
         <div>
-          <p className="text-xs font-medium text-gray-500 mb-2">Property Type</p>
+          <p className="text-xs font-medium text-on-surface-variant mb-2">Property Type</p>
           <div className="flex flex-wrap gap-1.5">
             {PROPERTY_TYPES.map(({ value, label }) => (
               <button
@@ -91,8 +89,8 @@ export function QuickPreferences() {
                 }
                 className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
                   filters.property_type === value
-                    ? 'bg-navy text-white border-navy'
-                    : 'border-gray-300 text-gray-600 hover:border-navy hover:text-navy'
+                    ? 'bg-primary text-on-primary border-primary'
+                    : 'border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary'
                 }`}
               >
                 {label}
@@ -103,15 +101,15 @@ export function QuickPreferences() {
 
         {/* City */}
         <div>
-          <p className="text-xs font-medium text-gray-500 mb-2">City</p>
-          <div className="px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs text-navy font-semibold">
+          <p className="text-xs font-medium text-on-surface-variant mb-2">City</p>
+          <div className="px-3 py-1.5 bg-surface-container-low border border-outline-variant text-xs text-on-surface font-semibold">
             Hyderabad
           </div>
         </div>
 
         {/* Area / Locality */}
         <div>
-          <p className="text-xs font-medium text-gray-500 mb-2">Area</p>
+          <p className="text-xs font-medium text-on-surface-variant mb-2">Area</p>
           <div className="flex flex-wrap gap-1.5">
             {LOCALITIES.map((loc) => (
               <button
@@ -121,8 +119,8 @@ export function QuickPreferences() {
                 }
                 className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
                   filters.locality === loc
-                    ? 'bg-brand text-white border-brand'
-                    : 'border-gray-200 text-gray-600 hover:border-brand hover:text-brand'
+                    ? 'bg-primary text-on-primary border-primary'
+                    : 'border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary'
                 }`}
               >
                 {loc}
@@ -134,11 +132,11 @@ export function QuickPreferences() {
         {/* Price Range */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-medium text-gray-500">Price Range</p>
+            <p className="text-xs font-medium text-on-surface-variant">Price Range</p>
             {isManager && (
               <button
                 onClick={openEdit}
-                className="text-xs text-gold hover:underline font-medium"
+                className="text-xs text-primary hover:underline font-medium"
               >
                 Edit ranges
               </button>
@@ -149,19 +147,19 @@ export function QuickPreferences() {
               <button
                 key={idx}
                 onClick={() => applyTier(idx)}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium border transition-colors text-left ${
+                className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-medium border transition-colors text-left ${
                   activeTierIdx === idx
-                    ? 'bg-navy/5 border-navy text-navy'
-                    : 'border-gray-200 text-gray-600 hover:border-navy hover:text-navy'
+                    ? 'bg-primary/10 border-primary text-on-surface'
+                    : 'border-outline-variant text-on-surface-variant hover:border-primary hover:text-on-surface'
                 }`}
               >
                 <span
                   className={`w-3 h-3 rounded-full border flex-shrink-0 flex items-center justify-center ${
-                    activeTierIdx === idx ? 'border-navy' : 'border-gray-300'
+                    activeTierIdx === idx ? 'border-primary' : 'border-outline'
                   }`}
                 >
                   {activeTierIdx === idx && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-navy" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   )}
                 </span>
                 {tier.label}
@@ -173,14 +171,14 @@ export function QuickPreferences() {
 
       {/* Manager — Edit Tiers Modal */}
       {editingTiers && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
-            <h3 className="text-sm font-bold text-navy mb-4">Configure Price Ranges</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-surface-container border border-outline-variant shadow-xl p-6 w-full max-w-sm">
+            <h3 className="text-sm font-headline font-bold text-on-surface mb-4">Configure Price Ranges</h3>
 
             <div className="space-y-4">
               {draftTiers.map((tier, idx) => (
                 <div key={idx} className="space-y-1.5">
-                  <p className="text-xs text-gray-500 font-medium">Range {idx + 1}</p>
+                  <p className="text-xs text-on-surface-variant font-medium">Range {idx + 1}</p>
                   <input
                     type="text"
                     value={tier.label}
@@ -192,7 +190,7 @@ export function QuickPreferences() {
                       )
                     }
                     placeholder="Label (e.g. ₹10L – ₹50L)"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand focus:border-transparent"
+                    className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-1.5 text-xs focus:border-primary focus:outline-none"
                   />
                   <div className="flex gap-2">
                     <input
@@ -206,7 +204,7 @@ export function QuickPreferences() {
                           ),
                         )
                       }
-                      className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-xs"
+                      className="flex-1 bg-surface-container-low border border-outline-variant text-on-surface px-3 py-1.5 text-xs focus:border-primary focus:outline-none"
                     />
                     <input
                       type="number"
@@ -219,7 +217,7 @@ export function QuickPreferences() {
                           ),
                         )
                       }
-                      className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-xs"
+                      className="flex-1 bg-surface-container-low border border-outline-variant text-on-surface px-3 py-1.5 text-xs focus:border-primary focus:outline-none"
                     />
                   </div>
                 </div>
@@ -229,7 +227,7 @@ export function QuickPreferences() {
             <div className="flex gap-2 mt-5">
               <button
                 onClick={saveTiers}
-                className="flex-1 bg-navy text-white rounded-lg py-2 text-xs font-semibold hover:bg-navy/90 transition-colors"
+                className="flex-1 bg-primary text-on-primary py-2 text-xs font-semibold hover:opacity-90 transition-opacity"
               >
                 Save
               </button>
@@ -239,13 +237,13 @@ export function QuickPreferences() {
                   setEditingTiers(false);
                   setFilters({ price_min: '', price_max: '' });
                 }}
-                className="px-4 border border-gray-300 text-gray-500 rounded-lg py-2 text-xs hover:bg-gray-50"
+                className="px-4 border border-outline-variant text-on-surface-variant py-2 text-xs hover:bg-surface-container-low"
               >
                 Reset
               </button>
               <button
                 onClick={() => setEditingTiers(false)}
-                className="px-4 border border-gray-200 text-gray-400 rounded-lg py-2 text-xs"
+                className="px-4 border border-outline-variant text-on-surface-variant py-2 text-xs"
               >
                 Cancel
               </button>
