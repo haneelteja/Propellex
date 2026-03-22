@@ -140,9 +140,9 @@ export default function AgencyDashboard() {
   if (user?.role !== 'admin' && user?.role !== 'manager') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <p className="text-lg font-semibold text-gray-700 mb-2">Admin Portal</p>
-        <p className="text-gray-500 mb-6">This area is for admin users only.</p>
-        <p className="text-sm text-gray-400">
+        <p className="text-lg font-semibold font-headline text-on-surface mb-2">Admin Portal</p>
+        <p className="text-on-surface-variant mb-6">This area is for admin users only.</p>
+        <p className="text-sm text-on-surface-variant">
           Contact your manager to grant admin access to your account.
         </p>
       </div>
@@ -154,8 +154,8 @@ export default function AgencyDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-navy">Admin Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage property listings</p>
+          <h1 className="text-2xl font-bold font-headline text-on-surface">Admin Dashboard</h1>
+          <p className="text-sm text-on-surface-variant mt-1">Manage property listings</p>
         </div>
         <Button onClick={() => { setEditingId(null); setForm({ ...EMPTY_FORM }); setMapsUrl(''); setMapsError(''); setShowForm(true); setError(''); }}>
           + Add Property
@@ -164,17 +164,17 @@ export default function AgencyDashboard() {
 
       {/* Upload Form */}
       {showForm && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-8">
-          <h2 className="text-lg font-semibold text-navy mb-6">
+        <div className="bg-surface-container border border-outline-variant p-6 mb-8">
+          <h2 className="text-lg font-semibold font-headline text-on-surface mb-6">
             {editingId ? 'Edit Property' : 'Add New Property'}
           </h2>
-          {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+          {error && <p className="text-error text-sm mb-4">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+              <label className="block text-sm font-medium text-on-surface-variant mb-1">Title *</label>
               <input
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                 placeholder="e.g. 3BHK Premium Apartment in Gachibowli"
@@ -184,9 +184,9 @@ export default function AgencyDashboard() {
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label className="block text-sm font-medium text-on-surface-variant mb-1">Description</label>
               <textarea
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand resize-none"
+                className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none resize-none"
                 rows={3}
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
@@ -197,9 +197,9 @@ export default function AgencyDashboard() {
             {/* Row 1: Type, Status, Locality */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Property Type</label>
+                <label className="block text-sm font-medium text-on-surface-variant mb-1">Property Type</label>
                 <select
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   value={form.property_type}
                   onChange={(e) => setForm((f) => ({ ...f, property_type: e.target.value as AgencyPropertyForm['property_type'] }))}
                 >
@@ -209,9 +209,9 @@ export default function AgencyDashboard() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Possession Status</label>
+                <label className="block text-sm font-medium text-on-surface-variant mb-1">Possession Status</label>
                 <select
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   value={form.status}
                   onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as AgencyPropertyForm['status'] }))}
                 >
@@ -220,9 +220,9 @@ export default function AgencyDashboard() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Locality</label>
+                <label className="block text-sm font-medium text-on-surface-variant mb-1">Locality</label>
                 <select
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   value={form.locality}
                   onChange={(e) => setForm((f) => ({ ...f, locality: e.target.value }))}
                 >
@@ -234,46 +234,46 @@ export default function AgencyDashboard() {
             {/* Row 2: Price, Area, Bedrooms, Bathrooms */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹ Cr) *</label>
+                <label className="block text-sm font-medium text-on-surface-variant mb-1">Price (₹ Cr) *</label>
                 <input
                   type="number"
                   step="0.01"
                   min="0.1"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   value={form.price_cr}
                   onChange={(e) => setForm((f) => ({ ...f, price_cr: parseFloat(e.target.value) || 0 }))}
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Area (sq.ft) *</label>
+                <label className="block text-sm font-medium text-on-surface-variant mb-1">Area (sq.ft) *</label>
                 <input
                   type="number"
                   min="100"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   value={form.area_sqft}
                   onChange={(e) => setForm((f) => ({ ...f, area_sqft: parseInt(e.target.value) || 0 }))}
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
+                <label className="block text-sm font-medium text-on-surface-variant mb-1">Bedrooms</label>
                 <input
                   type="number"
                   min="0"
                   max="10"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   value={form.bedrooms ?? ''}
                   onChange={(e) => setForm((f) => ({ ...f, bedrooms: e.target.value ? parseInt(e.target.value) : null }))}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bathrooms</label>
+                <label className="block text-sm font-medium text-on-surface-variant mb-1">Bathrooms</label>
                 <input
                   type="number"
                   min="0"
                   max="10"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   value={form.bathrooms ?? ''}
                   onChange={(e) => setForm((f) => ({ ...f, bathrooms: e.target.value ? parseInt(e.target.value) : null }))}
                 />
@@ -283,27 +283,27 @@ export default function AgencyDashboard() {
             {/* Row 3: Builder, RERA, Pincode */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Builder Name</label>
+                <label className="block text-sm font-medium text-on-surface-variant mb-1">Builder Name</label>
                 <input
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   value={form.builder_name ?? ''}
                   onChange={(e) => setForm((f) => ({ ...f, builder_name: e.target.value }))}
                   placeholder="e.g. Prestige Group"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">RERA Number</label>
+                <label className="block text-sm font-medium text-on-surface-variant mb-1">RERA Number</label>
                 <input
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   value={form.rera_number ?? ''}
                   onChange={(e) => setForm((f) => ({ ...f, rera_number: e.target.value }))}
                   placeholder="e.g. HYD-RERA-2024001"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
+                <label className="block text-sm font-medium text-on-surface-variant mb-1">Pincode</label>
                 <input
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   value={form.pincode ?? ''}
                   onChange={(e) => setForm((f) => ({ ...f, pincode: e.target.value }))}
                   placeholder="e.g. 500032"
@@ -313,13 +313,13 @@ export default function AgencyDashboard() {
 
             {/* Google Maps location */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-on-surface-variant mb-1">
                 Google Maps Link
-                <span className="ml-1 text-xs text-gray-400 font-normal">(paste any Google Maps or maps.app.goo.gl link)</span>
+                <span className="ml-1 text-xs text-on-surface-variant font-normal">(paste any Google Maps or maps.app.goo.gl link)</span>
               </label>
               <input
                 type="url"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 value={mapsUrl}
                 onChange={(e) => {
                   const url = e.target.value;
@@ -352,10 +352,10 @@ export default function AgencyDashboard() {
                 }}
                 placeholder="https://maps.app.goo.gl/... or https://www.google.com/maps/..."
               />
-              {mapsResolving && <p className="text-xs text-gray-400 mt-1">Resolving link...</p>}
-              {mapsError && !mapsResolving && <p className="text-xs text-red-500 mt-1">{mapsError}</p>}
+              {mapsResolving && <p className="text-xs text-on-surface-variant mt-1">Resolving link...</p>}
+              {mapsError && !mapsResolving && <p className="text-xs text-error mt-1">{mapsError}</p>}
               {form.lat != null && form.lng != null && !mapsError && !mapsResolving && (
-                <p className="text-xs text-green-600 mt-1">
+                <p className="text-xs text-secondary mt-1">
                   Coordinates detected: {form.lat.toFixed(6)}, {form.lng.toFixed(6)}
                 </p>
               )}
@@ -363,7 +363,7 @@ export default function AgencyDashboard() {
 
             {/* Amenities */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
+              <label className="block text-sm font-medium text-on-surface-variant mb-2">Amenities</label>
               <div className="flex flex-wrap gap-2">
                 {AMENITIES_LIST.map((a) => (
                   <button
@@ -372,8 +372,8 @@ export default function AgencyDashboard() {
                     onClick={() => toggleAmenity(a)}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                       form.amenities?.includes(a)
-                        ? 'bg-brand text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-primary text-on-primary'
+                        : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'
                     }`}
                   >
                     {a}
@@ -384,7 +384,7 @@ export default function AgencyDashboard() {
 
             {/* Price preview */}
             {form.price_cr > 0 && (
-              <p className="text-sm text-brand font-medium">
+              <p className="text-sm text-primary font-medium">
                 Price: {formatRupeesCr(form.price_cr * 1_00_00_000 * 100)}
                 {form.area_sqft > 0 && ` · ₹${Math.round(form.price_cr * 1_00_00_000 / form.area_sqft).toLocaleString('en-IN')}/sq.ft`}
               </p>
@@ -408,45 +408,45 @@ export default function AgencyDashboard() {
       )}
 
       {/* Listings Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="bg-surface-container border border-outline-variant overflow-hidden">
+        <div className="px-6 py-4 border-b border-outline-variant flex items-center justify-between">
           <div>
-            <h2 className="font-semibold text-gray-800">My Listings</h2>
+            <h2 className="font-semibold font-headline text-on-surface">My Listings</h2>
             {allProps && (
-              <p className="text-xs text-gray-400 mt-0.5">{allProps.length} total properties</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">{allProps.length} total properties</p>
             )}
           </div>
-          {deleteError && <p className="text-xs text-red-500">{deleteError}</p>}
+          {deleteError && <p className="text-xs text-error">{deleteError}</p>}
         </div>
         {isLoading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">Loading properties...</div>
+          <div className="p-8 text-center text-on-surface-variant text-sm">Loading properties...</div>
         ) : !allProps?.length ? (
-          <div className="p-8 text-center text-gray-400 text-sm">No properties yet. Click "Add Property" to get started.</div>
+          <div className="p-8 text-center text-on-surface-variant text-sm">No properties yet. Click "Add Property" to get started.</div>
         ) : (
           <>
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-outline-variant">
               {pagedProps.map((prop) => (
-                <div key={prop.id} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors">
+                <div key={prop.id} className="flex items-center gap-4 px-6 py-4 hover:bg-surface-container-low transition-colors">
                   {/* Photo thumbnail */}
-                  <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                  <div className="w-16 h-12 overflow-hidden bg-surface-container-low flex-shrink-0">
                     {prop.photos?.[0] ? (
                       <img src={prop.photos[0]} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">No photo</div>
+                      <div className="w-full h-full flex items-center justify-center text-on-surface-variant text-xs">No photo</div>
                     )}
                   </div>
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-800 text-sm truncate">{prop.title}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{prop.locality} · {prop.area_sqft.toLocaleString()} sq.ft</p>
+                    <p className="font-medium text-on-surface text-sm truncate">{prop.title}</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">{prop.locality} · {prop.area_sqft.toLocaleString()} sq.ft</p>
                   </div>
                   {/* Price */}
                   <div className="text-right flex-shrink-0">
-                    <p className="font-semibold text-navy text-sm">{formatRupeesCr(prop.price * 100)}</p>
+                    <p className="font-semibold text-on-surface text-sm">{formatRupeesCr(prop.price * 100)}</p>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      prop.rera_status === 'verified' ? 'bg-green-50 text-green-700' :
-                      prop.rera_status === 'pending' ? 'bg-yellow-50 text-yellow-700' :
-                      'bg-red-50 text-red-700'
+                      prop.rera_status === 'verified' ? 'bg-secondary/10 text-secondary' :
+                      prop.rera_status === 'pending' ? 'bg-primary/10 text-primary' :
+                      'bg-error/10 text-error'
                     }`}>
                       RERA {prop.rera_status}
                     </span>
@@ -455,17 +455,17 @@ export default function AgencyDashboard() {
                   <div className="flex-shrink-0">
                     {confirmDeleteId === prop.id ? (
                       <div className="flex items-center gap-1">
-                        <span className="text-xs text-gray-500 mr-1">Delete?</span>
+                        <span className="text-xs text-on-surface-variant mr-1">Delete?</span>
                         <button
                           onClick={() => deleteMutation.mutate(prop.id)}
                           disabled={deleteMutation.isPending}
-                          className="text-xs bg-red-500 text-white font-medium px-2 py-1 rounded hover:bg-red-600 disabled:opacity-50"
+                          className="text-xs bg-error text-on-primary font-medium px-2 py-1 hover:opacity-90 disabled:opacity-50"
                         >
                           {deleteMutation.isPending ? '...' : 'Yes'}
                         </button>
                         <button
                           onClick={() => { setConfirmDeleteId(null); setDeleteError(''); }}
-                          className="text-xs text-gray-500 font-medium px-2 py-1 rounded hover:bg-gray-100"
+                          className="text-xs text-on-surface-variant font-medium px-2 py-1 hover:bg-surface-container-low"
                         >
                           No
                         </button>
@@ -474,13 +474,13 @@ export default function AgencyDashboard() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => startEdit(prop)}
-                          className="text-xs text-brand hover:text-navy font-medium px-2 py-1 rounded hover:bg-gray-100"
+                          className="text-xs text-primary hover:text-on-surface font-medium px-2 py-1 hover:bg-surface-container-low"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => { setConfirmDeleteId(prop.id); setDeleteError(''); }}
-                          className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50"
+                          className="text-xs text-error hover:opacity-80 font-medium px-2 py-1 hover:bg-error/10"
                         >
                           Delete
                         </button>
@@ -493,15 +493,15 @@ export default function AgencyDashboard() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50">
-                <p className="text-xs text-gray-500">
+              <div className="flex items-center justify-between px-6 py-3 border-t border-outline-variant bg-surface-container-low">
+                <p className="text-xs text-on-surface-variant">
                   Showing {(listPage - 1) * PAGE_SIZE + 1}–{Math.min(listPage * PAGE_SIZE, allProps.length)} of {allProps.length}
                 </p>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setListPage((p) => Math.max(1, p - 1))}
                     disabled={listPage <= 1}
-                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-1.5 text-xs font-medium border border-outline-variant text-on-surface-variant hover:bg-surface-container-high disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     ← Prev
                   </button>
@@ -509,10 +509,10 @@ export default function AgencyDashboard() {
                     <button
                       key={p}
                       onClick={() => setListPage(p)}
-                      className={`w-8 h-7 text-xs font-medium rounded-lg transition-colors ${
+                      className={`w-8 h-7 text-xs font-medium transition-colors ${
                         p === listPage
-                          ? 'bg-brand text-white'
-                          : 'border border-gray-200 text-gray-600 hover:bg-white'
+                          ? 'bg-primary text-on-primary'
+                          : 'border border-outline-variant text-on-surface-variant hover:bg-surface-container-high'
                       }`}
                     >
                       {p}
@@ -521,7 +521,7 @@ export default function AgencyDashboard() {
                   <button
                     onClick={() => setListPage((p) => Math.min(totalPages, p + 1))}
                     disabled={listPage >= totalPages}
-                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-1.5 text-xs font-medium border border-outline-variant text-on-surface-variant hover:bg-surface-container-high disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     Next →
                   </button>

@@ -63,18 +63,18 @@ export default function ManagerDashboard() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-      <h1 className="text-2xl font-bold text-navy">Manager Dashboard</h1>
+      <h1 className="text-2xl font-bold font-headline text-on-surface">Manager Dashboard</h1>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200">
+      <div className="flex gap-2 border-b border-outline-variant">
         {(['admins', 'clients'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
               tab === t
-                ? 'border-brand text-brand'
-                : 'border-transparent text-gray-500 hover:text-navy'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-on-surface-variant hover:text-on-surface'
             }`}
           >
             {t === 'admins' ? 'Admin Users' : 'All Clients'}
@@ -85,33 +85,33 @@ export default function ManagerDashboard() {
       {tab === 'admins' && (
         <div className="space-y-6">
           {/* Create admin form */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-base font-semibold text-navy mb-4">Add Admin User</h2>
+          <div className="bg-surface-container border border-outline-variant p-6">
+            <h2 className="text-base font-semibold text-on-surface mb-4">Add Admin User</h2>
             <form onSubmit={handleCreate} className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Email *</label>
+                  <label className="block text-xs text-on-surface-variant mb-1">Email *</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@example.com"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:border-transparent"
+                    className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Name (optional)</label>
+                  <label className="block text-xs text-on-surface-variant mb-1">Name (optional)</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Display name"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:border-transparent"
+                    className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
                   />
                 </div>
               </div>
-              {error && <p className="text-xs text-red-500">{error}</p>}
-              {success && <p className="text-xs text-green-600">{success}</p>}
+              {error && <p className="text-xs text-error">{error}</p>}
+              {success && <p className="text-xs text-secondary">{success}</p>}
               <Button type="submit" size="sm" loading={createMutation.isPending}>
                 Create Admin
               </Button>
@@ -119,23 +119,23 @@ export default function ManagerDashboard() {
           </div>
 
           {/* Admin list */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="text-base font-semibold text-navy">Admin Users ({admins.length})</h2>
+          <div className="bg-surface-container border border-outline-variant overflow-hidden">
+            <div className="px-6 py-4 border-b border-outline-variant">
+              <h2 className="text-base font-semibold text-on-surface">Admin Users ({admins.length})</h2>
             </div>
             {loadingAdmins ? (
-              <div className="p-6 text-sm text-gray-400">Loading...</div>
+              <div className="p-6 text-sm text-on-surface-variant">Loading...</div>
             ) : admins.length === 0 ? (
-              <div className="p-6 text-sm text-gray-400">No admin users yet.</div>
+              <div className="p-6 text-sm text-on-surface-variant">No admin users yet.</div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-outline-variant">
                 {admins.map((admin: AdminUser) => (
                   <div key={admin.id} className="px-6 py-4 flex items-center justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-navy truncate">{admin.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{admin.email}</p>
+                      <p className="text-sm font-medium text-on-surface truncate">{admin.name}</p>
+                      <p className="text-xs text-on-surface-variant truncate">{admin.email}</p>
                       {admin.last_login && (
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-on-surface-variant">
                           Last login: {new Date(admin.last_login).toLocaleDateString('en-IN')}
                         </p>
                       )}
@@ -150,7 +150,7 @@ export default function ManagerDashboard() {
                           variant="ghost"
                           loading={deactivateMutation.isPending}
                           onClick={() => deactivateMutation.mutate(admin.id)}
-                          className="text-red-500 hover:text-red-700 text-xs"
+                          className="text-error text-xs"
                         >
                           Deactivate
                         </Button>
@@ -160,7 +160,7 @@ export default function ManagerDashboard() {
                           variant="ghost"
                           loading={reactivateMutation.isPending}
                           onClick={() => reactivateMutation.mutate(admin.id)}
-                          className="text-green-600 hover:text-green-800 text-xs"
+                          className="text-secondary text-xs"
                         >
                           Reactivate
                         </Button>
@@ -176,32 +176,32 @@ export default function ManagerDashboard() {
 
       {tab === 'clients' && (
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <div className="bg-surface-container border border-outline-variant p-4">
             <input
               type="text"
               value={clientSearch}
               onChange={(e) => setClientSearch(e.target.value)}
               placeholder="Search by name or email..."
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:border-transparent"
+              className="w-full bg-surface-container-low border border-outline-variant text-on-surface px-3 py-2 text-sm focus:border-primary focus:outline-none"
             />
           </div>
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="text-base font-semibold text-navy">Clients ({clients.length})</h2>
+          <div className="bg-surface-container border border-outline-variant overflow-hidden">
+            <div className="px-6 py-4 border-b border-outline-variant">
+              <h2 className="text-base font-semibold text-on-surface">Clients ({clients.length})</h2>
             </div>
             {loadingClients ? (
-              <div className="p-6 text-sm text-gray-400">Loading...</div>
+              <div className="p-6 text-sm text-on-surface-variant">Loading...</div>
             ) : clients.length === 0 ? (
-              <div className="p-6 text-sm text-gray-400">No clients found.</div>
+              <div className="p-6 text-sm text-on-surface-variant">No clients found.</div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-outline-variant">
                 {clients.map((client: AdminUser) => (
                   <div key={client.id} className="px-6 py-4 flex items-center justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-navy truncate">{client.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{client.email}</p>
+                      <p className="text-sm font-medium text-on-surface truncate">{client.name}</p>
+                      <p className="text-xs text-on-surface-variant truncate">{client.email}</p>
                       {client.last_login && (
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-on-surface-variant">
                           Last login: {new Date(client.last_login).toLocaleDateString('en-IN')}
                         </p>
                       )}
