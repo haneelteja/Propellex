@@ -121,7 +121,8 @@ export async function searchProperties(filters: PropertyFilter) {
     SELECT p.id, p.title, p.property_type, p.status, p.price, p.price_per_sqft,
            p.area_sqft, p.bedrooms, p.bathrooms, p.locality, p.city, p.lat, p.lng,
            p.amenities, p.builder_name, p.rera_number, p.rera_status,
-           p.photos, p.risk_score, p.roi_estimate_3yr, p.published_at${searchRank}
+           p.photos, p.risk_score, p.roi_estimate_3yr, p.published_at,
+           p.ai_analyzed_at, p.analysis_priority${searchRank}
     FROM properties p
     WHERE ${where}
     ORDER BY ${orderBy}
