@@ -45,8 +45,19 @@ export async function runDailyAnalysis(): Promise<void> {
         break;
       }
       if (msg.includes('Too Many Requests') || msg.includes('429')) {
-        console.warn('[Cron] Gemini rate limit hit — aborting batch, will resume next cycle.');
-        break;
+        console.warn('[Cron] Gemini rate limit hit — retrying in 1 hour.');
+        await sleep(60 * 60 * 1000);
+        console.info('[Cron] Resuming after rate-limit backoff...');
+        // retry this property once before continuing
+        try {
+          await analyzePropertyWithAI(id);
+          success++;
+        } catch {
+          failed++;
+          console.warn('[Cron] Still rate-limited after 1h — aborting batch.');
+          break;
+        }
+        continue;
       }
       failed++;
     }
@@ -59,7 +70,7 @@ export async function runDailyAnalysis(): Promise<void> {
 /** Schedule analysis using native Node.js timers.
  *  Runs once at startup (after INITIAL_DELAY_MS) then every 6 hours. */
 export function scheduleDailyAnalysis() {
-  const INITIAL_DELAY_MS = 60_000;           // 1 minute after startup
+  const INITIAL_DELAY_MS = 10 * 60_000;      // 10 minutes after startup (avoids hitting quota right after restart)
   const INTERVAL_MS = 6 * 60 * 60 * 1000;   // every 6 hours
 
   setTimeout(() => {
@@ -69,5 +80,5 @@ export function scheduleDailyAnalysis() {
     }, INTERVAL_MS);
   }, INITIAL_DELAY_MS);
 
-  console.info('[Cron] Property analysis scheduled (first run in 1 min, then every 6 hours)');
+  console.info('[Cron] Property analysis scheduled (first run in 10 min, then every 6 hours)');
 }
