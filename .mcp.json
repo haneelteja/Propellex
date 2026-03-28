@@ -1,12 +1,3 @@
 {
-  "mcpServers": {
-    "whatsapp": {
-      "command": "node",
-      "args": ["--import", "tsx/esm", "./whatsapp-channel/server.ts"],
-      "cwd": "${workspaceFolder}/whatsapp-channel",
-      "env": {
-        "NODE_ENV": "production"
-      }
-    }
-  }
+  "mcpServers": {}
 }
