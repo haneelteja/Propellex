@@ -408,21 +408,15 @@ export async function comparePropertiesWithAI(ids: string[]): Promise<{
   };
 }
 
-/** Returns IDs of properties that haven't been AI-analyzed yet,
- *  or whose analysis is older than 23 hours (stale). */
+/** Returns IDs of properties that have never been AI-analyzed. */
 export async function getPropertiesNeedingAnalysis(): Promise<string[]> {
   const rows = await query<{ id: string }>(
     `SELECT id FROM properties
      WHERE is_active = true
-       AND (
-         (analysis_priority = 'high'   AND (ai_analyzed_at IS NULL OR ai_analyzed_at < NOW() - INTERVAL '6 hours'))
-      OR (analysis_priority = 'medium' AND (ai_analyzed_at IS NULL OR ai_analyzed_at < NOW() - INTERVAL '1 day'))
-      OR (analysis_priority = 'low'    AND (ai_analyzed_at IS NULL OR ai_analyzed_at < NOW() - INTERVAL '4 days'))
-      OR (analysis_priority IS NULL    AND (ai_analyzed_at IS NULL OR ai_analyzed_at < NOW() - INTERVAL '1 day'))
-       )
+       AND ai_analyzed_at IS NULL
      ORDER BY
        CASE analysis_priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
-       ai_analyzed_at ASC NULLS FIRST`,
+       published_at ASC`,
   );
   return rows.map((r) => r.id);
 }
