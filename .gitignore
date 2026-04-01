@@ -45,3 +45,7 @@ coverage/
 
 # Misc
 *.local
+
+# Claude Code local settings (machine-specific, may contain sensitive data)
+.claude/settings.local.json
+.claude/
