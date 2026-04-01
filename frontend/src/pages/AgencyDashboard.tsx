@@ -385,7 +385,7 @@ export default function AgencyDashboard() {
             {/* Price preview */}
             {form.price_cr > 0 && (
               <p className="text-sm text-primary font-medium">
-                Price: {formatRupeesCr(form.price_cr * 1_00_00_000 * 100)}
+                Price: {formatRupeesCr(form.price_cr * 1_00_00_000)}
                 {form.area_sqft > 0 && ` · ₹${Math.round(form.price_cr * 1_00_00_000 / form.area_sqft).toLocaleString('en-IN')}/sq.ft`}
               </p>
             )}
@@ -442,7 +442,7 @@ export default function AgencyDashboard() {
                   </div>
                   {/* Price */}
                   <div className="text-right flex-shrink-0">
-                    <p className="font-semibold text-on-surface text-sm">{formatRupeesCr(prop.price * 100)}</p>
+                    <p className="font-semibold text-on-surface text-sm">{formatRupeesCr(prop.price)}</p>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       prop.rera_status === 'verified' ? 'bg-secondary/10 text-secondary' :
                       prop.rera_status === 'pending' ? 'bg-primary/10 text-primary' :

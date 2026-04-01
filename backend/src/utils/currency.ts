@@ -24,8 +24,11 @@ export function formatRupees(paise: number): string {
 export function serializeMoney<T extends Record<string, unknown>>(row: T): T {
   const out = { ...row } as Record<string, unknown>;
   for (const [key, value] of Object.entries(out)) {
-    if ((key === 'price' || key === 'price_per_sqft') && typeof value === 'number') {
-      out[key] = paiseToRupees(value);
+    if (key === 'price' || key === 'price_per_sqft') {
+      // pg returns BIGINT as string — handle both number and numeric string
+      if (typeof value === 'number' || (typeof value === 'string' && value !== '')) {
+        out[key] = Number(value) / 100;
+      }
     }
   }
   return out as T;
