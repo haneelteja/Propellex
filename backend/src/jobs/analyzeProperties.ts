@@ -1,6 +1,6 @@
 import { getPropertiesNeedingAnalysis, analyzePropertyWithAI } from '../modules/property/property.service';
 
-const DELAY_BETWEEN_PROPERTIES_MS = 10_000; // 10s between calls → ~6 RPM, well under Gemini free tier 15 RPM limit
+const DELAY_BETWEEN_PROPERTIES_MS = 15_000; // 15s between calls → 4 RPM, safely under Gemini 2.5 Flash 5 RPM limit
 
 async function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
