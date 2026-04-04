@@ -55,7 +55,7 @@ async def stream_chat(
     try:
         client = anthropic.AsyncAnthropic()
         async with client.messages.stream(
-            model="claude-sonnet-4-5",
+            model="claude-sonnet-4-6",
             max_tokens=1024,
             system=system,
             messages=messages,
