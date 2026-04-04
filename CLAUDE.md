@@ -8,7 +8,7 @@ AI-powered real estate discovery & investment intelligence platform for HNIs in 
 |-------|------|
 | Frontend | React 18 + TypeScript + Vite + Tailwind CSS + React Query v5 + Zustand + react-leaflet |
 | Backend | Node.js 22 + Express + TypeScript + pg (node-postgres) + ioredis + JWT |
-| AI Service | Python 3.12 + FastAPI + Anthropic SDK (claude-sonnet-4-20250514) + Google Gemini |
+| AI Service | Python 3.12 + FastAPI + Anthropic SDK (claude-sonnet-4-5) + Google Gemini |
 | Database | PostgreSQL 16 (Neon in prod) |
 | Cache | Redis 7 (ioredis) |
 | Infra | Docker Compose, Render (backend + AI), Vercel (frontend) |

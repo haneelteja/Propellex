@@ -38,5 +38,7 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
+      - key: GEMINI_API_KEY
+        sync: false
       - key: NODE_ENV
         value: production

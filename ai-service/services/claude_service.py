@@ -3,8 +3,6 @@ import json
 import traceback
 from typing import List, Dict, Any, AsyncGenerator
 
-client = anthropic.AsyncAnthropic()
-
 SYSTEM_PROMPT = """You are Propellex AI, an expert real estate investment advisor for High Net-Worth Individuals (HNIs) in India.
 
 You specialize in:
@@ -55,8 +53,9 @@ async def stream_chat(
     messages.append({"role": "user", "content": message})
 
     try:
+        client = anthropic.AsyncAnthropic()
         async with client.messages.stream(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-5",
             max_tokens=1024,
             system=system,
             messages=messages,
