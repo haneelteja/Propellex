@@ -39,16 +39,29 @@ export async function handleChat(req: Request, res: Response): Promise<void> {
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
 
-  try {
-    const aiRes = await fetch(`${AI_SERVICE_URL}/chat`, {
+  const aiBody = JSON.stringify({
+    message,
+    user_id: user.userId,
+    conversation_history: conversation_history ?? [],
+  });
+
+  const callAi = () =>
+    fetch(`${AI_SERVICE_URL}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message,
-        user_id: user.userId,
-        conversation_history: conversation_history ?? [],
-      }),
+      body: aiBody,
     });
+
+  try {
+    let aiRes = await callAi();
+
+    // Render free-tier rate-limits (429) requests that wake a sleeping service.
+    // One retry after 4 s is enough for the service to start accepting traffic.
+    if (aiRes.status === 429) {
+      console.warn('[Chat] AI service returned 429 — retrying in 4 s');
+      await new Promise((r) => setTimeout(r, 4_000));
+      aiRes = await callAi();
+    }
 
     if (!aiRes.ok || !aiRes.body) {
       const status = aiRes.status;
@@ -57,7 +70,7 @@ export async function handleChat(req: Request, res: Response): Promise<void> {
         ? `HTTP ${status} (AI service unavailable)`
         : await aiRes.text().catch(() => `HTTP ${status}`);
       console.error(`[Chat] AI service error — ${detail}`);
-      res.write(`data: ${JSON.stringify({ error: `AI service unavailable (${status})` })}\n\n`);
+      res.write(`data: ${JSON.stringify({ error: status === 429 ? 'AI service is waking up — please try again in a moment' : `AI service unavailable (${status})` })}\n\n`);
       res.end();
       return;
     }
