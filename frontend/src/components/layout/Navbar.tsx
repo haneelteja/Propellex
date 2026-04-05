@@ -40,9 +40,20 @@ export function Navbar() {
                 </Link>
               </>
             ) : user.role === 'admin' ? (
-              <Link to="/agency" className={navLinkClass('/agency')}>
-                Manage Listings
-              </Link>
+              <>
+                <Link to="/" className={navLinkClass('/')}>
+                  Portfolio
+                </Link>
+                <Link to="/search" className={navLinkClass('/search')}>
+                  Discover
+                </Link>
+                <Link to="/shortlist" className={navLinkClass('/shortlist')}>
+                  Intelligence
+                </Link>
+                <Link to="/agency" className={navLinkClass('/agency')}>
+                  Manage Listings
+                </Link>
+              </>
             ) : (
               <>
                 <Link to="/" className={navLinkClass('/')}>
@@ -140,13 +151,32 @@ export function Navbar() {
               </Link>
             </>
           ) : user.role === 'admin' ? (
-            <Link
-              to="/agency"
-              onClick={() => setMobileOpen(false)}
-              className={navLinkClass('/agency')}
-            >
-              Manage Listings
-            </Link>
+            <>
+              <Link to="/" onClick={() => setMobileOpen(false)} className={navLinkClass('/')}>
+                Portfolio
+              </Link>
+              <Link
+                to="/search"
+                onClick={() => setMobileOpen(false)}
+                className={navLinkClass('/search')}
+              >
+                Discover
+              </Link>
+              <Link
+                to="/shortlist"
+                onClick={() => setMobileOpen(false)}
+                className={navLinkClass('/shortlist')}
+              >
+                Intelligence
+              </Link>
+              <Link
+                to="/agency"
+                onClick={() => setMobileOpen(false)}
+                className={navLinkClass('/agency')}
+              >
+                Manage Listings
+              </Link>
+            </>
           ) : (
             <>
               <Link to="/" onClick={() => setMobileOpen(false)} className={navLinkClass('/')}>
