@@ -114,9 +114,10 @@ async function start() {
         .then((r) => { if (!r.ok) console.warn(`[AI KeepAlive] Unhealthy response: ${r.status}`); })
         .catch((e: Error) => console.warn(`[AI KeepAlive] Ping failed: ${e.message}`));
     };
-    // First ping after 3 min (let server fully start), then every 10 min
-    setTimeout(() => { pingAi(); setInterval(pingAi, 10 * 60_000); }, 3 * 60_000);
-    console.info('[AI KeepAlive] Scheduled (first ping in 3 min, then every 10 min)');
+    // First ping after 15 s (enough for server to start, wakes AI service early),
+    // then every 10 min to prevent Render free-tier 15-min idle sleep.
+    setTimeout(() => { pingAi(); setInterval(pingAi, 10 * 60_000); }, 15_000);
+    console.info('[AI KeepAlive] Scheduled (first ping in 15 s, then every 10 min)');
   }
 
   // Start daily AI property analysis job

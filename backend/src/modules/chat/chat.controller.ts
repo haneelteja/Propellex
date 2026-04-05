@@ -55,11 +55,11 @@ export async function handleChat(req: Request, res: Response): Promise<void> {
   try {
     let aiRes = await callAi();
 
-    // Render free-tier rate-limits (429) requests that wake a sleeping service.
-    // One retry after 4 s is enough for the service to start accepting traffic.
+    // Render free-tier returns 429 while waking a sleeping service (~15-30 s).
+    // Wait 15 s then retry once — enough time for the service to come back up.
     if (aiRes.status === 429) {
-      console.warn('[Chat] AI service returned 429 — retrying in 4 s');
-      await new Promise((r) => setTimeout(r, 4_000));
+      console.warn('[Chat] AI service returned 429 — retrying in 15 s');
+      await new Promise((r) => setTimeout(r, 15_000));
       aiRes = await callAi();
     }
 
