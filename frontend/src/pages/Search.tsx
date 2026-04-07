@@ -6,6 +6,7 @@ import { PropertyFilters } from '@/components/property/PropertyFilters';
 import { QuickPreferences } from '@/components/preferences/QuickPreferences';
 import { PropertyGrid } from '@/components/property/PropertyGrid';
 import { PropertyMap } from '@/components/property/PropertyMap';
+import { UpgradePrompt } from '@/components/shared/UpgradePrompt';
 import { usePortfolio, useAddToPortfolio } from '@/hooks/usePortfolio';
 
 export default function Search() {
@@ -166,7 +167,12 @@ export default function Search() {
             </div>
           )}
 
-          {/* Property grid */}
+          {/* Upgrade prompt when search limit hit */}
+          {(error as { status?: number } | null)?.status === 429 ? (
+            <div className="py-8">
+              <UpgradePrompt reason="You've reached your daily search limit. Upgrade to Pro for unlimited property searches." />
+            </div>
+          ) : (
           <PropertyGrid
             properties={data}
             loading={isLoading}
@@ -176,6 +182,7 @@ export default function Search() {
             compareSelectedIds={compareIds}
             onCompareToggle={handleCompareToggle}
           />
+          )}
 
           {/* Pagination */}
           {pagination && pagination.total_pages > 1 && (

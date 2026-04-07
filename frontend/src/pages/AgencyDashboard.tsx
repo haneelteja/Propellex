@@ -6,6 +6,20 @@ import { Button } from '@/components/shared/Button';
 import { formatRupeesCr } from '@/lib/utils';
 import type { AgencyPropertyForm, Property } from '@/types';
 
+// ── Photo helpers ─────────────────────────────────────────────────────────────
+
+const MAX_PHOTOS = 8;
+const MAX_FILE_MB = 2;
+
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
 const LOCALITIES = [
   'Jubilee Hills', 'Banjara Hills', 'Gachibowli', 'Kondapur',
   'Kokapet', 'Hitech City', 'Madhapur', 'Nanakramguda',
@@ -65,6 +79,9 @@ export default function AgencyDashboard() {
   const [mapsResolving, setMapsResolving] = useState(false);
   const resolveDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [listPage, setListPage] = useState(1);
+  const [photoError, setPhotoError] = useState('');
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   // Load this agency's properties (search with no filters shows all active)
   const { data: allProps, isLoading } = useQuery({
@@ -78,13 +95,13 @@ export default function AgencyDashboard() {
 
   const createMutation = useMutation({
     mutationFn: (data: AgencyPropertyForm) => propertiesApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['agency-properties'] }); setShowForm(false); setForm({ ...EMPTY_FORM }); setMapsUrl(''); setMapsError(''); setError(''); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['agency-properties'] }); setShowForm(false); setForm({ ...EMPTY_FORM }); setMapsUrl(''); setMapsError(''); setError(''); setPhotoError(''); },
     onError: (e: Error) => setError(e.message),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AgencyPropertyForm> }) => propertiesApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['agency-properties'] }); setShowForm(false); setEditingId(null); setForm({ ...EMPTY_FORM }); setMapsUrl(''); setMapsError(''); setError(''); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['agency-properties'] }); setShowForm(false); setEditingId(null); setForm({ ...EMPTY_FORM }); setMapsUrl(''); setMapsError(''); setError(''); setPhotoError(''); },
     onError: (e: Error) => setError(e.message),
   });
 
@@ -135,6 +152,33 @@ export default function AgencyDashboard() {
         ? f.amenities.filter((x) => x !== a)
         : [...(f.amenities ?? []), a],
     }));
+  }
+
+  async function handlePhotoFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setPhotoError('');
+    const current = form.photos ?? [];
+    const slots = MAX_PHOTOS - current.length;
+    if (slots <= 0) { setPhotoError(`Maximum ${MAX_PHOTOS} photos allowed.`); return; }
+
+    const selected = Array.from(files).slice(0, slots);
+    const oversized = selected.filter((f) => f.size > MAX_FILE_MB * 1024 * 1024);
+    if (oversized.length) { setPhotoError(`Each photo must be under ${MAX_FILE_MB} MB.`); return; }
+
+    setPhotoUploading(true);
+    try {
+      const dataUrls = await Promise.all(selected.map(readAsDataUrl));
+      setForm((f) => ({ ...f, photos: [...(f.photos ?? []), ...dataUrls] }));
+    } catch {
+      setPhotoError('Failed to read one or more photos.');
+    } finally {
+      setPhotoUploading(false);
+      if (photoInputRef.current) photoInputRef.current.value = '';
+    }
+  }
+
+  function removePhoto(index: number) {
+    setForm((f) => ({ ...f, photos: (f.photos ?? []).filter((_, i) => i !== index) }));
   }
 
   if (user?.role !== 'admin' && user?.role !== 'manager') {
@@ -382,6 +426,66 @@ export default function AgencyDashboard() {
               </div>
             </div>
 
+            {/* Photos */}
+            <div>
+              <label className="block text-sm font-medium text-on-surface-variant mb-2">
+                Photos
+                <span className="ml-1 text-xs font-normal text-on-surface-variant">
+                  (up to {MAX_PHOTOS}, max {MAX_FILE_MB} MB each)
+                </span>
+              </label>
+
+              {/* Thumbnails grid */}
+              {(form.photos ?? []).length > 0 && (
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  {(form.photos ?? []).map((src, i) => (
+                    <div key={i} className="relative group aspect-video bg-surface-container-low overflow-hidden">
+                      <img src={src} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(i)}
+                        className="absolute top-1 right-1 w-5 h-5 bg-error text-on-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove photo"
+                      >
+                        <span className="material-symbols-outlined text-[12px]">close</span>
+                      </button>
+                      {i === 0 && (
+                        <span className="absolute bottom-1 left-1 bg-surface-container/80 text-on-surface font-label text-[9px] uppercase tracking-widest px-1.5 py-0.5">
+                          Cover
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Drop zone / picker */}
+              {(form.photos ?? []).length < MAX_PHOTOS && (
+                <div
+                  className="border border-dashed border-outline-variant hover:border-primary transition-colors cursor-pointer p-4 text-center"
+                  onClick={() => photoInputRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => { e.preventDefault(); void handlePhotoFiles(e.dataTransfer.files); }}
+                >
+                  <span className="material-symbols-outlined text-2xl text-on-surface-variant block mb-1">
+                    add_photo_alternate
+                  </span>
+                  <p className="text-xs text-on-surface-variant font-label">
+                    {photoUploading ? 'Loading…' : 'Click or drag & drop photos here'}
+                  </p>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => void handlePhotoFiles(e.target.files)}
+                  />
+                </div>
+              )}
+              {photoError && <p className="text-xs text-error mt-1">{photoError}</p>}
+            </div>
+
             {/* Price preview */}
             {form.price_cr > 0 && (
               <p className="text-sm text-primary font-medium">
@@ -398,7 +502,7 @@ export default function AgencyDashboard() {
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => { setShowForm(false); setEditingId(null); setForm({ ...EMPTY_FORM }); setMapsUrl(''); setMapsError(''); setError(''); }}
+                onClick={() => { setShowForm(false); setEditingId(null); setForm({ ...EMPTY_FORM }); setMapsUrl(''); setMapsError(''); setError(''); setPhotoError(''); }}
               >
                 Cancel
               </Button>

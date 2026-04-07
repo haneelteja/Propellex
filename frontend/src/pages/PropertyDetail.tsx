@@ -5,6 +5,8 @@ import { useAuthStore } from '@/store/authStore';
 import { PropertyMap } from '@/components/property/PropertyMap';
 import { ChatWidget } from '@/components/chatbot/ChatWidget';
 import { Skeleton } from '@/components/shared/Skeleton';
+import { RoiCalculator } from '@/components/property/RoiCalculator';
+import { PriceTrendChart } from '@/components/property/PriceTrendChart';
 import { formatRupeesCr, formatRupees, formatDate, riskLabel } from '@/lib/utils';
 import type { AiPropertyAnalysis, Property } from '@/types';
 
@@ -705,7 +707,21 @@ export default function PropertyDetail() {
         </section>
       )}
 
-      {/* ── Section 5: Map ────────────────────────────────────────────────── */}
+      {/* ── Section 5: Price Trend Chart ─────────────────────────────────── */}
+      <PriceTrendChart
+        pricePerSqft={Math.round(property.price_per_sqft)}
+        roiEstimate3yr={property.roi_estimate_3yr}
+        locality={property.locality}
+      />
+
+      {/* ── Section 6: ROI Calculator ─────────────────────────────────────── */}
+      <RoiCalculator
+        price={property.price}
+        roiEstimate3yr={property.roi_estimate_3yr}
+        riskScore={property.risk_score}
+      />
+
+      {/* ── Section 7: Map ────────────────────────────────────────────────── */}
       <section className="border-b border-outline-variant">
         <div className="px-8 pt-8 pb-4">
           <span className="font-label text-xs text-on-surface-variant uppercase tracking-[0.2em] mb-2 block">
@@ -724,7 +740,7 @@ export default function PropertyDetail() {
         </div>
       </section>
 
-      {/* ── Section 6: Action bar ─────────────────────────────────────────── */}
+      {/* ── Section 8: Action bar ─────────────────────────────────────────── */}
       <section className="bg-surface-container-low px-6 md:px-10 py-8 border-b border-outline-variant">
         <div className="max-w-screen-lg mx-auto">
           {/* Price header */}

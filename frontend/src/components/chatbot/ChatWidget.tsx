@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useChatStore } from '@/store/chatStore';
 import { useChat } from '@/hooks/useChat';
 import { ChatMessage } from './ChatMessage';
+import { UpgradePrompt } from '@/components/shared/UpgradePrompt';
 import { useAuthStore } from '@/store/authStore';
 
 const PROMPT_SUGGESTIONS = [
@@ -149,14 +150,10 @@ export function ChatWidget() {
           {/* Input area */}
           <div className="border-t border-outline-variant p-3 shrink-0 bg-surface-container-low">
             {isAtLimit ? (
-              <div className="text-center py-3 space-y-1">
-                <p className="text-on-surface-variant font-body text-xs">
-                  Daily limit reached ({freeLimit} queries).
-                </p>
-                <p className="text-primary font-label text-xs font-semibold">
-                  Upgrade to Pro for unlimited access.
-                </p>
-              </div>
+              <UpgradePrompt
+                compact
+                reason={`You've used all ${freeLimit} free daily chat queries. Upgrade to Pro for unlimited AI conversations.`}
+              />
             ) : (
               <div className="flex gap-2 items-end">
                 <textarea
