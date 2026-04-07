@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
@@ -7,6 +7,7 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { ChatWidget } from '@/components/chatbot/ChatWidget';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { useAuthStore } from '@/store/authStore';
+import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 
 // Lazy-loaded pages
 const Login = lazy(() => import('@/pages/Login'));
@@ -33,12 +34,28 @@ function PageLoader() {
   );
 }
 
+function needsOnboarding(user: ReturnType<typeof useAuthStore.getState>['user']): boolean {
+  if (!user || user.role !== 'client') return false;
+  const p = user.preferences;
+  if (!p) return true;
+  return !(p.budget_max > 0 || p.localities?.length > 0 || p.property_types?.length > 0);
+}
+
 function AppContent() {
   const token = useAuthStore((s) => s.token);
+  const user  = useAuthStore((s) => s.user);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    setShowOnboarding(needsOnboarding(user));
+  }, [user?.id]);
 
   return (
     <div className="min-h-screen bg-surface font-sans">
       <Navbar />
+      {showOnboarding && token && (
+        <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+      )}
       <main>
         <Suspense fallback={<PageLoader />}>
           <Routes>
