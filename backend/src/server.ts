@@ -11,7 +11,10 @@ import { portfolioRouter } from './modules/portfolio/portfolio.routes';
 import { recommendationsRouter } from './modules/recommendations/recommendations.routes';
 import { chatRouter } from './modules/chat/chat.routes';
 import { managerRouter } from './modules/manager/manager.routes';
+import { newsRouter } from './modules/news/news.routes';
 import { scheduleDailyAnalysis } from './jobs/analyzeProperties';
+import { scheduleNewsFetch } from './jobs/fetchNews';
+import { scheduleReraVerification } from './jobs/reraVerification';
 import { markOtpTableReady } from './modules/auth/auth.service';
 
 const app = express();
@@ -55,6 +58,7 @@ app.use('/api/portfolio', portfolioRouter);
 app.use('/api/recommendations', recommendationsRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/manager', managerRouter);
+app.use('/api/news', newsRouter);
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ success: false, error: 'Route not found' }));
@@ -122,6 +126,12 @@ async function start() {
 
   // Start daily AI property analysis job
   scheduleDailyAnalysis();
+
+  // Start Market Intelligence RSS news fetch (every 4 h)
+  scheduleNewsFetch();
+
+  // Start RERA auto-verification cron (nightly)
+  scheduleReraVerification();
 
   const shutdown = async (signal: string) => {
     console.info(`[Server] ${signal} received — shutting down`);

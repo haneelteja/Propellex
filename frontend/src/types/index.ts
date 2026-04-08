@@ -35,7 +35,7 @@ export interface AuthState {
 
 export type PropertyType = 'residential' | 'commercial' | 'plot';
 export type PropertyStatus = 'ready_to_move' | 'under_construction';
-export type ReraStatus = 'verified' | 'pending' | 'flagged';
+export type ReraStatus = 'verified' | 'pending' | 'flagged' | 'not_registered' | 'unknown';
 
 export interface AiPropertyAnalysis {
   advantages: string[];
@@ -189,6 +189,25 @@ export interface MarketNews {
   locality_tags: string[];
   sentiment: NewsSentiment;
   published_at: string;
+}
+
+// NewsArticle matches the /api/news backend response
+export interface NewsArticle {
+  id: string;
+  title: string;
+  summary: string | null;
+  url: string;
+  source: string;
+  published_at: string | null;
+  sentiment: NewsSentiment;
+  localities: string[];
+  fetched_at: string;
+}
+
+export interface LocalitySentiment {
+  positive: number;
+  negative: number;
+  neutral: number;
 }
 
 // ── API ───────────────────────────────────────────────────────────────────────

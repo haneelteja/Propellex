@@ -8,6 +8,8 @@ import type {
   PortfolioIntent,
   InvestmentAnalysis,
   MarketNews,
+  NewsArticle,
+  LocalitySentiment,
   User,
   UserPreferences,
   AgencyPropertyForm,
@@ -206,8 +208,39 @@ export const portfolio = {
 // ── Market Intelligence ───────────────────────────────────────────────────────
 
 export const market = {
+  /** @deprecated — old endpoint, kept for backwards compat */
   getNews: (locality?: string, limit = 10) =>
     request<MarketNews[]>(`/api/properties/market/news${buildQuery({ locality, limit } as Record<string, string | number | undefined>)}`),
+};
+
+// ── News (RSS Intelligence Feed) ──────────────────────────────────────────────
+
+export const news = {
+  list: async (params: { locality?: string; sentiment?: string; page?: number; limit?: number } = {}): Promise<PaginatedResponse<NewsArticle>> => {
+    const qs = buildQuery(params as Record<string, string | number | undefined>);
+    let res: Response;
+    try {
+      res = await fetch(`${BASE_URL}/api/news${qs}`, {
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      });
+    } catch (err) {
+      throw new ApiError(0, 'Cannot reach the server — check your connection');
+    }
+    let json: PaginatedResponse<NewsArticle>;
+    try {
+      json = await res.json() as PaginatedResponse<NewsArticle>;
+    } catch {
+      throw new ApiError(res.status, `Server error (${res.status}) — please try again`);
+    }
+    if (!res.ok) throw new ApiError(res.status, (json as unknown as ApiResponse<NewsArticle>).error ?? `Failed (${res.status})`);
+    return json;
+  },
+
+  sentimentSummary: () =>
+    request<Record<string, LocalitySentiment>>('/api/news/sentiment'),
+
+  localities: () =>
+    request<{ locality: string; count: number }[]>('/api/news/localities'),
 };
 
 // ── Manager (admin user management) ──────────────────────────────────────────

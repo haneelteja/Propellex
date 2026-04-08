@@ -4,7 +4,7 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import chat, recommendations, analysis
+from routers import chat, recommendations, analysis, rera
 
 
 # ── Keep-alive tasks ──────────────────────────────────────────────────────────
@@ -69,6 +69,7 @@ app.add_middleware(
 app.include_router(chat.router)
 app.include_router(recommendations.router)
 app.include_router(analysis.router)
+app.include_router(rera.router)
 
 
 @app.get("/health")

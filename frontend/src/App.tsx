@@ -19,6 +19,7 @@ const Profile = lazy(() => import('@/pages/Profile'));
 const AgencyDashboard = lazy(() => import('@/pages/AgencyDashboard'));
 const ManagerDashboard = lazy(() => import('@/pages/ManagerDashboard'));
 const Compare = lazy(() => import('@/pages/Compare'));
+const Intelligence = lazy(() => import('@/pages/Intelligence'));
 
 function PageLoader() {
   return (
@@ -124,6 +125,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <Compare />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/intelligence"
+              element={
+                <ProtectedRoute>
+                  <Intelligence />
                 </ProtectedRoute>
               }
             />

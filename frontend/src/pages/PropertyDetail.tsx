@@ -351,10 +351,22 @@ export default function PropertyDetail() {
                   ? 'bg-secondary-container text-on-secondary-container font-label text-[10px] uppercase tracking-[0.15em] px-3 py-1.5'
                   : property.rera_status === 'pending'
                   ? 'bg-surface-container-high text-primary font-label text-[10px] uppercase tracking-[0.15em] px-3 py-1.5 border border-primary/30'
+                  : property.rera_status === 'not_registered'
+                  ? 'bg-error-container text-on-error-container font-label text-[10px] uppercase tracking-[0.15em] px-3 py-1.5'
+                  : property.rera_status === 'unknown'
+                  ? 'bg-surface-container text-on-surface-variant/60 font-label text-[10px] uppercase tracking-[0.15em] px-3 py-1.5 border border-outline-variant'
                   : 'bg-error-container text-on-error-container font-label text-[10px] uppercase tracking-[0.15em] px-3 py-1.5'
               }
             >
-              RERA {property.rera_status}
+              {property.rera_status === 'verified'
+                ? 'RERA Verified'
+                : property.rera_status === 'pending'
+                ? 'RERA Pending'
+                : property.rera_status === 'not_registered'
+                ? 'Not Registered'
+                : property.rera_status === 'unknown'
+                ? 'RERA Unverified'
+                : 'RERA Flagged'}
             </span>
             <span className="bg-surface-container text-on-surface font-label text-[10px] uppercase tracking-[0.15em] px-3 py-1.5 border border-outline-variant">
               {property.status === 'ready_to_move' ? 'Ready to Move' : 'Under Construction'}
@@ -639,6 +651,8 @@ export default function PropertyDetail() {
               className={
                 property.rera_status === 'verified'
                   ? 'flex items-center gap-2 bg-secondary-container px-4 py-3 mb-4'
+                  : property.rera_status === 'not_registered' || property.rera_status === 'flagged'
+                  ? 'flex items-center gap-2 bg-error-container px-4 py-3 mb-4'
                   : 'flex items-center gap-2 bg-surface-container px-4 py-3 mb-4 border border-outline-variant'
               }
             >
@@ -646,15 +660,27 @@ export default function PropertyDetail() {
                 className={
                   property.rera_status === 'verified'
                     ? 'material-symbols-outlined text-secondary text-base'
+                    : property.rera_status === 'not_registered' || property.rera_status === 'flagged'
+                    ? 'material-symbols-outlined text-on-error-container text-base'
                     : 'material-symbols-outlined text-on-surface-variant text-base'
                 }
               >
-                {property.rera_status === 'verified' ? 'verified' : 'pending'}
+                {property.rera_status === 'verified'
+                  ? 'verified'
+                  : property.rera_status === 'pending'
+                  ? 'pending'
+                  : property.rera_status === 'not_registered'
+                  ? 'block'
+                  : property.rera_status === 'unknown'
+                  ? 'help'
+                  : 'warning'}
               </span>
               <span
                 className={
                   property.rera_status === 'verified'
                     ? 'font-label text-xs text-on-secondary-container uppercase tracking-[0.1em]'
+                    : property.rera_status === 'not_registered' || property.rera_status === 'flagged'
+                    ? 'font-label text-xs text-on-error-container uppercase tracking-[0.1em]'
                     : 'font-label text-xs text-on-surface-variant uppercase tracking-[0.1em]'
                 }
               >
@@ -662,6 +688,10 @@ export default function PropertyDetail() {
                   ? 'RERA Verified'
                   : property.rera_status === 'pending'
                   ? 'Verification Pending'
+                  : property.rera_status === 'not_registered'
+                  ? 'Not RERA Registered'
+                  : property.rera_status === 'unknown'
+                  ? 'Verification Pending (Auto-checking nightly)'
                   : 'RERA Flagged'}
               </span>
             </div>

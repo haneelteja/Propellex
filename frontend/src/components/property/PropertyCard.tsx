@@ -34,6 +34,22 @@ function ReraChip({ status }: { status: ReraStatus }) {
       </span>
     );
   }
+  if (status === 'not_registered') {
+    return (
+      <span className="inline-flex items-center gap-1 bg-error-container text-on-error-container px-3 py-1 text-[10px] font-label font-bold uppercase tracking-widest">
+        <span className="material-symbols-outlined text-[12px]">block</span>
+        Not Registered
+      </span>
+    );
+  }
+  if (status === 'unknown') {
+    return (
+      <span className="inline-flex items-center gap-1 bg-surface-container text-on-surface-variant/60 px-3 py-1 text-[10px] font-label font-bold uppercase tracking-widest">
+        <span className="material-symbols-outlined text-[12px]">help</span>
+        Unverified
+      </span>
+    );
+  }
   return (
     <span className="inline-flex items-center gap-1 bg-error-container text-on-error-container px-3 py-1 text-[10px] font-label font-bold uppercase tracking-widest">
       <span className="material-symbols-outlined text-[12px]">warning</span>

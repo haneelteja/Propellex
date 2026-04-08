@@ -12,7 +12,7 @@ import { usePortfolio, useAddToPortfolio } from '@/hooks/usePortfolio';
 export default function Search() {
   const navigate = useNavigate();
   const { filters, setFilter, page, setPage, showMap, toggleMap } = useFilterStore();
-  const { data, pagination, isLoading, isFetching } = useProperties();
+  const { data, pagination, isLoading, isFetching, error } = useProperties();
   const { data: portfolioItems } = usePortfolio();
   const addToPortfolio = useAddToPortfolio();
   const [searchInput, setSearchInput] = useState(filters.query);
