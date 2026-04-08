@@ -264,4 +264,23 @@ export const manager = {
     request<AdminUser[]>(`/api/manager/clients${search ? `?search=${encodeURIComponent(search)}` : ''}`),
 };
 
+// ── Billing (Razorpay) ────────────────────────────────────────────────────────
+
+export const billing = {
+  createOrder: () =>
+    request<{ order_id: string; amount: number; currency: string; key_id: string }>('/api/billing/order', {
+      method: 'POST',
+    }),
+
+  verifyPayment: (data: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+  }) =>
+    request<{ message: string; subscription_tier: string }>('/api/billing/verify-payment', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+};
+
 export { ApiError };

@@ -12,6 +12,7 @@ import { recommendationsRouter } from './modules/recommendations/recommendations
 import { chatRouter } from './modules/chat/chat.routes';
 import { managerRouter } from './modules/manager/manager.routes';
 import { newsRouter } from './modules/news/news.routes';
+import { billingRouter } from './modules/billing/billing.routes';
 import { scheduleDailyAnalysis } from './jobs/analyzeProperties';
 import { scheduleNewsFetch } from './jobs/fetchNews';
 import { scheduleReraVerification } from './jobs/reraVerification';
@@ -59,6 +60,7 @@ app.use('/api/recommendations', recommendationsRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/manager', managerRouter);
 app.use('/api/news', newsRouter);
+app.use('/api/billing', billingRouter);
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ success: false, error: 'Route not found' }));

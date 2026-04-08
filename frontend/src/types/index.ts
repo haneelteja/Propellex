@@ -1,6 +1,6 @@
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
-export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
+export type SubscriptionTier = 'free' | 'premium' | 'enterprise';
 export type UserType = 'resident_hni' | 'nri' | 'institutional' | 'home_buyer' | 'agency_manager';
 export type UserRole = 'client' | 'admin' | 'manager';
 export type RiskAppetite = 'low' | 'medium' | 'high';
