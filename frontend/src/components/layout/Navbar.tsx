@@ -47,7 +47,7 @@ export function Navbar() {
                 <Link to="/search" className={navLinkClass('/search')}>
                   Discover
                 </Link>
-                <Link to="/shortlist" className={navLinkClass('/shortlist')}>
+                <Link to="/intelligence" className={navLinkClass('/intelligence')}>
                   Intelligence
                 </Link>
                 <Link to="/agency" className={navLinkClass('/agency')}>
@@ -62,7 +62,7 @@ export function Navbar() {
                 <Link to="/search" className={navLinkClass('/search')}>
                   Discover
                 </Link>
-                <Link to="/shortlist" className={navLinkClass('/shortlist')}>
+                <Link to="/intelligence" className={navLinkClass('/intelligence')}>
                   Intelligence
                 </Link>
               </>
@@ -163,9 +163,9 @@ export function Navbar() {
                 Discover
               </Link>
               <Link
-                to="/shortlist"
+                to="/intelligence"
                 onClick={() => setMobileOpen(false)}
-                className={navLinkClass('/shortlist')}
+                className={navLinkClass('/intelligence')}
               >
                 Intelligence
               </Link>
@@ -190,9 +190,9 @@ export function Navbar() {
                 Discover
               </Link>
               <Link
-                to="/shortlist"
+                to="/intelligence"
                 onClick={() => setMobileOpen(false)}
-                className={navLinkClass('/shortlist')}
+                className={navLinkClass('/intelligence')}
               >
                 Intelligence
               </Link>
