@@ -1,5 +1,5 @@
 import { Suspense, lazy, useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { Navbar } from '@/components/layout/Navbar';
@@ -45,17 +45,23 @@ function needsOnboarding(user: ReturnType<typeof useAuthStore.getState>['user'])
 function AppContent() {
   const token = useAuthStore((s) => s.token);
   const user  = useAuthStore((s) => s.user);
+  const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     setShowOnboarding(needsOnboarding(user));
   }, [user?.id]);
 
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    navigate('/search', { replace: true });
+  };
+
   return (
     <div className="min-h-screen bg-surface font-sans">
       <Navbar />
       {showOnboarding && token && (
-        <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+        <OnboardingWizard onComplete={handleOnboardingComplete} />
       )}
       <main>
         <Suspense fallback={<PageLoader />}>

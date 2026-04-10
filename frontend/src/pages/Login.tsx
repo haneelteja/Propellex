@@ -37,7 +37,7 @@ export default function Login() {
 
   const handleWizardComplete = () => {
     setShowWizard(false);
-    navigate(from, { replace: true });
+    navigate('/search', { replace: true });
   };
 
   return (

@@ -1,15 +1,23 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useRecommendations } from '@/hooks/useRecommendations';
 import { useAuthStore } from '@/store/authStore';
-import { QuickPreferences } from '@/components/preferences/QuickPreferences';
+import { useNews } from '@/hooks/useNews';
 import { PropertyCard } from '@/components/property/PropertyCard';
-import { properties as propertiesApi } from '@/services/api';
-import type { Property, ScoredProperty } from '@/types';
+import { Modal } from '@/components/shared/Modal';
+import { PreferenceWizard } from '@/components/auth/PreferenceWizard';
+import { auth } from '@/services/api';
+import type { ScoredProperty, NewsArticle } from '@/types';
 
-// ── Marquee items ────────────────────────────────────────────────────────────
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
 
-const MARQUEE_ITEMS = [
+// ── Marquee stats ─────────────────────────────────────────────────────────────
+const MARQUEE = [
   { icon: 'trending_up',   text: '₹450 Cr+ Managed Assets'         },
   { icon: 'percent',       text: '12.4% Avg. Rental Yield'          },
   { icon: 'location_on',   text: 'Gachibowli Top Growth Zone'       },
@@ -17,58 +25,14 @@ const MARQUEE_ITEMS = [
   { icon: 'smart_toy',     text: 'AI Strategy — Active Risk Mitigation' },
 ];
 
-// ── AI Intelligence feature points ──────────────────────────────────────────
-
-const AI_FEATURES = [
-  {
-    icon: 'psychology',
-    heading: 'Hyper-Local Scoring',
-    body: 'Every property is ranked against 14 micro-market signals — infrastructure pipeline, rental velocity, and liquidity depth.',
-  },
-  {
-    icon: 'insights',
-    heading: 'ROI Projection Engine',
-    body: 'Three-year yield forecasts calibrated on historical transaction data and Hyderabad RERA filings.',
-  },
-  {
-    icon: 'shield',
-    heading: 'Risk Mitigation Layer',
-    body: 'Adverse news, builder track record, and legal encumbrance checks surfaced before you commit capital.',
-  },
-];
-
-// ── Component ────────────────────────────────────────────────────────────────
-
 export default function Home() {
-  const navigate = useNavigate();
-  const user = useAuthStore((s) => s.user);
+  const { user, updateUser } = useAuthStore();
+  const [showPrefWizard, setShowPrefWizard] = useState(false);
 
-  // Top 6 featured properties — independent of filter store state
-  const { data: featuredResult, isLoading: featuredLoading } = useQuery({
-    queryKey: ['home-featured'],
-    queryFn: () =>
-      propertiesApi.search({
-        query: '',
-        property_type: '',
-        status: '',
-        locality: '',
-        bedrooms: '',
-        price_min: '',
-        price_max: '',
-        rera_status: '',
-        sort: 'published_desc',
-        page: 1,
-        limit: 6,
-      }),
-    staleTime: 5 * 60_000,
-  });
-
-  const featuredProperties: Property[] = featuredResult?.data ?? [];
-
-  // Recommendations — only fetched when logged in (hook enforces enabled: !!user)
-  const { data: recoResult, isLoading: recoLoading } = useRecommendations(3);
-  // ScoredProperty extends Property so the union is valid for PropertyCard
+  const { data: recoResult, isLoading: recoLoading } = useRecommendations(6);
   const recommendations: ScoredProperty[] = recoResult ?? [];
+
+  const { articles: newsItems } = useNews({ limit: 3 });
 
   const hasPreferences =
     !!user?.preferences &&
@@ -76,105 +40,66 @@ export default function Home() {
       user.preferences.property_types?.length > 0 ||
       user.preferences.budget_max > 0);
 
-  const handleGetStarted = () => {
-    navigate(user ? '/search' : '/login');
+  const handlePrefComplete = async () => {
+    try {
+      const refreshed = await auth.getProfile();
+      updateUser(refreshed);
+    } catch { /* use stale state */ }
+    setShowPrefWizard(false);
   };
 
+  const sentimentIcon = (s: string) =>
+    s === 'positive' ? 'trending_up' : s === 'negative' ? 'trending_down' : 'trending_flat';
+  const sentimentColor = (s: string) =>
+    s === 'positive' ? 'text-secondary' : s === 'negative' ? 'text-error' : 'text-on-surface-variant';
+
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-background min-h-screen pt-20">
 
-      {/* ── 1. Hero ──────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
+      {/* ── 1. Welcome hero ──────────────────────────────────────────────── */}
+      <section className="bg-surface-container-low border-b border-outline-variant px-6 lg:px-12 py-10">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div>
+            <p className="text-primary font-label text-xs uppercase tracking-[0.2em] mb-1">
+              {getGreeting()},
+            </p>
+            <h1 className="text-3xl font-headline font-light text-on-surface">
+              {user?.name?.split(' ')[0] ?? 'Investor'}{' '}
+              <span className="italic text-primary">Dashboard</span>
+            </h1>
+            <p className="text-on-surface-variant font-body text-sm mt-2 max-w-md">
+              Your AI-powered real estate command centre. Hyderabad's elite properties, curated for your capital goals.
+            </p>
+          </div>
 
-        {/* Layered background — gradient from surface-container-low to near-black */}
-        <div className="absolute inset-0 bg-surface-container-low" />
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-background/80 to-transparent" />
-
-        {/* Decorative vertical rule */}
-        <div className="absolute left-0 top-0 bottom-0 w-px bg-outline-variant/40" />
-
-        {/* Gold accent bar — top-right quadrant */}
-        <div className="absolute top-0 right-1/3 w-px h-48 bg-primary/30" />
-
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-12 py-24">
-          <div className="grid grid-cols-12 gap-6">
-            <div className="col-span-12 lg:col-span-7 animate-fade-in">
-
-              <span className="text-primary font-label text-xs uppercase tracking-[0.25em] mb-8 block">
-                Hyderabad Elite Portfolio
-              </span>
-
-              <h1 className="text-6xl md:text-7xl lg:text-8xl font-headline font-light leading-[1.05] mb-8 text-on-surface">
-                Sovereign
-                <br />
-                <span className="italic text-primary">Real Estate</span>
-                <br />
-                Intelligence
-              </h1>
-
-              <p className="text-lg text-on-surface-variant font-body max-w-xl mb-12 leading-relaxed">
-                Curating hyper-local data and architectural excellence for the world's most discerning capital.
-              </p>
-
-              <div className="flex flex-wrap gap-4">
-                <Link to="/search">
-                  <button className="px-10 py-4 bg-primary text-on-primary font-label font-bold text-xs uppercase tracking-widest hover:bg-primary-fixed transition-colors">
-                    Explore Properties
-                  </button>
-                </Link>
-                <Link to="/search?tab=analytics">
-                  <button className="px-10 py-4 border border-outline/30 text-on-surface font-label font-bold text-xs uppercase tracking-widest hover:bg-on-surface/5 transition-colors">
-                    View Analytics
-                  </button>
-                </Link>
-              </div>
-
-              {/* Personalised greeting chip — visible only when logged in */}
-              {user && (
-                <div className="mt-10 inline-flex items-center gap-3 border border-outline-variant px-5 py-3">
-                  <span className="material-symbols-outlined text-primary text-base">
-                    waving_hand
-                  </span>
-                  <span className="text-on-surface-variant font-label text-sm">
-                    Good {getGreeting()},{' '}
-                    <span className="text-on-surface font-semibold">
-                      {user.name.split(' ')[0]}
-                    </span>
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Right column — Preferences panel when logged in */}
-            {user && (
-              <div className="col-span-12 lg:col-span-4 lg:col-start-9 mt-8 lg:mt-0">
-                <div className="bg-surface-container border border-outline-variant p-6">
-                  <p className="text-primary font-label text-xs uppercase tracking-[0.2em] mb-4">
-                    Quick Preferences
-                  </p>
-                  <QuickPreferences />
-                </div>
-              </div>
-            )}
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => setShowPrefWizard(true)}
+              className="flex items-center gap-2 px-5 py-2.5 border border-outline-variant text-on-surface-variant text-xs font-label uppercase tracking-widest hover:border-primary hover:text-primary transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">tune</span>
+              Edit Preferences
+            </button>
+            <Link
+              to="/search"
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary text-xs font-label font-bold uppercase tracking-widest hover:opacity-90 transition-opacity"
+            >
+              <span className="material-symbols-outlined text-[16px]">search</span>
+              Discover Properties
+            </Link>
           </div>
         </div>
-
-        {/* Bottom fade into marquee */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
       </section>
 
-      {/* ── 2. Stats Marquee ─────────────────────────────────────────────── */}
-      <div className="border-y border-outline-variant overflow-hidden bg-surface-container-low py-4">
+      {/* ── 2. Stats marquee ─────────────────────────────────────────────── */}
+      <div className="border-b border-outline-variant overflow-hidden bg-surface-container py-3">
         <div className="flex animate-marquee whitespace-nowrap">
-          {/* Duplicate the items to create the seamless loop */}
-          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
+          {[...MARQUEE, ...MARQUEE].map((item, i) => (
             <span
               key={i}
-              className="inline-flex items-center gap-3 mx-10 text-on-surface-variant font-label text-sm uppercase tracking-[0.15em] shrink-0"
+              className="inline-flex items-center gap-3 mx-10 text-on-surface-variant font-label text-xs uppercase tracking-[0.15em] shrink-0"
             >
-              <span className="material-symbols-outlined text-primary text-base">
-                {item.icon}
-              </span>
+              <span className="material-symbols-outlined text-primary text-sm">{item.icon}</span>
               {item.text}
               <span className="mx-4 text-outline-variant">|</span>
             </span>
@@ -182,221 +107,210 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── 3. AI Market Intelligence ────────────────────────────────────── */}
-      <section className="py-32 max-w-7xl mx-auto px-6 lg:px-12">
-        <div className="grid grid-cols-12 gap-8 lg:gap-16 items-start">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-10 space-y-14">
 
-          {/* Left — text content */}
-          <div className="col-span-12 lg:col-span-5">
-            <span className="text-primary font-label text-xs uppercase tracking-[0.25em] mb-6 block">
-              AI Market Intelligence
-            </span>
-            <h2 className="text-4xl lg:text-5xl font-headline font-light text-on-surface leading-tight mb-8">
-              Capital deployed with
-              <br />
-              <span className="italic text-primary">surgical precision.</span>
-            </h2>
-            <p className="text-on-surface-variant font-body leading-relaxed mb-12">
-              Propellex fuses Gemini property analysis, Claude conversational strategy, and 24-month Hyderabad price history into a unified intelligence layer — so every decision is evidence-backed.
-            </p>
-
-            <div className="space-y-8">
-              {AI_FEATURES.map((feat) => (
-                <div key={feat.icon} className="flex gap-5">
-                  <div className="shrink-0 w-10 h-10 bg-primary-container/20 border border-primary/20 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-primary text-lg">
-                      {feat.icon}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-on-surface font-label font-semibold text-sm mb-1">
-                      {feat.heading}
-                    </p>
-                    <p className="text-on-surface-variant font-body text-sm leading-relaxed">
-                      {feat.body}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right — AI recommendations or placeholder */}
-          <div className="col-span-12 lg:col-span-7">
-            {user ? (
-              hasPreferences && recommendations.length > 0 ? (
-                <div>
-                  <p className="text-on-surface-variant font-label text-xs uppercase tracking-[0.2em] mb-6">
-                    Recommended for You
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {recommendations.slice(0, 3).map((prop) => (
-                      <PropertyCard key={prop.id} property={prop} />
-                    ))}
-                  </div>
-                  {recoLoading && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className="h-64 bg-surface-container animate-pulse"
-                        />
-                      ))}
-                    </div>
-                  )}
-                  <Link
-                    to="/search"
-                    className="mt-6 inline-flex items-center gap-2 text-primary font-label text-xs uppercase tracking-[0.2em] hover:text-primary-fixed transition-colors"
-                  >
-                    View all recommendations
-                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                  </Link>
-                </div>
-              ) : (
-                <div className="bg-surface-container border border-outline-variant p-10 flex flex-col items-start justify-center min-h-64">
-                  <span className="material-symbols-outlined text-primary text-3xl mb-4">
-                    tune
-                  </span>
-                  <p className="text-on-surface font-headline text-lg mb-3">
-                    Unlock AI Recommendations
-                  </p>
-                  <p className="text-on-surface-variant font-body text-sm leading-relaxed mb-6 max-w-sm">
-                    Complete your investment preferences to unlock AI-ranked property recommendations tailored to your capital goals.
-                  </p>
-                  <Link to="/profile">
-                    <button className="px-8 py-3 bg-primary text-on-primary font-label font-bold text-xs uppercase tracking-widest hover:bg-primary-fixed transition-colors">
-                      Set Preferences
-                    </button>
-                  </Link>
-                </div>
-              )
-            ) : (
-              <div className="bg-surface-container border border-outline-variant p-10 flex flex-col items-start justify-center min-h-64">
-                <span className="material-symbols-outlined text-primary text-3xl mb-4">
-                  lock
-                </span>
-                <p className="text-on-surface font-headline text-lg mb-3">
-                  Sign In to Activate Intelligence
-                </p>
-                <p className="text-on-surface-variant font-body text-sm leading-relaxed mb-6 max-w-sm">
-                  Create a free account to receive AI-ranked properties matched against your portfolio objectives.
-                </p>
-                <Link to="/login">
-                  <button className="px-8 py-3 bg-primary text-on-primary font-label font-bold text-xs uppercase tracking-widest hover:bg-primary-fixed transition-colors">
-                    Get Started Free
-                  </button>
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 4. Featured Properties Bento Grid ───────────────────────────── */}
-      <section className="py-32 bg-surface-container-low">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="flex items-end justify-between mb-12">
+        {/* ── 3. Recommendations ──────────────────────────────────────────── */}
+        <section>
+          <div className="flex items-end justify-between mb-6">
             <div>
-              <span className="text-primary font-label text-xs uppercase tracking-[0.25em] mb-4 block">
-                Curated Portfolio
+              <span className="text-primary font-label text-xs uppercase tracking-[0.2em] mb-2 block">
+                AI-Matched
               </span>
-              <h2 className="text-4xl lg:text-5xl font-headline font-light text-on-surface leading-tight">
-                Featured
-                <br />
-                <span className="italic text-primary">Properties</span>
+              <h2 className="text-2xl font-headline font-light text-on-surface">
+                Recommended for <span className="italic text-primary">You</span>
               </h2>
             </div>
             <Link
               to="/search"
-              className="hidden lg:inline-flex items-center gap-2 text-primary font-label text-xs uppercase tracking-[0.2em] hover:text-primary-fixed transition-colors"
+              className="hidden sm:flex items-center gap-1.5 text-primary font-label text-xs uppercase tracking-[0.15em] hover:opacity-70 transition-opacity"
             >
               View all
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </Link>
           </div>
 
-          {featuredLoading ? (
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2 h-96 bg-surface-container animate-pulse" />
-              <div className="col-span-1 h-96 bg-surface-container animate-pulse" />
-              <div className="col-span-1 h-64 bg-surface-container animate-pulse" />
-              <div className="col-span-1 h-64 bg-surface-container animate-pulse" />
-              <div className="col-span-1 h-64 bg-surface-container animate-pulse" />
+          {!hasPreferences ? (
+            <div className="bg-surface-container border border-outline-variant p-8 flex flex-col items-start gap-4">
+              <span className="material-symbols-outlined text-primary text-3xl">tune</span>
+              <div>
+                <p className="font-headline text-base text-on-surface mb-1">Set your preferences to unlock AI recommendations</p>
+                <p className="text-sm text-on-surface-variant">Tell us your budget, localities, and risk appetite — we'll rank every property against your goals.</p>
+              </div>
+              <button
+                onClick={() => setShowPrefWizard(true)}
+                className="px-6 py-2.5 bg-primary text-on-primary font-label font-bold text-xs uppercase tracking-widest hover:opacity-90 transition-opacity"
+              >
+                Set Preferences
+              </button>
             </div>
-          ) : featuredProperties.length > 0 ? (
+          ) : recoLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Hero card — spans 2 columns on large screens */}
-              {featuredProperties[0] && (
-                <div className="sm:col-span-2 lg:col-span-2">
-                  <PropertyCard property={featuredProperties[0]} />
-                </div>
-              )}
-              {/* Remaining cards — single column each */}
-              {featuredProperties.slice(1).map((prop) => (
-                <div key={prop.id} className="col-span-1">
-                  <PropertyCard property={prop} />
-                </div>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-72 bg-surface-container animate-pulse" />
+              ))}
+            </div>
+          ) : recommendations.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {recommendations.slice(0, 6).map((prop) => (
+                <PropertyCard key={prop.id} property={prop} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 text-on-surface-variant font-body text-sm">
-              No properties available at this time.
+            <div className="bg-surface-container border border-outline-variant p-8 text-center">
+              <span className="material-symbols-outlined text-on-surface-variant text-4xl mb-3 block opacity-40">home_search</span>
+              <p className="text-sm text-on-surface-variant">No matching properties found. Try adjusting your preferences.</p>
+              <button onClick={() => setShowPrefWizard(true)} className="mt-4 text-primary text-xs font-label uppercase tracking-widest hover:underline">
+                Update Preferences
+              </button>
             </div>
           )}
+        </section>
 
-          <div className="mt-8 lg:hidden text-center">
-            <Link to="/search">
-              <button className="px-10 py-4 border border-outline/30 text-on-surface font-label font-bold text-xs uppercase tracking-widest hover:bg-on-surface/5 transition-colors">
-                View All Properties
-              </button>
+        {/* ── 4. Market Intelligence teaser ───────────────────────────────── */}
+        <section>
+          <div className="flex items-end justify-between mb-6">
+            <div>
+              <span className="text-primary font-label text-xs uppercase tracking-[0.2em] mb-2 block">
+                Live Intelligence
+              </span>
+              <h2 className="text-2xl font-headline font-light text-on-surface">
+                Market <span className="italic text-primary">Pulse</span>
+              </h2>
+            </div>
+            <Link
+              to="/intelligence"
+              className="hidden sm:flex items-center gap-1.5 text-primary font-label text-xs uppercase tracking-[0.15em] hover:opacity-70 transition-opacity"
+            >
+              Full feed
+              <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </Link>
           </div>
-        </div>
-      </section>
 
-      {/* ── 5. CTA ───────────────────────────────────────────────────────── */}
-      <section className="py-32 bg-primary relative overflow-hidden">
-        {/* Decorative geometry */}
-        <div className="absolute top-0 right-0 w-64 h-64 border border-on-primary/10 translate-x-1/3 -translate-y-1/3" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 border border-on-primary/10 -translate-x-1/3 translate-y-1/3" />
-
-        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="max-w-2xl">
-            <h2 className="text-4xl lg:text-5xl font-headline font-light text-on-primary leading-tight mb-6">
-              Secure Your Legacy in
-              <br />
-              Hyderabad's Future.
-            </h2>
-            <p className="text-on-primary/70 font-body text-base leading-relaxed mb-12">
-              Join 500+ HNIs and institutional investors who trust Propellex for their most important capital decisions.
-            </p>
-
-            <div className="flex flex-wrap gap-5">
-              <button
-                onClick={handleGetStarted}
-                className="bg-on-primary text-primary px-12 py-5 font-label font-bold text-xs uppercase tracking-[0.2em] hover:bg-on-primary/90 transition-colors"
-              >
-                Get Started Free
-              </button>
-              <Link to="/search?chat=open">
-                <button className="border-2 border-on-primary text-on-primary px-12 py-5 font-label font-bold text-xs uppercase tracking-[0.2em] hover:bg-on-primary/10 transition-colors">
-                  Speak with AI Strategist
-                </button>
+          {newsItems.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {newsItems.map((article: NewsArticle) => (
+                <a
+                  key={article.id}
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group bg-surface-container border border-outline-variant p-5 flex flex-col gap-3 hover:border-primary transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">
+                      {article.source}
+                    </span>
+                    <span className={`material-symbols-outlined text-[16px] ${sentimentColor(article.sentiment)}`}>
+                      {sentimentIcon(article.sentiment)}
+                    </span>
+                  </div>
+                  <p className="font-body text-sm text-on-surface leading-snug line-clamp-3 group-hover:text-primary transition-colors">
+                    {article.title}
+                  </p>
+                  {article.localities.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-auto">
+                      {article.localities.slice(0, 2).map((l: string) => (
+                        <span key={l} className="text-[10px] font-label bg-surface-container-high text-on-surface-variant px-2 py-0.5">
+                          {l}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-surface-container border border-outline-variant p-8 flex items-center gap-5">
+              <span className="material-symbols-outlined text-primary text-3xl">newspaper</span>
+              <div>
+                <p className="font-headline text-base text-on-surface mb-1">Intelligence feed loading…</p>
+                <p className="text-sm text-on-surface-variant">Market news refreshes every 4 hours from curated Hyderabad real estate sources.</p>
+              </div>
+              <Link to="/intelligence" className="ml-auto px-4 py-2 border border-outline-variant text-xs font-label text-on-surface-variant uppercase tracking-widest hover:border-primary hover:text-primary transition-colors shrink-0">
+                Open Feed
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
+          )}
+        </section>
 
+        {/* ── 5. About Propellex ──────────────────────────────────────────── */}
+        <section className="bg-surface-container border border-outline-variant p-8 lg:p-10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <span className="text-primary font-label text-xs uppercase tracking-[0.2em] mb-4 block">
+                About Propellex
+              </span>
+              <h2 className="text-2xl font-headline font-light text-on-surface mb-4">
+                Sovereign real estate intelligence,<br />
+                <span className="italic text-primary">built for Hyderabad's elite.</span>
+              </h2>
+              <p className="text-on-surface-variant font-body text-sm leading-relaxed mb-6">
+                Propellex fuses AI-powered property analysis, live RERA verification, and conversational investment strategy into a single intelligence layer. Every property is scored across 14 micro-market signals — from infrastructure pipelines to rental velocity — so your capital moves with precision.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {[
+                  { icon: 'smart_toy',     label: 'AI Analysis',        desc: 'Claude + Gemini powered' },
+                  { icon: 'verified',      label: 'RERA Verified',      desc: 'Auto-checked nightly'     },
+                  { icon: 'newspaper',     label: 'Live Intelligence',   desc: 'Hyderabad market news'    },
+                  { icon: 'compare',       label: 'Property Compare',    desc: 'Side-by-side AI ranking' },
+                  { icon: 'savings',       label: 'ROI Projections',     desc: '3-year yield forecasts'   },
+                  { icon: 'shield',        label: 'Risk Scoring',        desc: '0–100 risk index'         },
+                ].map((f) => (
+                  <div key={f.label} className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-primary text-[16px]">{f.icon}</span>
+                    </div>
+                    <div>
+                      <p className="text-on-surface font-label text-xs font-semibold">{f.label}</p>
+                      <p className="text-on-surface-variant text-[10px]">{f.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick actions */}
+            <div className="flex flex-col gap-3 justify-center">
+              <p className="text-xs font-label text-on-surface-variant uppercase tracking-widest mb-1">Quick Actions</p>
+              {[
+                { to: '/search',       icon: 'search',          label: 'Discover Properties' },
+                { to: '/intelligence', icon: 'newspaper',        label: 'Market Intelligence' },
+                { to: '/shortlist',    icon: 'favorite',         label: 'My Portfolio'        },
+                { to: '/profile',      icon: 'manage_accounts',  label: 'My Profile'          },
+              ].map((a) => (
+                <Link
+                  key={a.to}
+                  to={a.to}
+                  className="flex items-center gap-3 px-4 py-3 border border-outline-variant text-on-surface-variant text-sm font-label hover:border-primary hover:text-on-surface transition-colors group"
+                >
+                  <span className="material-symbols-outlined text-[18px] text-primary group-hover:text-primary">{a.icon}</span>
+                  {a.label}
+                  <span className="material-symbols-outlined text-[14px] ml-auto opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+                </Link>
+              ))}
+              <button
+                onClick={() => setShowPrefWizard(true)}
+                className="flex items-center gap-3 px-4 py-3 border border-primary/30 text-primary text-sm font-label hover:bg-primary/5 transition-colors group"
+              >
+                <span className="material-symbols-outlined text-[18px]">tune</span>
+                Update Preferences
+                <span className="material-symbols-outlined text-[14px] ml-auto opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      {/* ── Preference wizard modal ──────────────────────────────────────── */}
+      <Modal
+        open={showPrefWizard}
+        onClose={() => setShowPrefWizard(false)}
+        title="Update Investment Preferences"
+        className="max-w-md"
+      >
+        <PreferenceWizard onComplete={handlePrefComplete} />
+      </Modal>
     </div>
   );
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'morning';
-  if (hour < 17) return 'afternoon';
-  return 'evening';
 }

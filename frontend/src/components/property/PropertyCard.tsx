@@ -155,11 +155,17 @@ export function PropertyCard({
       <Link to={`/property/${property.id}`} className="block p-6">
         <div className="flex justify-between items-start mb-3 gap-4">
           <div className="min-w-0">
+            {property.builder_name && (
+              <p className="text-on-surface-variant font-label text-[10px] uppercase tracking-widest mb-0.5">
+                {property.builder_name}
+              </p>
+            )}
             <h3 className="text-lg font-headline text-on-surface leading-snug line-clamp-2 mb-1">
               {property.title}
             </h3>
-            <p className="text-on-surface-variant font-label text-xs uppercase tracking-widest">
-              {property.locality}, Hyderabad
+            <p className="text-on-surface-variant font-label text-xs uppercase tracking-widest flex items-center gap-1">
+              <span className="material-symbols-outlined text-[12px]">location_on</span>
+              {property.locality}
             </p>
           </div>
           <p className="text-xl font-headline text-primary shrink-0">
