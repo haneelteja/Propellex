@@ -41,6 +41,9 @@ export function Navbar() {
               </>
             ) : user.role === 'admin' ? (
               <>
+                <Link to="/" className={navLinkClass('/')}>
+                  Dashboard
+                </Link>
                 <Link to="/shortlist" className={navLinkClass('/shortlist')}>
                   Portfolio
                 </Link>
@@ -56,6 +59,9 @@ export function Navbar() {
               </>
             ) : (
               <>
+                <Link to="/" className={navLinkClass('/')}>
+                  Dashboard
+                </Link>
                 <Link to="/shortlist" className={navLinkClass('/shortlist')}>
                   Portfolio
                 </Link>
@@ -152,6 +158,9 @@ export function Navbar() {
             </>
           ) : user.role === 'admin' ? (
             <>
+              <Link to="/" onClick={() => setMobileOpen(false)} className={navLinkClass('/')}>
+                Dashboard
+              </Link>
               <Link to="/shortlist" onClick={() => setMobileOpen(false)} className={navLinkClass('/shortlist')}>
                 Portfolio
               </Link>
@@ -179,6 +188,9 @@ export function Navbar() {
             </>
           ) : (
             <>
+              <Link to="/" onClick={() => setMobileOpen(false)} className={navLinkClass('/')}>
+                Dashboard
+              </Link>
               <Link to="/shortlist" onClick={() => setMobileOpen(false)} className={navLinkClass('/shortlist')}>
                 Portfolio
               </Link>
