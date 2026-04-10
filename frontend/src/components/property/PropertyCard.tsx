@@ -12,8 +12,8 @@ interface PropertyCardProps {
   compareDisabled?: boolean; // max 4 reached and this one not selected
 }
 
-function isScored(p: Property | ScoredProperty): p is ScoredProperty {
-  return 'match_score' in p;
+function isScored(p: Property | ScoredProperty | undefined): p is ScoredProperty {
+  return !!p && 'match_score' in p;
 }
 
 // Inline RERA badge styled for the Sovereign design system
