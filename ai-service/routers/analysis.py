@@ -9,8 +9,8 @@ import asyncio
 
 router = APIRouter(prefix="/analyze", tags=["analysis"])
 
-# gemini-2.0-flash-001: pinned stable version — alias "gemini-2.0-flash" deprecated for new users.
-_GEMINI_MODEL = "gemini-2.0-flash-001"
+# gemini-1.5-flash-001: broadly available across all API tiers and billing levels.
+_GEMINI_MODEL = "gemini-1.5-flash-001"
 
 async def _generate_with_retry(client: genai.Client, model: str, prompt: str, max_retries: int = 3) -> str:
     """Call Gemini with exponential backoff on 429 / RESOURCE_EXHAUSTED errors."""
