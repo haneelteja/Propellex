@@ -9,7 +9,7 @@ import asyncio
 
 router = APIRouter(prefix="/analyze", tags=["analysis"])
 
-# gemini-1.5-flash-001: broadly available across all API tiers and billing levels.
+# gemini-1.5-flash-001 on v1 stable API — requires billing-enabled project (Tier 1 Postpay).
 _GEMINI_MODEL = "gemini-1.5-flash-001"
 
 async def _generate_with_retry(client: genai.Client, model: str, prompt: str, max_retries: int = 3) -> str:
@@ -41,9 +41,9 @@ def _gemini_client() -> genai.Client:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY not configured")
-    # Use SDK default (v1beta) — works with free-tier API keys for gemini-2.0-flash.
-    # Do NOT force v1 stable: it requires billing-enabled projects and returns 429 on free keys.
-    return genai.Client(api_key=api_key)
+    # Force v1 stable API — gemini-1.5-flash-001 is not available on v1beta.
+    # Requires billing-enabled project (Tier 1 Postpay active).
+    return genai.Client(api_key=api_key, http_options={'api_version': 'v1'})
 
 
 class PropertyAnalysisRequest(BaseModel):
