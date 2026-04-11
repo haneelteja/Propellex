@@ -398,6 +398,7 @@ export async function comparePropertiesWithAI(ids: string[]): Promise<{
   if (!aiResponse.ok) {
     const errText = await aiResponse.text();
     const isHtml = errText.trimStart().startsWith('<');
+    if (aiResponse.status === 429) throw new AppError('AI service is busy — please try again in a moment', 429);
     throw new AppError(`AI service error: ${isHtml ? `HTTP ${aiResponse.status} (service unavailable)` : errText.slice(0, 200)}`, 502);
   }
 

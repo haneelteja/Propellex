@@ -100,12 +100,31 @@ export default function Compare() {
   }
 
   if (isError || !data) {
+    const is429 = (isError as { status?: number } | null)?.status === 429;
     return (
-      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-        <p className="text-error text-sm">Failed to load comparison. Please try again.</p>
-        <Link to="/search" className="mt-4 inline-block text-primary text-sm font-medium hover:underline">
-          ← Go to Search
-        </Link>
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-3">
+        <span className="material-symbols-outlined text-4xl text-on-surface-variant">
+          {is429 ? 'hourglass_empty' : 'error_outline'}
+        </span>
+        <p className="text-on-surface font-medium">
+          {is429 ? 'AI is busy — try again in a moment' : 'Failed to load comparison'}
+        </p>
+        <p className="text-on-surface-variant text-sm">
+          {is429
+            ? 'The AI service is handling other requests. Wait 30 seconds and try again.'
+            : 'Something went wrong. Please try again.'}
+        </p>
+        <div className="flex items-center justify-center gap-4 mt-4">
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-primary text-on-primary text-sm font-semibold px-4 py-2 hover:bg-primary-fixed transition-colors"
+          >
+            Retry
+          </button>
+          <Link to="/search" className="text-primary text-sm font-medium hover:underline">
+            ← Go to Search
+          </Link>
+        </div>
       </div>
     );
   }
