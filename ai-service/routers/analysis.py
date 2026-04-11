@@ -28,9 +28,10 @@ async def _generate_with_retry(client: genai.Client, model: str, prompt: str, ma
                 or "ResourceExhausted" in err_str
                 or "quota" in err_str.lower()
             )
-            if is_rate_limit and attempt < max_retries - 1:
-                wait_s = 30 * (attempt + 1)  # 30s, 60s
-                print(f"[Analysis] Rate limited — waiting {wait_s}s before retry {attempt + 2}/{max_retries}")
+            is_transient = "503" in err_str or "UNAVAILABLE" in err_str
+            if (is_rate_limit or is_transient) and attempt < max_retries - 1:
+                wait_s = 30 * (attempt + 1) if is_rate_limit else 10 * (attempt + 1)
+                print(f"[Analysis] {'Rate limited' if is_rate_limit else 'Transient error'} — waiting {wait_s}s before retry {attempt + 2}/{max_retries}")
                 await asyncio.sleep(wait_s)
                 continue
             raise
