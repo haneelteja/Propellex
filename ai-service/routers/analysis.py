@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from google import genai
+from google.genai import types as genai_types
 import os
 import json
 import traceback
@@ -9,8 +10,8 @@ import asyncio
 
 router = APIRouter(prefix="/analyze", tags=["analysis"])
 
-# gemini-1.5-flash: stable alias available on v1beta for all API key tiers.
-_GEMINI_MODEL = "gemini-1.5-flash"
+# gemini-2.0-flash-001: pinned model on v1 stable API — works for verified GCP accounts.
+_GEMINI_MODEL = "gemini-2.0-flash-001"
 
 async def _generate_with_retry(client: genai.Client, model: str, prompt: str, max_retries: int = 3) -> str:
     """Call Gemini with exponential backoff on 429 / RESOURCE_EXHAUSTED errors."""
@@ -41,8 +42,8 @@ def _gemini_client() -> genai.Client:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY not configured")
-    # Use SDK default (v1beta) — gemini-1.5-flash alias is available here.
-    return genai.Client(api_key=api_key)
+    # Force v1 stable API — gemini-2.0-flash-001 is available here for verified GCP accounts.
+    return genai.Client(api_key=api_key, http_options=genai_types.HttpOptions(api_version="v1"))
 
 
 class PropertyAnalysisRequest(BaseModel):
