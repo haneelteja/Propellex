@@ -44,14 +44,14 @@ export function Navbar() {
                 <Link to="/" className={navLinkClass('/')}>
                   Dashboard
                 </Link>
-                <Link to="/shortlist" className={navLinkClass('/shortlist')}>
-                  Portfolio
-                </Link>
                 <Link to="/search" className={navLinkClass('/search')}>
                   Discover
                 </Link>
+                <Link to="/shortlist" className={navLinkClass('/shortlist')}>
+                  Portfolio
+                </Link>
                 <Link to="/intelligence" className={navLinkClass('/intelligence')}>
-                  Intelligence
+                  Articles
                 </Link>
                 <Link to="/agency" className={navLinkClass('/agency')}>
                   Manage Listings
@@ -62,14 +62,14 @@ export function Navbar() {
                 <Link to="/" className={navLinkClass('/')}>
                   Dashboard
                 </Link>
-                <Link to="/shortlist" className={navLinkClass('/shortlist')}>
-                  Portfolio
-                </Link>
                 <Link to="/search" className={navLinkClass('/search')}>
                   Discover
                 </Link>
+                <Link to="/shortlist" className={navLinkClass('/shortlist')}>
+                  Portfolio
+                </Link>
                 <Link to="/intelligence" className={navLinkClass('/intelligence')}>
-                  Intelligence
+                  Articles
                 </Link>
               </>
             )}
@@ -161,22 +161,18 @@ export function Navbar() {
               <Link to="/" onClick={() => setMobileOpen(false)} className={navLinkClass('/')}>
                 Dashboard
               </Link>
+              <Link to="/search" onClick={() => setMobileOpen(false)} className={navLinkClass('/search')}>
+                Discover
+              </Link>
               <Link to="/shortlist" onClick={() => setMobileOpen(false)} className={navLinkClass('/shortlist')}>
                 Portfolio
-              </Link>
-              <Link
-                to="/search"
-                onClick={() => setMobileOpen(false)}
-                className={navLinkClass('/search')}
-              >
-                Discover
               </Link>
               <Link
                 to="/intelligence"
                 onClick={() => setMobileOpen(false)}
                 className={navLinkClass('/intelligence')}
               >
-                Intelligence
+                Articles
               </Link>
               <Link
                 to="/agency"
@@ -191,22 +187,18 @@ export function Navbar() {
               <Link to="/" onClick={() => setMobileOpen(false)} className={navLinkClass('/')}>
                 Dashboard
               </Link>
+              <Link to="/search" onClick={() => setMobileOpen(false)} className={navLinkClass('/search')}>
+                Discover
+              </Link>
               <Link to="/shortlist" onClick={() => setMobileOpen(false)} className={navLinkClass('/shortlist')}>
                 Portfolio
-              </Link>
-              <Link
-                to="/search"
-                onClick={() => setMobileOpen(false)}
-                className={navLinkClass('/search')}
-              >
-                Discover
               </Link>
               <Link
                 to="/intelligence"
                 onClick={() => setMobileOpen(false)}
                 className={navLinkClass('/intelligence')}
               >
-                Intelligence
+                Articles
               </Link>
             </>
           )}

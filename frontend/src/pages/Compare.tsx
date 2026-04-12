@@ -1,10 +1,101 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { properties as propertiesApi } from '@/services/api';
 import { formatRupeesCr } from '@/lib/utils';
-import { Skeleton } from '@/components/shared/Skeleton';
 import type { Property, PropertyRating } from '@/types';
+
+// ── Animated loading state ────────────────────────────────────────────────────
+
+const STEPS = [
+  { icon: 'database',        text: 'Fetching property data…'       },
+  { icon: 'psychology',      text: 'Running AI analysis…'          },
+  { icon: 'compare_arrows',  text: 'Cross-referencing metrics…'    },
+  { icon: 'insights',        text: 'Computing ROI & risk scores…'  },
+  { icon: 'auto_awesome',    text: 'Generating recommendation…'    },
+];
+
+function CompareLoader({ count }: { count: number }) {
+  const [step, setStep] = useState(0);
+  const [dots, setDots] = useState('');
+
+  useEffect(() => {
+    const stepTimer = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 4500);
+    const dotTimer  = setInterval(() => setDots((d) => (d.length >= 3 ? '' : d + '.')), 500);
+    return () => { clearInterval(stepTimer); clearInterval(dotTimer); };
+  }, []);
+
+  return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-10 px-4 py-16">
+
+      {/* Central animated icon with pulsing rings */}
+      <div className="relative flex items-center justify-center">
+        {/* Pulsing background rings */}
+        <div className="absolute w-32 h-32 border border-primary/10 rounded-full animate-ping" />
+        <div className="absolute w-24 h-24 border border-primary/20 rounded-full animate-pulse" />
+        {/* Icon container */}
+        <div className="relative w-16 h-16 bg-primary/10 border-2 border-primary/40 rounded-full flex items-center justify-center">
+          <span
+            className="material-symbols-outlined text-primary text-3xl"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            smart_toy
+          </span>
+        </div>
+        {/* Three activity dots below icon */}
+        <div className="absolute -bottom-6 flex gap-1.5">
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"
+              style={{ animationDelay: `${i * 0.15}s` }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Step tracker */}
+      <div className="w-full max-w-sm space-y-2 mt-4">
+        <p className="text-center text-xs font-label text-on-surface-variant uppercase tracking-widest mb-5">
+          AI is comparing {count} properties{dots}
+        </p>
+        {STEPS.map((s, i) => {
+          const isDone   = i < step;
+          const isActive = i === step;
+          return (
+            <div
+              key={i}
+              className={`flex items-center gap-3 px-4 py-2.5 border transition-all duration-500 ${
+                isActive  ? 'border-primary bg-primary/5 text-on-surface'
+                : isDone  ? 'border-outline-variant/30 text-on-surface-variant/40'
+                          : 'border-transparent text-on-surface-variant/20'
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-[18px] flex-shrink-0 transition-colors duration-500 ${
+                  isActive ? 'text-primary animate-pulse'
+                  : isDone ? 'text-secondary'
+                           : 'text-outline'
+                }`}
+                style={isDone ? { fontVariationSettings: "'FILL' 1" } : {}}
+              >
+                {isDone ? 'check_circle' : s.icon}
+              </span>
+              <span className="text-sm font-body flex-1">{s.text}</span>
+              {isActive && (
+                <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin flex-shrink-0" />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-xs text-on-surface-variant text-center max-w-xs leading-relaxed">
+        This may take 5–30 seconds. The AI is deeply analysing each property before ranking them.
+      </p>
+    </div>
+  );
+}
 
 // ── Score badge ───────────────────────────────────────────────────────────────
 
@@ -90,13 +181,7 @@ export default function Compare() {
   }
 
   if (isLoading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-96 w-full" />
-        <Skeleton className="h-48 w-full" />
-      </div>
-    );
+    return <CompareLoader count={ids.length} />;
   }
 
   if (isError || !data) {

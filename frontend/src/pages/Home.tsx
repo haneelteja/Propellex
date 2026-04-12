@@ -6,6 +6,7 @@ import { useNews } from '@/hooks/useNews';
 import { PropertyCard } from '@/components/property/PropertyCard';
 import { Modal } from '@/components/shared/Modal';
 import { PreferenceWizard } from '@/components/auth/PreferenceWizard';
+import { UpgradePrompt } from '@/components/shared/UpgradePrompt';
 import { auth } from '@/services/api';
 import type { ScoredProperty, NewsArticle } from '@/types';
 
@@ -27,6 +28,7 @@ const MARQUEE = [
 
 export default function Home() {
   const { user, updateUser } = useAuthStore();
+  const isPremium = user?.subscription_tier === 'premium' || user?.subscription_tier === 'enterprise';
   const [showPrefWizard, setShowPrefWizard] = useState(false);
 
   const { data: recoResult, isLoading: recoLoading } = useRecommendations(6);
@@ -150,10 +152,18 @@ export default function Home() {
               ))}
             </div>
           ) : recommendations.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recommendations.slice(0, 6).map((prop) => (
-                <PropertyCard key={prop.id} property={prop} />
-              ))}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {recommendations.slice(0, 6).map((prop) => (
+                  <PropertyCard key={prop.id} property={prop} />
+                ))}
+              </div>
+              {!isPremium && (
+                <UpgradePrompt
+                  compact
+                  reason="You're seeing 6 AI-matched properties. Upgrade to Pro for unlimited recommendations, searches, and portfolio saves."
+                />
+              )}
             </div>
           ) : (
             <div className="bg-surface-container border border-outline-variant p-8 text-center">
