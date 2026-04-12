@@ -100,7 +100,7 @@ export default function Compare() {
   }
 
   if (isError || !data) {
-    const is429 = (isError as { status?: number } | null)?.status === 429;
+    const is429 = (isError as unknown as { status?: number } | null)?.status === 429;
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-3">
         <span className="material-symbols-outlined text-4xl text-on-surface-variant">

@@ -48,7 +48,7 @@ export function UpgradePrompt({ reason, compact = false }: Props) {
           to="/profile"
           className="px-8 py-3 bg-primary text-on-primary font-label font-bold text-xs uppercase tracking-widest hover:bg-primary-fixed transition-colors"
         >
-          Upgrade — ₹999/mo
+          Upgrade to Pro
         </Link>
         <button
           className="px-8 py-3 border border-outline-variant text-on-surface-variant font-label text-xs uppercase tracking-widest hover:bg-surface-container-high transition-colors"

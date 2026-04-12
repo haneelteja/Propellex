@@ -6,6 +6,7 @@ import {
   handleVerifyOTP,
   handleGetProfile,
   handleUpdateProfile,
+  handleUpgrade,
 } from './auth.controller';
 
 export const authRouter = Router();
@@ -15,3 +16,4 @@ authRouter.post('/verify-otp', asyncHandler(handleVerifyOTP));
 authRouter.get('/profile', requireAuth, asyncHandler(handleGetProfile));
 authRouter.put('/profile', requireAuth, asyncHandler(handleUpdateProfile));
 authRouter.patch('/profile', requireAuth, asyncHandler(handleUpdateProfile));
+authRouter.post('/upgrade', requireAuth, asyncHandler(handleUpgrade));

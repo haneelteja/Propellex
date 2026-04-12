@@ -103,6 +103,9 @@ export const auth = {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
+
+  upgrade: () =>
+    request<{ token: string; user: User }>('/api/auth/upgrade', { method: 'POST' }),
 };
 
 // ── Properties ────────────────────────────────────────────────────────────────

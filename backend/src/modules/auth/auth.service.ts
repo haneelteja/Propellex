@@ -154,6 +154,25 @@ export async function getProfile(userId: string): Promise<User> {
   return user;
 }
 
+export async function upgradeToPremium(
+  userId: string,
+): Promise<{ token: string; user: User }> {
+  const user = await queryOne<User>(
+    `UPDATE users SET subscription_tier = 'premium' WHERE id = $1
+     RETURNING id, email, phone, name, user_type, role, subscription_tier,
+               preferences, interaction_count, created_at`,
+    [userId],
+  );
+  if (!user) throw new AppError('User not found', 404);
+  const token = signToken({
+    userId: user.id,
+    email: user.email,
+    subscriptionTier: user.subscription_tier,
+    role: user.role ?? 'client',
+  });
+  return { token, user };
+}
+
 export async function updateProfile(
   userId: string,
   data: { name?: string; phone?: string; user_type?: string; preferences?: UserPreferences },

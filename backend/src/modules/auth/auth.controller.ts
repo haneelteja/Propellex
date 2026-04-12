@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { sendOTP, verifyOTP, getProfile, updateProfile } from './auth.service';
+import { sendOTP, verifyOTP, getProfile, updateProfile, upgradeToPremium } from './auth.service';
 import { ok, fail } from '../../utils/response';
 
 export async function handleSendOTP(req: Request, res: Response): Promise<void> {
@@ -30,4 +30,9 @@ export async function handleGetProfile(req: Request, res: Response): Promise<voi
 export async function handleUpdateProfile(req: Request, res: Response): Promise<void> {
   const updated = await updateProfile(req.user!.userId, req.body as Parameters<typeof updateProfile>[1]);
   ok(res, updated);
+}
+
+export async function handleUpgrade(req: Request, res: Response): Promise<void> {
+  const result = await upgradeToPremium(req.user!.userId);
+  ok(res, result);
 }

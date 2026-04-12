@@ -1,51 +1,17 @@
 import { useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { auth, billing } from '@/services/api';
+import { auth } from '@/services/api';
 import { Button } from '@/components/shared/Button';
 import { Badge } from '@/components/shared/Badge';
 import { formatRupeesCr } from '@/lib/utils';
 
-// Razorpay types (loaded dynamically via CDN script)
-declare global {
-  interface Window {
-    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
-  }
-}
-interface RazorpayOptions {
-  key: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  order_id: string;
-  prefill: { name: string; email: string };
-  theme: { color: string };
-  handler: (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => void;
-  modal: { ondismiss: () => void };
-}
-interface RazorpayInstance {
-  open(): void;
-}
-
-async function loadRazorpayScript(): Promise<boolean> {
-  if (window.Razorpay) return true;
-  return new Promise((resolve) => {
-    const s = document.createElement('script');
-    s.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    s.onload = () => resolve(true);
-    s.onerror = () => resolve(false);
-    document.head.appendChild(s);
-  });
-}
-
 export default function Profile() {
-  const { user, updateUser } = useAuthStore();
+  const { user, updateUser, setAuth } = useAuthStore();
   const [name, setName] = useState(user?.name ?? '');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
   const [upgradeError, setUpgradeError] = useState<string | null>(null);
-  const [upgradeSuccess, setUpgradeSuccess] = useState(false);
 
   if (!user) return null;
 
@@ -64,53 +30,14 @@ export default function Profile() {
   };
 
   const handleUpgrade = async () => {
-    setUpgradeError(null);
     setUpgrading(true);
-
+    setUpgradeError(null);
     try {
-      const loaded = await loadRazorpayScript();
-      if (!loaded) {
-        setUpgradeError('Could not load Razorpay. Check your internet connection.');
-        return;
-      }
-
-      const order = await billing.createOrder();
-
-      const rzp = new window.Razorpay({
-        key:         order.key_id,
-        amount:      order.amount,
-        currency:    order.currency,
-        name:        'Propellex',
-        description: 'Pro Plan — ₹999/month',
-        order_id:    order.order_id,
-        prefill:     { name: user.name, email: user.email },
-        theme:       { color: '#C9A84C' },
-        handler: async (response) => {
-          try {
-            const result = await billing.verifyPayment({
-              razorpay_order_id:   response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature:  response.razorpay_signature,
-            });
-            // Refresh user to get updated subscription_tier
-            const refreshed = await auth.getProfile();
-            updateUser(refreshed);
-            setUpgradeSuccess(true);
-            console.info('[Billing] Upgrade success:', result.message);
-          } catch (e: unknown) {
-            setUpgradeError((e as Error).message ?? 'Payment verification failed');
-          } finally {
-            setUpgrading(false);
-          }
-        },
-        modal: {
-          ondismiss: () => setUpgrading(false),
-        },
-      });
-
-      rzp.open();
-    } catch (e: unknown) {
-      setUpgradeError((e as Error).message ?? 'Failed to initiate payment');
+      const { token, user: updated } = await auth.upgrade();
+      setAuth(token, updated);
+    } catch (err) {
+      setUpgradeError((err as Error).message ?? 'Upgrade failed — please try again');
+    } finally {
       setUpgrading(false);
     }
   };
@@ -163,17 +90,8 @@ export default function Profile() {
       {/* Upgrade to Premium */}
       {!isPremium && (
         <div className="bg-surface-container border border-primary/30 p-6 space-y-4">
-          {upgradeSuccess ? (
-            <div className="flex flex-col items-center text-center py-4 gap-3">
-              <span className="material-symbols-outlined text-secondary text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                check_circle
-              </span>
-              <p className="font-headline text-xl text-on-surface">You're now on Premium!</p>
-              <p className="font-body text-sm text-on-surface-variant">Enjoy unlimited searches, chats, and portfolio saves.</p>
-            </div>
-          ) : (
-            <>
-              <div className="flex items-start justify-between gap-4">
+          <>
+            <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="material-symbols-outlined text-primary text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -207,32 +125,30 @@ export default function Profile() {
               </ul>
 
               {upgradeError && (
-                <p className="font-body text-xs text-error bg-error-container px-3 py-2">{upgradeError}</p>
+                <p className="text-xs text-error text-center">{upgradeError}</p>
               )}
-
               <button
-                onClick={() => void handleUpgrade()}
+                onClick={handleUpgrade}
                 disabled={upgrading}
-                className="w-full bg-primary text-on-primary font-label font-bold text-xs uppercase tracking-widest px-6 py-3 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full bg-primary text-on-primary font-label font-bold text-xs uppercase tracking-widest px-6 py-3 flex items-center justify-center gap-2 hover:bg-primary-fixed transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {upgrading ? (
                   <>
                     <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
-                    Processing...
+                    Upgrading…
                   </>
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
-                    Upgrade — ₹999/mo
+                    Upgrade Now — ₹999/mo
                   </>
                 )}
               </button>
 
               <p className="text-[10px] font-label text-on-surface-variant text-center">
-                Secure payment via Razorpay. Cancel anytime.
+                Demo mode: upgrade is instant. Payment integration coming soon.
               </p>
-            </>
-          )}
+          </>
         </div>
       )}
 
