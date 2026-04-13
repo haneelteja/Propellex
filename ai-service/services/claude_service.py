@@ -1,7 +1,9 @@
-import anthropic
 import json
 import traceback
+import os
 from typing import List, Dict, Any, AsyncGenerator
+from google import genai
+from google.genai import types
 
 SYSTEM_PROMPT = """You are Propellex AI, an expert real estate investment advisor for High Net-Worth Individuals (HNIs) in India.
 
@@ -29,51 +31,73 @@ INSTRUCTIONS:
 6. If you cannot answer from context, say so and suggest contacting an agent.
 """
 
+_GEMINI_MODEL = "gemini-2.5-flash"
+
+
+def _gemini_client() -> genai.Client:
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY not configured")
+    return genai.Client(api_key=api_key)
+
+
 async def stream_chat(
     message: str,
     conversation_history: List[Dict[str, str]],
     property_context: List[Dict[str, Any]],
 ) -> AsyncGenerator[str, None]:
-    """Stream Claude response as SSE data chunks."""
+    """Stream Gemini response as SSE data chunks."""
     try:
         context_str = json.dumps(property_context, indent=2, default=str)
     except Exception as e:
-        print(f"[Claude] Failed to serialize property context: {e}")
+        print(f"[Chat] Failed to serialize property context: {e}")
         context_str = "[]"
 
     system = SYSTEM_PROMPT.replace("{property_context}", context_str)
 
-    # Sanitise history — only keep valid role/content pairs
-    messages = []
+    # Build Gemini contents list from history
+    # Gemini roles: "user" | "model" (not "assistant")
+    contents = []
     for m in conversation_history[-10:]:
         role = m.get("role", "")
         content = m.get("content", "")
         if role in ("user", "assistant") and isinstance(content, str) and content.strip():
-            messages.append({"role": role, "content": content})
-    messages.append({"role": "user", "content": message})
+            gemini_role = "model" if role == "assistant" else "user"
+            contents.append({"role": gemini_role, "parts": [{"text": content}]})
+    contents.append({"role": "user", "parts": [{"text": message}]})
 
     try:
-        client = anthropic.AsyncAnthropic()
-        async with client.messages.stream(
-            model="claude-sonnet-4-6",
-            max_tokens=2048,
-            system=system,
-            messages=messages,
-        ) as stream:
-            async for text in stream.text_stream:
-                yield f"data: {json.dumps({'text': text})}\n\n"
-    except anthropic.AuthenticationError:
-        print("[Claude] AuthenticationError — check ANTHROPIC_API_KEY")
-        yield f"data: {json.dumps({'error': 'AI authentication failed — contact support'})}\n\n"
-    except anthropic.RateLimitError:
-        print("[Claude] RateLimitError — Anthropic quota exceeded")
-        yield f"data: {json.dumps({'error': 'AI rate limit reached — please try again in a moment'})}\n\n"
-    except anthropic.APIStatusError as e:
-        print(f"[Claude] APIStatusError {e.status_code}: {e.message}")
-        yield f"data: {json.dumps({'error': f'AI service error ({e.status_code})'})}\n\n"
+        client = _gemini_client()
+        async for chunk in client.aio.models.generate_content_stream(
+            model=_GEMINI_MODEL,
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=system,
+                max_output_tokens=2048,
+            ),
+        ):
+            if chunk.text:
+                yield f"data: {json.dumps({'text': chunk.text})}\n\n"
+
     except Exception as e:
-        print(f"[Claude] Unexpected stream error: {type(e).__name__}: {e}")
-        traceback.print_exc()
-        yield f"data: {json.dumps({'error': 'Unexpected AI error — please try again'})}\n\n"
+        err_str = str(e)
+        is_rate_limit = (
+            "429" in err_str
+            or "Too Many Requests" in err_str
+            or "RESOURCE_EXHAUSTED" in err_str
+            or "ResourceExhausted" in err_str
+            or "quota" in err_str.lower()
+        )
+        is_auth = "API_KEY" in err_str or "invalid" in err_str.lower() or "not configured" in err_str
+        if is_rate_limit:
+            print("[Chat] Gemini rate limit reached")
+            yield f"data: {json.dumps({'error': 'AI rate limit reached — please try again in a moment'})}\n\n"
+        elif is_auth:
+            print("[Chat] Gemini auth error — check GEMINI_API_KEY")
+            yield f"data: {json.dumps({'error': 'AI authentication failed — contact support'})}\n\n"
+        else:
+            print(f"[Chat] Unexpected stream error: {type(e).__name__}: {e}")
+            traceback.print_exc()
+            yield f"data: {json.dumps({'error': 'Unexpected AI error — please try again'})}\n\n"
 
     yield "data: [DONE]\n\n"
