@@ -68,7 +68,7 @@ async def stream_chat(
 
     try:
         client = _gemini_client()
-        async for chunk in client.aio.models.generate_content_stream(
+        async for chunk in await client.aio.models.generate_content_stream(
             model=_GEMINI_MODEL,
             contents=contents,
             config=types.GenerateContentConfig(
