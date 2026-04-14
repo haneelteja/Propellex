@@ -1,5 +1,6 @@
 import { query } from '../../config/db';
 import { queryOne } from '../../config/db';
+import { redis } from '../../config/redis';
 import { serializeMoney } from '../../utils/currency';
 
 interface UserPrefs {
@@ -100,6 +101,13 @@ function scoreProperty(
   return { score: Math.round(total), reason: reasonMap[topFactor] ?? 'Good overall match' };
 }
 
+/** Stable hash of user preferences — used as cache key suffix. */
+function prefsHash(prefs: UserPrefs): string {
+  return Buffer.from(JSON.stringify(prefs)).toString('base64').slice(0, 24);
+}
+
+const RECS_TTL_S = 5 * 60; // 5 minutes
+
 export async function getRecommendations(userId: string, limit = 20) {
   const user = await queryOne<{ preferences: UserPrefs }>(
     'SELECT preferences FROM users WHERE id = $1',
@@ -107,6 +115,19 @@ export async function getRecommendations(userId: string, limit = 20) {
   );
   const prefs: UserPrefs = user?.preferences ?? {};
 
+  // ── Redis cache ────────────────────────────────────────────────────────────
+  const cacheKey = `recs:${userId}:${prefsHash(prefs)}:${limit}`;
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.info('[Recommendations] Cache HIT', cacheKey);
+      return JSON.parse(cached) as ScoredProperty[];
+    }
+  } catch (err) {
+    console.warn('[Recommendations] Redis read failed — falling through to DB:', (err as Error).message);
+  }
+
+  // ── DB query ───────────────────────────────────────────────────────────────
   const properties = await query(
     `SELECT id, title, property_type, status, price, price_per_sqft, area_sqft,
             bedrooms, bathrooms, locality, city, lat, lng, amenities,
@@ -125,7 +146,25 @@ export async function getRecommendations(userId: string, limit = 20) {
     .sort((a, b) => b.match_score - a.match_score)
     .slice(0, limit);
 
+  // ── Populate cache ─────────────────────────────────────────────────────────
+  try {
+    await redis.set(cacheKey, JSON.stringify(scored), 'EX', RECS_TTL_S);
+  } catch (err) {
+    console.warn('[Recommendations] Redis write failed:', (err as Error).message);
+  }
+
   return scored;
+}
+
+/** Invalidate cached recommendations for a user (call after preference update). */
+export async function invalidateRecommendations(userId: string) {
+  try {
+    const pattern = `recs:${userId}:*`;
+    const keys = await redis.keys(pattern);
+    if (keys.length) await redis.del(...keys);
+  } catch (err) {
+    console.warn('[Recommendations] Cache invalidation failed:', (err as Error).message);
+  }
 }
 
 export async function saveFeedback(

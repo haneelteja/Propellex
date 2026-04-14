@@ -13,7 +13,7 @@ function buildPoolConfig() {
       user: decodeURIComponent(u.username),
       password: decodeURIComponent(u.password),
       ssl: { rejectUnauthorized: false },
-      max: 5,
+      max: 15,
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 30_000,
     };

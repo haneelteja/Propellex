@@ -1,7 +1,19 @@
 import { query, queryOne } from '../../config/db';
+import { redis } from '../../config/redis';
 import { AppError } from '../../utils/response';
 import { serializeMoney } from '../../utils/currency';
 import { v4 as uuidv4 } from 'uuid';
+
+const SEARCH_TTL_S = 3 * 60; // 3 minutes
+
+interface SearchResult {
+  data: Record<string, unknown>[];
+  pagination: { page: number; limit: number; total: number; total_pages: number };
+}
+
+function searchCacheKey(filters: PropertyFilter): string {
+  return `search:${Buffer.from(JSON.stringify(filters)).toString('base64').slice(0, 48)}`;
+}
 
 export interface PropertyInput {
   title: string;
@@ -48,7 +60,7 @@ const SORT_MAP: Record<string, string> = {
   relevance: 'p.created_at DESC',
 };
 
-export async function searchProperties(filters: PropertyFilter) {
+export async function searchProperties(filters: PropertyFilter): Promise<SearchResult> {
   const {
     search, locality, city = 'Hyderabad',
     min_price, max_price,
@@ -132,13 +144,24 @@ export async function searchProperties(filters: PropertyFilter) {
   const countParams = params.slice(0, params.length - 2);
   const countQuery = `SELECT COUNT(*) AS total FROM properties p WHERE ${where}`;
 
+  // ── Redis cache ────────────────────────────────────────────────────────────
+  const cacheKey = searchCacheKey(filters);
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached) as SearchResult;
+    }
+  } catch {
+    // Redis unavailable — fall through to DB
+  }
+
   const [rows, countRows] = await Promise.all([
     query(dataQuery, params),
     query<{ total: string }>(countQuery, countParams),
   ]);
 
   const total = parseInt(countRows[0]?.total ?? '0', 10);
-  return {
+  const result = {
     data: rows.map(serializeMoney),
     pagination: {
       page,
@@ -147,6 +170,24 @@ export async function searchProperties(filters: PropertyFilter) {
       total_pages: Math.ceil(total / pageLimit),
     },
   };
+
+  try {
+    await redis.set(cacheKey, JSON.stringify(result), 'EX', SEARCH_TTL_S);
+  } catch {
+    // Redis write failure is non-fatal
+  }
+
+  return result;
+}
+
+/** Flush all property search caches (call after create/update/delete). */
+export async function invalidateSearchCache() {
+  try {
+    const keys = await redis.keys('search:*');
+    if (keys.length) await redis.del(...keys);
+  } catch (err) {
+    console.warn('[Property] Search cache flush failed:', (err as Error).message);
+  }
 }
 
 export async function getPropertyById(id: string) {
@@ -258,6 +299,7 @@ export async function createProperty(agencyId: string | null, input: PropertyInp
     ],
   );
   if (!row) throw new AppError('Failed to create property', 500);
+  void invalidateSearchCache();
   return serializeMoney(row as Record<string, unknown>);
 }
 
@@ -310,6 +352,7 @@ export async function updateProperty(
       propertyId,
     ],
   );
+  void invalidateSearchCache();
   return serializeMoney(row as Record<string, unknown>);
 }
 
@@ -324,6 +367,7 @@ export async function deleteProperty(propertyId: string, agencyId: string | null
     throw new AppError('Not authorized to delete this property', 403);
   }
   await query('UPDATE properties SET is_active = false WHERE id = $1', [propertyId]);
+  void invalidateSearchCache();
 }
 
 export interface CompareResult {

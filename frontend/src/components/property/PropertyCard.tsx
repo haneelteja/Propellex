@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { formatRupeesCr } from '@/lib/utils';
 import type { Property, ScoredProperty, ReraStatus } from '@/types';
@@ -58,7 +59,7 @@ function ReraChip({ status }: { status: ReraStatus }) {
   );
 }
 
-export function PropertyCard({
+export const PropertyCard = memo(function PropertyCard({
   property,
   onShortlist,
   shortlisted,
@@ -213,4 +214,4 @@ export function PropertyCard({
       </Link>
     </div>
   );
-}
+});

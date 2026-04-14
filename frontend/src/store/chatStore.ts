@@ -36,7 +36,12 @@ export const useChatStore = create<ChatStore>()(
       toggle: () => set((s) => ({ isOpen: !s.isOpen })),
 
       addMessage: (message) =>
-        set((s) => ({ messages: [...s.messages, message] })),
+        set((s) => {
+          const msgs = [...s.messages, message];
+          // Keep at most 40 messages to prevent unbounded memory growth.
+          // Drop from the front (oldest first), keeping pairs intact.
+          return { messages: msgs.length > 40 ? msgs.slice(msgs.length - 40) : msgs };
+        }),
 
       appendToLast: (text) =>
         set((s) => {

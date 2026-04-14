@@ -93,6 +93,30 @@ async function start() {
     `);
     markOtpTableReady();
     console.info('[DB] OTP table ready');
+
+    // Ensure composite indexes exist for common search patterns.
+    // CREATE INDEX IF NOT EXISTS is a no-op when the index already exists.
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_properties_locality_active
+        ON properties (locality, is_active)
+        WHERE is_active = true
+    `);
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_properties_type_status
+        ON properties (property_type, status, is_active)
+        WHERE is_active = true
+    `);
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_properties_price
+        ON properties (price)
+        WHERE is_active = true
+    `);
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_properties_unanalyzed
+        ON properties (published_at ASC)
+        WHERE is_active = true AND ai_analyzed_at IS NULL
+    `);
+    console.info('[DB] Property indexes verified');
   } catch (err: unknown) {
     const e = err as Error & { errors?: Error[]; code?: string };
     console.error('[DB] Startup connection test: FAILED');

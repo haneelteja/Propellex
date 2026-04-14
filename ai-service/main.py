@@ -25,14 +25,13 @@ async def _ping_self():
 
 
 async def _ping_db():
-    """Run a lightweight DB query every 10 min to keep Neon from suspending."""
-    from services.rag_service import _connect
+    """Run a lightweight query every 10 min to keep Neon from suspending."""
+    from services.rag_service import _get_pool
     await asyncio.sleep(90)  # stagger slightly after self-ping
     while True:
         try:
-            conn = await _connect()
-            await conn.fetchval("SELECT 1")
-            await conn.close()
+            pool = await _get_pool()
+            await pool.fetchval("SELECT 1")
             print("[KeepAlive] DB ping OK")
         except Exception as e:
             print(f"[KeepAlive] DB ping failed: {e}")
@@ -41,13 +40,21 @@ async def _ping_db():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Start keep-alive background tasks on startup
+    from services.rag_service import _get_pool, close_pool
+    # Eagerly warm up the connection pool so the first request is fast
+    try:
+        await _get_pool()
+    except Exception as e:
+        print(f"[Startup] DB pool warm-up failed (non-fatal): {e}")
+
+    # Start keep-alive background tasks
     t1 = asyncio.create_task(_ping_self())
     t2 = asyncio.create_task(_ping_db())
     yield
-    # Cancel on shutdown
+    # Graceful shutdown
     t1.cancel()
     t2.cancel()
+    await close_pool()
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
