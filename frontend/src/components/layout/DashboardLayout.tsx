@@ -14,7 +14,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import type { UserRole } from '@propellex/shared'
+import type { UserRole } from '@/types/shared'
 
 interface DashboardLayoutProps {
   children: ReactNode

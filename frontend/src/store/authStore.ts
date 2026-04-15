@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { UserRole } from '@propellex/shared'
+import { UserRole } from '@/types/shared'
 
 interface User {
   id: string
