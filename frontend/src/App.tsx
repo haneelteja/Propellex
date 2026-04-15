@@ -33,6 +33,7 @@ import AdminDashboard from '@/pages/admin/AdminDashboard'
 // Shared Pages
 import InquiryManagement from '@/pages/inquiries/InquiryManagement'
 import PropertyDetails from '@/pages/properties/PropertyDetails'
+import ClientCompare from '@/pages/client/ClientCompare'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -240,6 +241,16 @@ function App() {
                 <DashboardLayout>
                   <InquiryManagement />
                 </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Compare (all authenticated users) */}
+          <Route
+            path="/compare"
+            element={
+              <ProtectedRoute>
+                <ClientCompare />
               </ProtectedRoute>
             }
           />
