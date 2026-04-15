@@ -1,0 +1,77 @@
+# Azure DevOps Pipeline for Propellex Platform
+# This pipeline builds and deploys the application to Azure
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  nodeVersion: '18.x'
+
+stages:
+  - stage: Build
+    displayName: 'Build Application'
+    jobs:
+      - job: Build
+        displayName: 'Build Frontend and Backend'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '$(nodeVersion)'
+            displayName: 'Install Node.js'
+
+          - script: |
+              npm ci
+              npm run build:shared
+              npm run build:backend
+              npm run build:frontend
+            displayName: 'Build All Packages'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: '$(System.DefaultWorkingDirectory)'
+              artifactName: 'drop'
+
+  - stage: DeployBackend
+    displayName: 'Deploy Backend API'
+    dependsOn: Build
+    jobs:
+      - deployment: DeployAPI
+        displayName: 'Deploy to Azure App Service'
+        environment: 'production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: 'Azure-Service-Connection'
+                    appName: 'propellex-api'
+                    package: '$(Pipeline.Workspace)/drop/backend/dist'
+
+  - stage: DeployFrontend
+    displayName: 'Deploy Frontend'
+    dependsOn: Build
+    jobs:
+      - deployment: DeployFrontend
+        displayName: 'Deploy to Azure Static Web Apps'
+        environment: 'production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureStaticWebApp@0
+                  inputs:
+                    app_location: 'frontend'
+                    api_location: ''
+                    output_location: 'dist'
+                    azure_static_web_apps_api_token: '$(AZURE_STATIC_WEB_APPS_API_TOKEN)'
+
+
+
+
