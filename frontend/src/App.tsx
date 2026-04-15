@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
+import { OfflineBanner } from '@/components/OfflineBanner'
+import { PwaUpdatePrompt } from '@/components/PwaUpdatePrompt'
 
 // Layouts
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
@@ -72,6 +74,8 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <OfflineBanner />
+      <PwaUpdatePrompt />
       <Router>
         <Routes>
           {/* Public Routes */}

@@ -1,12 +1,15 @@
 import { Link } from 'react-router-dom'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { Edit, Trash2, Plus } from 'lucide-react'
 
 export default function AdminProperties() {
-  const { data, isLoading, refetch } = useQuery('admin-properties', async () => {
-    const response = await api.get('/properties?limit=100')
-    return response.data
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['admin-properties'],
+    queryFn: async () => {
+      const response = await api.get('/properties?limit=100')
+      return response.data
+    },
   })
 
   const handleDelete = async (id: string) => {

@@ -11,14 +11,18 @@ import {
   MessageSquare,
   LogOut,
   User,
+  type LucideIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import type { UserRole } from '@propellex/shared'
 
 interface DashboardLayoutProps {
   children: ReactNode
 }
 
-const navigation = {
+type NavItem = { name: string; href: string; icon: LucideIcon }
+
+const navigation: Record<UserRole, NavItem[]> = {
   hni_investor: [
     { name: 'Dashboard', href: '/investor/dashboard', icon: Home },
     { name: 'Property Discovery', href: '/properties', icon: Search },

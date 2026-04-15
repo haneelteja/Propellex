@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import api from '@/lib/api'
 import { Search, Home, MapPin } from 'lucide-react'
@@ -16,9 +16,9 @@ export default function ClientSearch() {
     bathrooms: '',
   })
 
-  const { data, isLoading } = useQuery(
-    ['properties', searchParams],
-    async () => {
+  const { data, isLoading } = useQuery({
+    queryKey: ['properties', searchParams],
+    queryFn: async () => {
       const params = new URLSearchParams()
       Object.entries(searchParams).forEach(([key, value]) => {
         if (value) params.append(key, value)
@@ -26,8 +26,8 @@ export default function ClientSearch() {
       const response = await api.get(`/properties/search?${params.toString()}`)
       return response.data
     },
-    { enabled: Object.values(searchParams).some((v) => v !== '') }
-  )
+    enabled: Object.values(searchParams).some((v) => v !== ''),
+  })
 
   const { addToCompare, compareList } = useCompareStore()
 

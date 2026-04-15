@@ -18,7 +18,7 @@ export default function HomePage() {
             <nav className="flex items-center gap-4">
               {isAuthenticated ? (
                 <>
-                  {user?.role === 'admin' ? (
+                  {(user?.role as string) === 'admin' ? (
                     <Link
                       to="/admin"
                       className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-primary-600"
@@ -91,7 +91,7 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="flex gap-4 justify-center">
-              {user?.role === 'client' ? (
+              {(user?.role as string) === 'client' ? (
                 <Link
                   to="/search"
                   className="px-8 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-lg font-semibold"

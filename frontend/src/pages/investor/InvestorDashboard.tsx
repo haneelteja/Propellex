@@ -3,7 +3,7 @@ import api from '@/lib/api'
 import { TrendingUp, Home, DollarSign, BarChart3 } from 'lucide-react'
 
 export default function InvestorDashboard() {
-  const { data: dashboardData, isLoading } = useQuery({
+  const { isLoading } = useQuery({
     queryKey: ['investor-dashboard'],
     queryFn: async () => {
       const response = await api.get('/investor/dashboard')

@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { MapPin, Home, Bath, Car } from 'lucide-react'
 import { useCompareStore } from '@/store/compareStore'
@@ -8,14 +8,14 @@ export default function PropertyDetails() {
   const { id } = useParams()
   const { addToCompare } = useCompareStore()
 
-  const { data, isLoading } = useQuery(
-    ['property', id],
-    async () => {
+  const { data, isLoading } = useQuery({
+    queryKey: ['property', id],
+    queryFn: async () => {
       const response = await api.get(`/properties/${id}`)
       return response.data.property
     },
-    { enabled: !!id }
-  )
+    enabled: !!id,
+  })
 
   if (isLoading) {
     return <div className="p-8">Loading...</div>
