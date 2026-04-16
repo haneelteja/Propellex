@@ -1,5 +1,13 @@
 import mongoose, { Schema, Document } from 'mongoose'
-import { Property as IProperty, PropertyType, PropertyStatus } from '@propellex/shared'
+
+// Inline types (no external @propellex/shared dependency)
+interface IProperty extends Document {
+  title: string; description: string; type: string; status: string; price: number
+  currency: string; location: Record<string, unknown>; specifications: Record<string, unknown>
+  amenities: string[]; images: string[]; virtualTour?: string; documents: unknown[]
+  investmentMetrics?: Record<string, unknown>; agency: unknown; agent: unknown
+  featured: boolean; views: number
+}
 
 const PropertySchema = new Schema<IProperty>(
   {
@@ -46,8 +54,8 @@ const PropertySchema = new Schema<IProperty>(
       investmentGrade: { type: String, enum: ['A+', 'A', 'B+', 'B', 'C'] },
       riskLevel: { type: String, enum: ['low', 'medium', 'high'] },
     },
-    agency: { type: Schema.Types.ObjectId, ref: 'Agency', required: true },
-    agent: { type: Schema.Types.ObjectId, ref: 'Agent', required: true },
+    agency: { type: Schema.Types.ObjectId as unknown as mongoose.SchemaDefinitionType<unknown>, ref: 'Agency', required: true },
+    agent: { type: Schema.Types.ObjectId as unknown as mongoose.SchemaDefinitionType<unknown>, ref: 'Agent', required: true },
     featured: { type: Boolean, default: false },
     views: { type: Number, default: 0 },
   },

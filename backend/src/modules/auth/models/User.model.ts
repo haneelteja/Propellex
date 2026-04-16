@@ -1,10 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose'
-import { UserRole } from '@propellex/shared'
+
+export type UserRole = 'hni_investor' | 'agency_admin' | 'compliance_officer' | 'product_manager'
 
 export interface IUser extends Document {
   name: string
   email: string
-  password: string
+  password?: string
   role: UserRole
   phone?: string
   avatar?: string
@@ -32,8 +33,6 @@ const UserSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
-      minlength: [8, 'Password must be at least 8 characters'],
       select: false,
     },
     role: {
@@ -65,13 +64,8 @@ const UserSchema = new Schema<IUser>(
   }
 )
 
-// Indexes
 UserSchema.index({ email: 1 })
 UserSchema.index({ role: 1 })
 UserSchema.index({ city: 1 })
 
 export default mongoose.model<IUser>('User', UserSchema)
-
-
-
-
