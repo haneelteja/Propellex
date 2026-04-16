@@ -53,8 +53,21 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions)
 app.use(helmet())
 app.use(compression())
 app.use(morgan(NODE_ENV === 'development' ? 'dev' : 'combined'))
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'capacitor://localhost',   // Capacitor Android/iOS
+  'http://localhost',        // Capacitor fallback
+  ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()) : []),
+]
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true)
+    if (allowedOrigins.includes(origin)) return callback(null, true)
+    callback(new Error(`CORS: origin ${origin} not allowed`))
+  },
   credentials: true,
 }))
 app.use(express.json({ limit: '10mb' }))
