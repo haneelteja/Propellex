@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useChatStore } from '@/store/chatStore';
 import { useAuthStore } from '@/store/authStore';
 
-const AI_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const AI_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/api$/, '');
 
 export function useChat() {
   const {
