@@ -9,10 +9,12 @@ import {
   deleteProperty,
   analyzePropertyWithAI,
   comparePropertiesWithAI,
+  getPropertiesNeedingAnalysis,
   type PropertyInput,
 } from './property.service';
 import { ok, paginated, AppError } from '../../utils/response';
 import { queryOne } from '../../config/db';
+import { runDailyAnalysis } from '../../jobs/analyzeProperties';
 
 export async function handleSearch(req: Request, res: Response): Promise<void> {
   const q = req.query as Record<string, string>;
@@ -85,6 +87,13 @@ export async function handleDelete(req: Request, res: Response): Promise<void> {
 export async function handleAiAnalyze(req: Request, res: Response): Promise<void> {
   await analyzePropertyWithAI(req.params.id!);
   ok(res, { message: 'AI analysis complete' });
+}
+
+export async function handleTriggerBulkAnalysis(_req: Request, res: Response): Promise<void> {
+  const ids = await getPropertiesNeedingAnalysis();
+  ok(res, { message: `Bulk analysis triggered for ${ids.length} properties`, queued: ids.length });
+  // Run async — don't await so the HTTP response returns immediately
+  runDailyAnalysis().catch((err) => console.error('[BulkAnalysis] Error:', err));
 }
 
 /** Resolve a Google Maps URL (including short maps.app.goo.gl links) server-side

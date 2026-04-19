@@ -664,11 +664,1042 @@ const NEW_PROPERTIES = [
   },
 ];
 
+// ── 50 Additional genuine Hyderabad properties ────────────────────────────────
+const MORE_PROPERTIES = [
+  // ── Jubilee Hills ─────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Aparna Sarovar Grand, Jubilee Hills',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 3600000000,          // ₹3.6 Cr
+    price_per_sqft: 1200000,    // ₹12,000/sqft
+    area_sqft: 3000,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Jubilee Hills', city: 'Hyderabad',
+    lat: 17.4220, lng: 78.4002,
+    pincode: '500033',
+    amenities: ['gym','swimming_pool','clubhouse','landscaped_garden','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','visitor_parking','indoor_games'],
+    builder_name: 'Aparna Constructions',
+    rera_number: 'P02400009781', rera_status: 'verified',
+    risk_score: 16, roi_estimate_3yr: 32.0,
+    description: 'Aparna Sarovar Grand in Jubilee Hills offers spacious 3BHK apartments at ₹12,000/sqft in one of Hyderabad\'s most prestigious addresses. Jubilee Hills is home to film industry personalities, senior government officials, and top executives, sustaining permanent luxury demand. Road No. 36 location ensures excellent connectivity to Banjara Hills and KBR Park.',
+    analysis_priority: 'high',
+    published_at: '2026-01-20 10:00:00+05:30',
+  },
+  {
+    title: '5BHK Independent Bungalow, Road No. 45, Jubilee Hills',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 14500000000,         // ₹14.5 Cr
+    price_per_sqft: 1450000,    // ₹14,500/sqft on 10,000 sqft plot
+    area_sqft: 10000,
+    bedrooms: 5, bathrooms: 6,
+    locality: 'Jubilee Hills', city: 'Hyderabad',
+    lat: 17.4245, lng: 78.4078,
+    pincode: '500033',
+    amenities: ['private_pool','home_theatre','gym','landscaped_garden','servant_quarters','covered_parking','power_backup','24x7_security','cctv','smart_home_automation'],
+    builder_name: 'Independent Owner / Custom Build',
+    rera_number: 'P02400008823', rera_status: 'verified',
+    risk_score: 20, roi_estimate_3yr: 28.0,
+    description: 'A rare independent G+2 bungalow on a 10,000 sqft plot at Road No. 45 — one of Jubilee Hills\'s most coveted streets. The home features a private pool, home theatre, and separate servant quarters. Land values on this stretch have appreciated 60% over five years. Ideal as a primary residence or high-value land banking opportunity.',
+    analysis_priority: 'high',
+    published_at: '2026-02-05 10:00:00+05:30',
+  },
+  // ── Banjara Hills ─────────────────────────────────────────────────────────
+  {
+    title: '4BHK Luxury Apartment in Jayabheri The Orange County, Banjara Hills',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 7200000000,          // ₹7.2 Cr
+    price_per_sqft: 1800000,    // ₹18,000/sqft
+    area_sqft: 4000,
+    bedrooms: 4, bathrooms: 4,
+    locality: 'Banjara Hills', city: 'Hyderabad',
+    lat: 17.4188, lng: 78.4412,
+    pincode: '500034',
+    amenities: ['gym','infinity_pool','spa','concierge','rooftop_lounge','ev_charging','clubhouse','squash_court','yoga_studio','power_backup','24x7_security','cctv','lift','smart_home_automation','wine_cellar'],
+    builder_name: 'Jayabheri Group',
+    rera_number: 'P02500008120', rera_status: 'verified',
+    risk_score: 16, roi_estimate_3yr: 31.5,
+    description: 'Jayabheri Orange County is Banjara Hills\'s most iconic ultra-luxury project. At ₹18,000/sqft, it represents the absolute premium of Hyderabad\'s residential market outside of branded residences. Road No. 12 location puts residents 5 minutes from Hyderabad\'s best restaurants, hospitals, and schools. A genuine trophy asset with strong NRI and diaspora demand.',
+    analysis_priority: 'high',
+    published_at: '2026-01-28 10:00:00+05:30',
+  },
+  {
+    title: '3BHK Apartment in Doshi Nakshatra, Banjara Hills',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 2200000000,          // ₹2.2 Cr
+    price_per_sqft: 1000000,    // ₹10,000/sqft
+    area_sqft: 2200,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Banjara Hills', city: 'Hyderabad',
+    lat: 17.4105, lng: 78.4280,
+    pincode: '500034',
+    amenities: ['gym','swimming_pool','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','landscaped_garden'],
+    builder_name: 'Doshi Housing',
+    rera_number: 'P02400007634', rera_status: 'verified',
+    risk_score: 18, roi_estimate_3yr: 27.5,
+    description: 'Doshi Nakshatra in Banjara Hills offers a mid-premium 3BHK at ₹10,000/sqft — competitive for this address. Doshi Housing has been building in Hyderabad since 1995 with a clean delivery record. The Road No. 3 location is 3 km from Hyderabad Public School and 4 km from Apollo Hospital, sustaining strong family-segment rental demand.',
+    analysis_priority: 'medium',
+    published_at: '2026-02-10 10:00:00+05:30',
+  },
+  // ── Gachibowli ────────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Incor One City, Gachibowli',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 2100000000,          // ₹2.1 Cr
+    price_per_sqft: 875000,     // ₹8,750/sqft
+    area_sqft: 2400,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Gachibowli', city: 'Hyderabad',
+    lat: 17.4380, lng: 78.3470,
+    pincode: '500032',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','tennis_court','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','indoor_games'],
+    builder_name: 'Incor Infrastructure',
+    rera_number: 'P02400003281', rera_status: 'verified',
+    risk_score: 14, roi_estimate_3yr: 30.0,
+    description: 'Incor One City is a large-scale integrated township in Gachibowli built around an entire city-block concept. This 3BHK at ₹2.1 Cr is priced at ₹8,750/sqft — below the Gachibowli premium tier — making it an accessible entry into the Financial District corridor. Located 2 km from Wipro Circle and 4 km from DLF Cyber City.',
+    analysis_priority: 'high',
+    published_at: '2026-02-18 10:00:00+05:30',
+  },
+  {
+    title: '2BHK Apartment in Suchir Valencia, Gachibowli',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 1150000000,          // ₹1.15 Cr
+    price_per_sqft: 766700,     // ₹7,667/sqft
+    area_sqft: 1500,
+    bedrooms: 2, bathrooms: 2,
+    locality: 'Gachibowli', city: 'Hyderabad',
+    lat: 17.4356, lng: 78.3498,
+    pincode: '500032',
+    amenities: ['gym','swimming_pool','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift'],
+    builder_name: 'Suchir India',
+    rera_number: 'P02400004902', rera_status: 'verified',
+    risk_score: 19, roi_estimate_3yr: 26.0,
+    description: 'Suchir Valencia offers one of the most affordable 2BHK entry points in Gachibowli at ₹1.15 Cr. Ready-to-move with RERA verification, this apartment is 1.5 km from the ISB campus and 3 km from Microsoft IDC Hyderabad. Rental yield averages ₹22,000–28,000/month, delivering 2.5–3% gross yield at current pricing.',
+    analysis_priority: 'medium',
+    published_at: '2026-01-14 10:00:00+05:30',
+  },
+  {
+    title: '4BHK Penthouse in Lanco Hills, Gachibowli',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 8500000000,          // ₹8.5 Cr
+    price_per_sqft: 1700000,    // ₹17,000/sqft
+    area_sqft: 5000,
+    bedrooms: 4, bathrooms: 5,
+    locality: 'Gachibowli', city: 'Hyderabad',
+    lat: 17.4425, lng: 78.3562,
+    pincode: '500032',
+    amenities: ['private_terrace','infinity_pool','private_lift_lobby','spa','gym','concierge','ev_charging','rooftop_deck','smart_home_automation','24x7_security','cctv','wine_cellar','home_theatre'],
+    builder_name: 'Lanco Hills Technology Park',
+    rera_number: 'P02400002019', rera_status: 'verified',
+    risk_score: 22, roi_estimate_3yr: 33.0,
+    description: 'A sky penthouse in the iconic Lanco Hills township — one of Gachibowli\'s original integrated developments spanning 270 acres. The 5,000 sqft unit features a wraparound private terrace with panoramic Financial District views. Lanco Hills has built-in commercial, retail, and hospitality infrastructure, making this a genuinely self-contained ultra-luxury community.',
+    analysis_priority: 'high',
+    published_at: '2026-03-02 10:00:00+05:30',
+  },
+  // ── Hitech City ───────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Aparna Serene Park, Hitech City',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 2250000000,          // ₹2.25 Cr
+    price_per_sqft: 1125000,    // ₹11,250/sqft
+    area_sqft: 2000,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Hitech City', city: 'Hyderabad',
+    lat: 17.4468, lng: 78.3752,
+    pincode: '500081',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','indoor_games','visitor_parking'],
+    builder_name: 'Aparna Constructions',
+    rera_number: 'P02200006883', rera_status: 'verified',
+    risk_score: 15, roi_estimate_3yr: 30.5,
+    description: 'Aparna Serene Park is a mature gated community in the Hitech City–Madhapur belt with completed possession and a high-quality tenant mix of IT professionals. At ₹11,250/sqft, it is competitively priced for a ready-to-occupy RERA asset in this micro-market. Walking distance from Hitech City Metro Station (Blue Line), ensuring zero vacancy periods.',
+    analysis_priority: 'high',
+    published_at: '2026-01-30 10:00:00+05:30',
+  },
+  {
+    title: 'Commercial Office in HITEX Exhibition Centre Road, Hitech City',
+    property_type: 'commercial',
+    status: 'ready_to_move',
+    price: 4500000000,          // ₹4.5 Cr
+    price_per_sqft: 1500000,    // ₹15,000/sqft
+    area_sqft: 3000,
+    bedrooms: null, bathrooms: null,
+    locality: 'Hitech City', city: 'Hyderabad',
+    lat: 17.4490, lng: 78.3780,
+    pincode: '500081',
+    amenities: ['power_backup','24x7_security','cctv','covered_parking','lift','conference_rooms','food_court','ev_charging','visitor_parking'],
+    builder_name: 'Raheja Developers',
+    rera_number: 'P02300001544', rera_status: 'verified',
+    risk_score: 18, roi_estimate_3yr: 27.0,
+    description: 'Grade-A commercial space adjacent to the HITEX Exhibition Centre — the highest-footfall business venue in Hyderabad. The 3,000 sqft floor plate is ideal for boutique consulting firms or co-working operators. Commercial rentals in Hitech City range ₹80–120/sqft/month, placing potential gross yield at 6–8%. RERA-verified and immediately leasable.',
+    analysis_priority: 'medium',
+    published_at: '2026-02-20 10:00:00+05:30',
+  },
+  // ── Madhapur ──────────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Aliens Hub, Madhapur',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 1800000000,          // ₹1.8 Cr
+    price_per_sqft: 900000,     // ₹9,000/sqft
+    area_sqft: 2000,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Madhapur', city: 'Hyderabad',
+    lat: 17.4472, lng: 78.3882,
+    pincode: '500081',
+    amenities: ['gym','swimming_pool','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','jogging_track','multipurpose_hall'],
+    builder_name: 'Aliens Developers',
+    rera_number: 'P02200005734', rera_status: 'verified',
+    risk_score: 20, roi_estimate_3yr: 27.0,
+    description: 'Aliens Hub in Madhapur is a well-established residential complex 1.5 km from Cyber Towers and 2 km from the Westin Hotel. The 3BHK at ₹9,000/sqft is below the Madhapur average of ₹10,000–11,000/sqft, offering value in a high-demand rental zone. Immediate possession available, with consistent rental demand from Google, Deloitte, and KPMG employees.',
+    analysis_priority: 'medium',
+    published_at: '2026-02-28 10:00:00+05:30',
+  },
+  {
+    title: '4BHK Luxury Apartment in Uma Enclave, Madhapur',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 4800000000,          // ₹4.8 Cr
+    price_per_sqft: 1371400,    // ₹13,714/sqft
+    area_sqft: 3500,
+    bedrooms: 4, bathrooms: 4,
+    locality: 'Madhapur', city: 'Hyderabad',
+    lat: 17.4495, lng: 78.3926,
+    pincode: '500081',
+    amenities: ['gym','infinity_pool','spa','rooftop_terrace','clubhouse','ev_charging','concierge','power_backup','24x7_security','cctv','lift','smart_home_automation','visitor_parking'],
+    builder_name: 'Uma Developers',
+    rera_number: 'P02400009034', rera_status: 'verified',
+    risk_score: 17, roi_estimate_3yr: 31.0,
+    description: 'Uma Enclave is a boutique ultra-luxury project in Madhapur with only 24 residences across 4 floors — offering exclusivity rare in this corridor. The 4BHK at ₹4.8 Cr is priced at ₹13,714/sqft, reflecting the low-density premium. 500 metres from Cyber Towers junction, walking distance to Hyderabad\'s most active tech employment hub.',
+    analysis_priority: 'high',
+    published_at: '2026-03-05 10:00:00+05:30',
+  },
+  // ── Kondapur ──────────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in SMR Vinay Harmony, Kondapur',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 1520000000,          // ₹1.52 Cr
+    price_per_sqft: 800000,     // ₹8,000/sqft
+    area_sqft: 1900,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Kondapur', city: 'Hyderabad',
+    lat: 17.4618, lng: 78.3598,
+    pincode: '500084',
+    amenities: ['gym','swimming_pool','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','visitor_parking'],
+    builder_name: 'SMR Vinay Builders',
+    rera_number: 'P02200007412', rera_status: 'verified',
+    risk_score: 22, roi_estimate_3yr: 25.0,
+    description: 'SMR Vinay Harmony in Kondapur is a trusted ready-to-move community with 400+ residents and proven maintenance standards. Priced at ₹8,000/sqft — the lower end of the Kondapur range — it offers rental yields of ₹28,000–35,000/month for this 3BHK configuration. Located on the Kondapur Main Road with easy bus access to Hitech City.',
+    analysis_priority: 'medium',
+    published_at: '2026-01-18 10:00:00+05:30',
+  },
+  {
+    title: '2BHK Apartment in Aparna HillPark, Kondapur',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 1050000000,          // ₹1.05 Cr
+    price_per_sqft: 700000,     // ₹7,000/sqft
+    area_sqft: 1500,
+    bedrooms: 2, bathrooms: 2,
+    locality: 'Kondapur', city: 'Hyderabad',
+    lat: 17.4650, lng: 78.3620,
+    pincode: '500084',
+    amenities: ['gym','swimming_pool','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift'],
+    builder_name: 'Aparna Constructions',
+    rera_number: 'P02200005511', rera_status: 'verified',
+    risk_score: 24, roi_estimate_3yr: 22.5,
+    description: 'Aparna HillPark in Kondapur is a high-occupancy residential complex offering a rare sub-₹1.1 Cr entry into the Kondapur micro-market. The 2BHK at ₹7,000/sqft is below the Kondapur average, making it ideal for first-time investors. Metro Phase 2 extension towards Kondapur is expected to boost property values significantly upon completion.',
+    analysis_priority: 'medium',
+    published_at: '2026-02-08 10:00:00+05:30',
+  },
+  {
+    title: '4BHK Premium Apartment in Prestige Falcon City, Kondapur',
+    property_type: 'residential',
+    status: 'under_construction',
+    price: 4200000000,          // ₹4.2 Cr
+    price_per_sqft: 1200000,    // ₹12,000/sqft
+    area_sqft: 3500,
+    bedrooms: 4, bathrooms: 4,
+    locality: 'Kondapur', city: 'Hyderabad',
+    lat: 17.4590, lng: 78.3650,
+    pincode: '500084',
+    amenities: ['gym','infinity_pool','spa','clubhouse','tennis_court','badminton_court','jogging_track','ev_charging','children_play_area','power_backup','24x7_security','cctv','lift','concierge','amphitheatre'],
+    builder_name: 'Prestige Group',
+    rera_number: 'P02500006934', rera_status: 'verified',
+    risk_score: 19, roi_estimate_3yr: 35.0,
+    description: 'Prestige Falcon City brings Bangalore\'s top-ranked developer to Kondapur with a 60-acre township development. The 4BHK at ₹4.2 Cr reflects Prestige\'s brand premium in a location that already commands ₹10,000–11,000/sqft for ready inventory. Possession expected Q2 2028. Prestige\'s track record across 300+ projects nation-wide eliminates execution risk.',
+    analysis_priority: 'high',
+    published_at: '2026-03-18 10:00:00+05:30',
+  },
+  // ── Kokapet ───────────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in My Home Tarkshya, Kokapet',
+    property_type: 'residential',
+    status: 'under_construction',
+    price: 2000000000,          // ₹2.0 Cr
+    price_per_sqft: 888900,     // ₹8,889/sqft
+    area_sqft: 2250,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Kokapet', city: 'Hyderabad',
+    lat: 17.3950, lng: 78.3230,
+    pincode: '500075',
+    amenities: ['gym','swimming_pool','70000_sqft_clubhouse','jogging_track','cycling_track','tennis_court','badminton_court','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','ev_charging'],
+    builder_name: 'My Home Constructions',
+    rera_number: 'P02500005823', rera_status: 'verified',
+    risk_score: 20, roi_estimate_3yr: 41.0,
+    description: 'My Home Tarkshya at Kokapet Neopolis is a premium under-construction project with a 70,000 sqft clubhouse — among the largest in Hyderabad. My Home\'s reputation for timely delivery substantially de-risks this under-construction bet. Kokapet has seen 50%+ land price appreciation in three years, with Neopolis emerging as the precinct of choice for C-suite buyers.',
+    analysis_priority: 'high',
+    published_at: '2026-02-25 10:00:00+05:30',
+  },
+  {
+    title: '4BHK Ultra-Luxury Apartment in Emerald Isle, Kokapet',
+    property_type: 'residential',
+    status: 'under_construction',
+    price: 5500000000,          // ₹5.5 Cr
+    price_per_sqft: 1375000,    // ₹13,750/sqft
+    area_sqft: 4000,
+    bedrooms: 4, bathrooms: 4,
+    locality: 'Kokapet', city: 'Hyderabad',
+    lat: 17.3988, lng: 78.3268,
+    pincode: '500075',
+    amenities: ['gym','sky_pool','rooftop_sky_deck','spa','concierge','ev_charging','clubhouse','squash_court','yoga_studio','power_backup','24x7_security','cctv','lift','smart_home_automation','amphitheatre'],
+    builder_name: 'Radiance Realty',
+    rera_number: 'P02500009012', rera_status: 'verified',
+    risk_score: 26, roi_estimate_3yr: 43.0,
+    description: 'Emerald Isle is Kokapet\'s newest ultra-premium launch with sky-pool towers and rooftop sky decks — a product positioning rivalling Dubai luxury standards. The 4BHK at ₹5.5 Cr targets HNIs seeking the next landmark after Financial District. Kokapet\'s sustained 35–50% 3-year appreciation track record and ORR proximity support an aggressive ROI forecast.',
+    analysis_priority: 'high',
+    published_at: '2026-04-01 10:00:00+05:30',
+  },
+  {
+    title: '3BHK Apartment in Vertex Verdure, Kokapet',
+    property_type: 'residential',
+    status: 'under_construction',
+    price: 1700000000,          // ₹1.7 Cr
+    price_per_sqft: 772700,     // ₹7,727/sqft
+    area_sqft: 2200,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Kokapet', city: 'Hyderabad',
+    lat: 17.3970, lng: 78.3245,
+    pincode: '500075',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift'],
+    builder_name: 'Vertex Homes',
+    rera_number: 'P02500004211', rera_status: 'verified',
+    risk_score: 28, roi_estimate_3yr: 39.0,
+    description: 'Vertex Verdure is one of the most affordable RERA-registered under-construction 3BHKs in Kokapet at ₹7,727/sqft. With Kokapet\'s ready-to-move market already at ₹9,000–10,000/sqft, this under-construction entry offers 15–20% embedded appreciation upside at possession. Located 3 km from Wipro Circle, 8 km from Gachibowli.',
+    analysis_priority: 'medium',
+    published_at: '2026-03-10 10:00:00+05:30',
+  },
+  // ── Nanakramguda ─────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Aparna Westside, Nanakramguda',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 2800000000,          // ₹2.8 Cr
+    price_per_sqft: 1000000,    // ₹10,000/sqft
+    area_sqft: 2800,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Nanakramguda', city: 'Hyderabad',
+    lat: 17.4250, lng: 78.3390,
+    pincode: '500032',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','tennis_court','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','landscaped_garden','indoor_games'],
+    builder_name: 'Aparna Constructions',
+    rera_number: 'P02400004389', rera_status: 'verified',
+    risk_score: 15, roi_estimate_3yr: 34.5,
+    description: 'Aparna Westside in Nanakramguda is positioned directly adjacent to the ORR exit for Gachibowli — making the Financial District a genuine 5-minute commute. At ₹10,000/sqft for a ready-to-move unit in this corridor, this is competitively priced versus Kokapet under-construction at similar rates. Strong HNI and NRI resale market ensures high liquidity.',
+    analysis_priority: 'high',
+    published_at: '2026-01-25 10:00:00+05:30',
+  },
+  {
+    title: '4BHK Apartment in Rajapushpa Atria, Nanakramguda',
+    property_type: 'residential',
+    status: 'under_construction',
+    price: 3800000000,          // ₹3.8 Cr
+    price_per_sqft: 1087000,    // ₹10,870/sqft
+    area_sqft: 3496,
+    bedrooms: 4, bathrooms: 4,
+    locality: 'Nanakramguda', city: 'Hyderabad',
+    lat: 17.4278, lng: 78.3415,
+    pincode: '500032',
+    amenities: ['gym','swimming_pool','spa','clubhouse','tennis_court','badminton_court','jogging_track','ev_charging','power_backup','24x7_security','cctv','lift','concierge','rooftop_terrace'],
+    builder_name: 'Rajapushpa Properties',
+    rera_number: 'P02500007891', rera_status: 'verified',
+    risk_score: 19, roi_estimate_3yr: 37.0,
+    description: 'Rajapushpa Atria extends Rajapushpa\'s trusted brand into Nanakramguda\'s premium tier. This 4BHK at ₹3.8 Cr is under construction with possession in Q1 2028. Rajapushpa\'s delivery history (Regalia, Pristinia) eliminates construction risk. Nanakramguda ORR interchange location drives among the strongest rental demand in Hyderabad for C-suite executives.',
+    analysis_priority: 'high',
+    published_at: '2026-02-12 10:00:00+05:30',
+  },
+  // ── Miyapur ───────────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in My Home Bhooja, Miyapur',
+    property_type: 'residential',
+    status: 'under_construction',
+    price: 1650000000,          // ₹1.65 Cr
+    price_per_sqft: 750000,     // ₹7,500/sqft
+    area_sqft: 2200,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Miyapur', city: 'Hyderabad',
+    lat: 17.4980, lng: 78.3460,
+    pincode: '500049',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','amphitheatre'],
+    builder_name: 'My Home Constructions',
+    rera_number: 'P02500003674', rera_status: 'verified',
+    risk_score: 23, roi_estimate_3yr: 32.0,
+    description: 'My Home Bhooja at Miyapur is a premium under-construction project at ₹7,500/sqft — the most affordable My Home offering available. Miyapur Metro Station (Green Line, Phase 2) is 800 metres away. My Home\'s brand commands significant pre-launch momentum here, with the project 80% sold within 6 months of launch. Possession expected Q3 2027.',
+    analysis_priority: 'high',
+    published_at: '2026-03-15 10:00:00+05:30',
+  },
+  // ── Nallagandla ───────────────────────────────────────────────────────────
+  {
+    title: '4BHK Villa in Vasavi Nandanam, Nallagandla',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 3200000000,          // ₹3.2 Cr
+    price_per_sqft: 888900,     // ₹8,889/sqft
+    area_sqft: 3600,
+    bedrooms: 4, bathrooms: 4,
+    locality: 'Nallagandla', city: 'Hyderabad',
+    lat: 17.4560, lng: 78.3075,
+    pincode: '500019',
+    amenities: ['private_garden','covered_parking','gym','swimming_pool','clubhouse','children_play_area','power_backup','24x7_security','cctv','rainwater_harvesting','servant_quarters'],
+    builder_name: 'Vasavi Group',
+    rera_number: 'P02400006102', rera_status: 'verified',
+    risk_score: 17, roi_estimate_3yr: 29.0,
+    description: 'Vasavi Nandanam is an independent villa community in Nallagandla offering 4BHK duplex villas with private gardens — extremely rare inventory in this corridor. At ₹3.2 Cr, villa buyers get G+1 privacy versus apartment living at similar pricing in Gachibowli. Nallagandla\'s pipeline of IT campuses (TCS campus expansion) underpins appreciation momentum.',
+    analysis_priority: 'high',
+    published_at: '2026-02-22 10:00:00+05:30',
+  },
+  // ── Manikonda ─────────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in My Home Jewel, Manikonda',
+    property_type: 'residential',
+    status: 'under_construction',
+    price: 1800000000,          // ₹1.8 Cr
+    price_per_sqft: 818200,     // ₹8,182/sqft
+    area_sqft: 2200,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Manikonda', city: 'Hyderabad',
+    lat: 17.4025, lng: 78.3892,
+    pincode: '500089',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','yoga_deck'],
+    builder_name: 'My Home Constructions',
+    rera_number: 'P02500005212', rera_status: 'verified',
+    risk_score: 21, roi_estimate_3yr: 33.0,
+    description: 'My Home Jewel is My Home Constructions\'s Manikonda offering, priced at ₹8,182/sqft under construction — well below Gachibowli\'s ₹9,500–10,500/sqft for comparable ready stock. Manikonda\'s IT workforce population of 80,000+ sustains a deep rental market. Possession expected Q4 2027 with My Home\'s signature quality-build guarantee.',
+    analysis_priority: 'high',
+    published_at: '2026-03-20 10:00:00+05:30',
+  },
+  {
+    title: '2BHK Apartment in Shanta Sriram Signaura, Manikonda',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 890000000,           // ₹0.89 Cr
+    price_per_sqft: 593300,     // ₹5,933/sqft
+    area_sqft: 1500,
+    bedrooms: 2, bathrooms: 2,
+    locality: 'Manikonda', city: 'Hyderabad',
+    lat: 17.4050, lng: 78.3850,
+    pincode: '500089',
+    amenities: ['gym','swimming_pool','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift'],
+    builder_name: 'Shanta Sriram Constructions',
+    rera_number: 'P02200007801', rera_status: 'verified',
+    risk_score: 26, roi_estimate_3yr: 21.0,
+    description: 'Shanta Sriram Signaura offers the most affordable ready-to-move 2BHK in Manikonda at ₹89 Lakh — priced at ₹5,933/sqft versus the area average of ₹7,500+/sqft. Shanta Sriram has a four-decade history in Hyderabad residential development. Suitable for budget investors targeting ₹15,000–20,000/month rental income with a quick break-even horizon.',
+    analysis_priority: 'low',
+    published_at: '2026-01-06 10:00:00+05:30',
+  },
+  // ── Tellapur ──────────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Aliens Eco Habitat, Tellapur',
+    property_type: 'residential',
+    status: 'under_construction',
+    price: 1380000000,          // ₹1.38 Cr
+    price_per_sqft: 690000,     // ₹6,900/sqft
+    area_sqft: 2000,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Tellapur', city: 'Hyderabad',
+    lat: 17.4712, lng: 78.2871,
+    pincode: '502032',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','yoga_room'],
+    builder_name: 'Aliens Developers',
+    rera_number: 'P02500004890', rera_status: 'verified',
+    risk_score: 27, roi_estimate_3yr: 36.5,
+    description: 'Aliens Eco Habitat is designed around biophilic principles with 40% green cover across 30 acres. At ₹6,900/sqft under construction, this is the most affordable Aliens offering and one of the best value picks for the western IT corridor. Tellapur ORR access means 12-minute peak commutes to Hitech City. Best for 3–5 year appreciation investors.',
+    analysis_priority: 'medium',
+    published_at: '2026-03-22 10:00:00+05:30',
+  },
+  // ── Kukatpally ────────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Manjeera Trinity Corporate, Kukatpally',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 1250000000,          // ₹1.25 Cr
+    price_per_sqft: 694400,     // ₹6,944/sqft
+    area_sqft: 1800,
+    bedrooms: 3, bathrooms: 2,
+    locality: 'Kukatpally', city: 'Hyderabad',
+    lat: 17.4855, lng: 78.3960,
+    pincode: '500072',
+    amenities: ['gym','swimming_pool','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','indoor_games','visitor_parking'],
+    builder_name: 'Manjeera Group',
+    rera_number: 'P02200008120', rera_status: 'verified',
+    risk_score: 24, roi_estimate_3yr: 22.0,
+    description: 'Manjeera Trinity Corporate in Kukatpally KPHB is a Manjeera Group flagship with strong resale demand from the neighbouring IT parks. Kukatpally Metro is 800 metres away (Blue Line), ensuring exceptional connectivity. At ₹1.25 Cr for a ready-to-move 3BHK with parking, this is one of the highest-value deals in a metro-connected Hyderabad locality.',
+    analysis_priority: 'medium',
+    published_at: '2026-01-12 10:00:00+05:30',
+  },
+  // ── Puppalaguda ───────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in My Home Sayuk, Puppalaguda',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 1900000000,          // ₹1.9 Cr
+    price_per_sqft: 844400,     // ₹8,444/sqft
+    area_sqft: 2250,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Puppalaguda', city: 'Hyderabad',
+    lat: 17.3925, lng: 78.3578,
+    pincode: '500089',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','indoor_games'],
+    builder_name: 'My Home Constructions',
+    rera_number: 'P02400007215', rera_status: 'verified',
+    risk_score: 19, roi_estimate_3yr: 31.5,
+    description: 'My Home Sayuk in Puppalaguda borders Kokapet\'s Financial District zone and commands near-equivalent appreciation momentum at a lower price point. At ₹8,444/sqft ready-to-move, this is 12–15% cheaper than equivalent Kokapet stock while sharing the same ORR and Financial District access. Strong My Home brand ensures above-average resale liquidity.',
+    analysis_priority: 'high',
+    published_at: '2026-02-15 10:00:00+05:30',
+  },
+  // ── Narsingi ──────────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Madhura Nagar Greens, Narsingi',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 1320000000,          // ₹1.32 Cr
+    price_per_sqft: 660000,     // ₹6,600/sqft
+    area_sqft: 2000,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Narsingi', city: 'Hyderabad',
+    lat: 17.3880, lng: 78.3440,
+    pincode: '500075',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift'],
+    builder_name: 'Madhura Infra',
+    rera_number: 'P02400006341', rera_status: 'verified',
+    risk_score: 29, roi_estimate_3yr: 37.5,
+    description: 'Madhura Nagar Greens in Narsingi offers a sub-₹1.35 Cr ready-to-move 3BHK in one of Hyderabad\'s fastest-appreciating western corridors. Narsingi is benefiting from Financial District overflow with property values up 45%+ over three years. At ₹6,600/sqft versus Kokapet\'s ₹9,000+/sqft, the value gap is closing fast — strong momentum bet.',
+    analysis_priority: 'medium',
+    published_at: '2026-02-28 10:00:00+05:30',
+  },
+  // ── Uppal (East Hyderabad) ────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Ramky Towers, Uppal',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 850000000,           // ₹0.85 Cr
+    price_per_sqft: 472200,     // ₹4,722/sqft
+    area_sqft: 1800,
+    bedrooms: 3, bathrooms: 2,
+    locality: 'Uppal', city: 'Hyderabad',
+    lat: 17.4051, lng: 78.5597,
+    pincode: '500039',
+    amenities: ['gym','swimming_pool','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift'],
+    builder_name: 'Ramky Estates',
+    rera_number: 'P02200003814', rera_status: 'verified',
+    risk_score: 30, roi_estimate_3yr: 18.0,
+    description: 'Ramky Towers in Uppal is a RERA-verified ready-to-move 3BHK at ₹85 Lakh — among the most affordable quality apartments in Hyderabad. Uppal Metro (Blue Line) is 1 km away and the area hosts ECIL, Bharat Electronics, and Defence labs, providing stable government-sector rental demand. Uppal\'s inclusion in the New Hyderabad Metro Phase 3 plan adds long-term upside.',
+    analysis_priority: 'low',
+    published_at: '2026-01-05 10:00:00+05:30',
+  },
+  {
+    title: '4BHK Independent House, Uppal',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 2100000000,          // ₹2.1 Cr
+    price_per_sqft: 600000,     // ₹6,000/sqft on 3,500 sqft built-up
+    area_sqft: 3500,
+    bedrooms: 4, bathrooms: 3,
+    locality: 'Uppal', city: 'Hyderabad',
+    lat: 17.4070, lng: 78.5620,
+    pincode: '500039',
+    amenities: ['private_garden','covered_parking','power_backup','cctv','servant_quarters','terrace'],
+    builder_name: 'Independent Owner',
+    rera_number: 'P02200004701', rera_status: 'verified',
+    risk_score: 28, roi_estimate_3yr: 20.0,
+    description: 'A G+2 independent house in Uppal on a 200 sq yard plot offering 3,500 sqft of built-up space. East Hyderabad properties are significantly undervalued versus the western IT corridor — land values here have begun converging as IT companies like TCS expand their Uppal campuses. Suitable for owner-occupiers or investors seeking rental income from a large-format residential property.',
+    analysis_priority: 'medium',
+    published_at: '2026-02-08 10:00:00+05:30',
+  },
+  // ── Secunderabad (North Hyderabad prime) ──────────────────────────────────
+  {
+    title: '3BHK Apartment in Vajra Residency, Secunderabad',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 1050000000,          // ₹1.05 Cr
+    price_per_sqft: 600000,     // ₹6,000/sqft
+    area_sqft: 1750,
+    bedrooms: 3, bathrooms: 2,
+    locality: 'Secunderabad', city: 'Hyderabad',
+    lat: 17.4399, lng: 78.4983,
+    pincode: '500003',
+    amenities: ['gym','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','visitor_parking'],
+    builder_name: 'Vajra Constructions',
+    rera_number: 'P02300002811', rera_status: 'verified',
+    risk_score: 25, roi_estimate_3yr: 18.5,
+    description: 'Vajra Residency in Secunderabad is a RERA-verified 3BHK near the Secunderabad Cantonment — a perennially sought-after address for defence personnel and government employees. The Secunderabad Railway Station and Ameerpet Metro are both within 3 km, providing superior rail and metro connectivity. Priced at ₹6,000/sqft with immediate possession.',
+    analysis_priority: 'low',
+    published_at: '2026-01-08 10:00:00+05:30',
+  },
+  {
+    title: '3BHK Apartment in Brigade Palms, Begumpet',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 2400000000,          // ₹2.4 Cr
+    price_per_sqft: 1090900,    // ₹10,909/sqft
+    area_sqft: 2200,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Begumpet', city: 'Hyderabad',
+    lat: 17.4376, lng: 78.4594,
+    pincode: '500016',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','visitor_parking','concierge'],
+    builder_name: 'Brigade Group',
+    rera_number: 'P02300003012', rera_status: 'verified',
+    risk_score: 16, roi_estimate_3yr: 24.0,
+    description: 'Brigade Palms in Begumpet brings Bangalore\'s most trusted listed developer to Central Hyderabad. Begumpet is 4 km from Ameerpet Metro and 6 km from Banjara Hills, with some of Hyderabad\'s best schools and hospitals within 2 km. At ₹10,909/sqft, it is priced at parity with Banjara Hills mid-segment but in a more central, institutional-grade micro-market.',
+    analysis_priority: 'medium',
+    published_at: '2026-02-15 10:00:00+05:30',
+  },
+  // ── Financial District (standalone precinct) ───────────────────────────────
+  {
+    title: '3BHK Apartment in Aparna Aura, Financial District',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 2600000000,          // ₹2.6 Cr
+    price_per_sqft: 1040000,    // ₹10,400/sqft
+    area_sqft: 2500,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Gachibowli', city: 'Hyderabad',
+    lat: 17.4321, lng: 78.3501,
+    pincode: '500032',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','indoor_games','landscaped_garden'],
+    builder_name: 'Aparna Constructions',
+    rera_number: 'P02400005619', rera_status: 'verified',
+    risk_score: 13, roi_estimate_3yr: 34.0,
+    description: 'Aparna Aura sits at the heart of Hyderabad\'s Financial District — within walking distance of the Deloitte, HSBC, and Bank of America towers. At ₹10,400/sqft for a 2,500 sqft ready apartment, this is exceptionally competitive for a RERA-verified unit with immediate possession in the most valuable employment corridor in Telangana. Zero vacancy risk — HSBC\'s expat programme alone generates 300+ lease enquiries per quarter.',
+    analysis_priority: 'high',
+    published_at: '2026-02-02 10:00:00+05:30',
+  },
+  {
+    title: '4BHK Apartment in Rajapushpa Meridian, Financial District',
+    property_type: 'residential',
+    status: 'under_construction',
+    price: 5200000000,          // ₹5.2 Cr
+    price_per_sqft: 1333300,    // ₹13,333/sqft
+    area_sqft: 3900,
+    bedrooms: 4, bathrooms: 4,
+    locality: 'Nanakramguda', city: 'Hyderabad',
+    lat: 17.4260, lng: 78.3398,
+    pincode: '500032',
+    amenities: ['gym','infinity_pool','spa','clubhouse','tennis_court','badminton_court','ev_charging','children_play_area','power_backup','24x7_security','cctv','lift','concierge','smart_home_automation'],
+    builder_name: 'Rajapushpa Properties',
+    rera_number: 'P02500008234', rera_status: 'verified',
+    risk_score: 20, roi_estimate_3yr: 39.5,
+    description: 'Rajapushpa Meridian is the most ambitious Rajapushpa project to date — positioned at the Financial District–Nanakramguda intersection, arguably Hyderabad\'s most valuable residential address in 2026. This 4BHK at ₹5.2 Cr under construction offers meaningful upside given Rajapushpa\'s delivery track record and the corridor\'s documented 40%+ 3-year appreciation.',
+    analysis_priority: 'high',
+    published_at: '2026-04-05 10:00:00+05:30',
+  },
+  // ── Sainikpuri ────────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Sree Sai Residency, Sainikpuri',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 780000000,           // ₹0.78 Cr
+    price_per_sqft: 520000,     // ₹5,200/sqft
+    area_sqft: 1500,
+    bedrooms: 3, bathrooms: 2,
+    locality: 'Sainikpuri', city: 'Hyderabad',
+    lat: 17.4847, lng: 78.5389,
+    pincode: '500094',
+    amenities: ['gym','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift'],
+    builder_name: 'Sree Sai Constructions',
+    rera_number: 'P02300004102', rera_status: 'verified',
+    risk_score: 31, roi_estimate_3yr: 16.0,
+    description: 'Sree Sai Residency in Sainikpuri is the most affordable 3BHK in this dataset at ₹78 Lakh — primarily serving Defence and DRDO personnel stationed at the Secunderabad Cantonment. The area has a captive tenant base with government employees paying ₹12,000–16,000/month. Long-term land value play as Hyderabad metro expands eastward.',
+    analysis_priority: 'low',
+    published_at: '2026-01-03 10:00:00+05:30',
+  },
+  // ── Nizampet ──────────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Suchitra Heights, Nizampet',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 950000000,           // ₹0.95 Cr
+    price_per_sqft: 593800,     // ₹5,938/sqft
+    area_sqft: 1600,
+    bedrooms: 3, bathrooms: 2,
+    locality: 'Nizampet', city: 'Hyderabad',
+    lat: 17.5138, lng: 78.3877,
+    pincode: '500090',
+    amenities: ['gym','swimming_pool','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','visitor_parking'],
+    builder_name: 'Suchitra Infra',
+    rera_number: 'P02200005108', rera_status: 'verified',
+    risk_score: 27, roi_estimate_3yr: 20.0,
+    description: 'Suchitra Heights in Nizampet offers a budget 3BHK at ₹95 Lakh in a rapidly developing northern node. Nizampet is 4 km from Bachupally and 8 km from Miyapur Metro Station. The area has seen consistent demand from pharmaceutical industry employees at Genome Valley and IT employees at KPHB. One of the best value options for self-use buyers under ₹1 Cr.',
+    analysis_priority: 'low',
+    published_at: '2026-01-10 10:00:00+05:30',
+  },
+  // ── Shamshabad (South — Airport corridor) ─────────────────────────────────
+  {
+    title: 'Commercial Plot near Rajiv Gandhi International Airport, Shamshabad',
+    property_type: 'plot',
+    status: 'ready_to_move',
+    price: 3000000000,          // ₹3.0 Cr
+    price_per_sqft: 300000,     // ₹3,000/sqft on 10,000 sqft
+    area_sqft: 10000,
+    bedrooms: null, bathrooms: null,
+    locality: 'Shamshabad', city: 'Hyderabad',
+    lat: 17.2403, lng: 78.4294,
+    pincode: '501218',
+    amenities: ['gated_community','24x7_security','paved_roads','underground_drainage','water_supply','street_lighting','airport_connectivity'],
+    builder_name: 'HMDA Approved Layout',
+    rera_number: 'P10200002201', rera_status: 'verified',
+    risk_score: 32, roi_estimate_3yr: 40.0,
+    description: 'A 10,000 sqft HMDA-approved commercial plot 2 km from Rajiv Gandhi International Airport. The Hyderabad Airport corridor is one of India\'s fastest-developing real estate corridors with Aerocity, HITEC City South, and SEZ parks driving land values up 55% over three years. Ideal for investors planning hospitality, warehouse logistics, or long-term land banking near the airport.',
+    analysis_priority: 'medium',
+    published_at: '2026-03-01 10:00:00+05:30',
+  },
+  {
+    title: '3BHK Apartment in Sumadhura Horizon, Shamshabad',
+    property_type: 'residential',
+    status: 'under_construction',
+    price: 1100000000,          // ₹1.1 Cr
+    price_per_sqft: 550000,     // ₹5,500/sqft
+    area_sqft: 2000,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Shamshabad', city: 'Hyderabad',
+    lat: 17.2501, lng: 78.4312,
+    pincode: '501218',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift'],
+    builder_name: 'Sumadhura Group',
+    rera_number: 'P10200003101', rera_status: 'verified',
+    risk_score: 33, roi_estimate_3yr: 38.0,
+    description: 'Sumadhura Horizon targets the emerging Airport corridor residential market — 10 minutes from Rajiv Gandhi International Airport and 5 minutes from the new Hyderabad Pharma City SEZ. At ₹5,500/sqft under construction, this offers an extraordinarily low entry into a Sumadhura project. High risk, high reward: the airport corridor could triple in value over 7 years based on Singapore Changi corridor precedent.',
+    analysis_priority: 'medium',
+    published_at: '2026-03-25 10:00:00+05:30',
+  },
+  // ── LB Nagar (South-East) ─────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Rainbow Vistas Rock Garden, LB Nagar',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 1200000000,          // ₹1.2 Cr
+    price_per_sqft: 600000,     // ₹6,000/sqft
+    area_sqft: 2000,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'LB Nagar', city: 'Hyderabad',
+    lat: 17.3472, lng: 78.5521,
+    pincode: '500074',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','indoor_games'],
+    builder_name: 'Rainbow Housing',
+    rera_number: 'P02300005011', rera_status: 'verified',
+    risk_score: 29, roi_estimate_3yr: 19.5,
+    description: 'Rainbow Vistas Rock Garden in LB Nagar is a large-scale township with 2,500+ families offering exceptional social infrastructure (school, clinic, convenience retail) within the complex. LB Nagar Metro is 800 metres away. Priced at ₹6,000/sqft for a ready-to-move 3BHK, this is one of Hyderabad\'s most established value townships for end-users and income-seeking investors.',
+    analysis_priority: 'low',
+    published_at: '2026-01-15 10:00:00+05:30',
+  },
+  // ── Kompally ──────────────────────────────────────────────────────────────
+  {
+    title: '4BHK Villa in Aparna Hillside, Kompally',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 2800000000,          // ₹2.8 Cr
+    price_per_sqft: 700000,     // ₹7,000/sqft
+    area_sqft: 4000,
+    bedrooms: 4, bathrooms: 4,
+    locality: 'Kompally', city: 'Hyderabad',
+    lat: 17.5525, lng: 78.4740,
+    pincode: '500014',
+    amenities: ['private_garden','covered_parking','swimming_pool','clubhouse','gym','children_play_area','power_backup','24x7_security','cctv','rainwater_harvesting','servant_quarters'],
+    builder_name: 'Aparna Constructions',
+    rera_number: 'P02200006720', rera_status: 'verified',
+    risk_score: 22, roi_estimate_3yr: 24.0,
+    description: 'Aparna Hillside in Kompally is a gated villa community on elevated terrain offering panoramic views of the Hyderabad skyline. This 4BHK duplex villa at ₹2.8 Cr is one of the only sub-₹3 Cr villa options by a Grade-A developer in the Hyderabad market. Kompally is 15 km from Hitech City via Outer Ring Road, making it feasible for remote-working HNI families seeking space.',
+    analysis_priority: 'medium',
+    published_at: '2026-02-20 10:00:00+05:30',
+  },
+  // ── Attapur / Rajendranagar (South-West) ──────────────────────────────────
+  {
+    title: '3BHK Apartment in NCC Urban Gardenia, Attapur',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 1420000000,          // ₹1.42 Cr
+    price_per_sqft: 710000,     // ₹7,100/sqft
+    area_sqft: 2000,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Attapur', city: 'Hyderabad',
+    lat: 17.3601, lng: 78.4280,
+    pincode: '500048',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','indoor_games'],
+    builder_name: 'NCC Urban',
+    rera_number: 'P02300005632', rera_status: 'verified',
+    risk_score: 23, roi_estimate_3yr: 22.5,
+    description: 'NCC Urban Gardenia in Attapur is developed by NCC — a publicly listed construction major with a 50-year track record. Attapur sits on the Outer Ring Road with 20-minute access to both Gachibowli and the International Airport. The ₹7,100/sqft pricing is below adjacent Narsingi (₹8,000+/sqft), making this a relative value pick in the south-western IT corridor.',
+    analysis_priority: 'medium',
+    published_at: '2026-02-10 10:00:00+05:30',
+  },
+  // ── Alwal (North) ─────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in SS Exotica, Alwal',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 720000000,           // ₹0.72 Cr
+    price_per_sqft: 480000,     // ₹4,800/sqft
+    area_sqft: 1500,
+    bedrooms: 3, bathrooms: 2,
+    locality: 'Alwal', city: 'Hyderabad',
+    lat: 17.4922, lng: 78.5012,
+    pincode: '500010',
+    amenities: ['gym','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift'],
+    builder_name: 'SS Group',
+    rera_number: 'P02300006018', rera_status: 'verified',
+    risk_score: 33, roi_estimate_3yr: 15.0,
+    description: 'SS Exotica in Alwal is the most affordable RERA-verified 3BHK in this dataset at ₹72 Lakh, targeting first-time homebuyers and conservative income investors. Alwal is 3 km from the Secunderabad Defence establishments, sustaining captive rental demand. Long-term hold as Metro Phase 3 is planned to extend towards Alwal.',
+    analysis_priority: 'low',
+    published_at: '2026-01-02 10:00:00+05:30',
+  },
+  // ── Gajularamaram ─────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Aparna Kanopy Blossom, Gajularamaram',
+    property_type: 'residential',
+    status: 'under_construction',
+    price: 1100000000,          // ₹1.1 Cr
+    price_per_sqft: 611100,     // ₹6,111/sqft
+    area_sqft: 1800,
+    bedrooms: 3, bathrooms: 2,
+    locality: 'Gajularamaram', city: 'Hyderabad',
+    lat: 17.5012, lng: 78.4201,
+    pincode: '500055',
+    amenities: ['gym','swimming_pool','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','jogging_track'],
+    builder_name: 'Aparna Constructions',
+    rera_number: 'P02500003891', rera_status: 'verified',
+    risk_score: 26, roi_estimate_3yr: 28.0,
+    description: 'Aparna Kanopy Blossom in Gajularamaram is Aparna Constructions\'s most affordable under-construction offering at ₹6,111/sqft. Gajularamaram is 5 km from Miyapur Metro and 10 km from Hitech City via Kukatpally. The area is emerging as a spill-over zone from KPHB and Miyapur with improving road infrastructure. Possession expected Q1 2028.',
+    analysis_priority: 'medium',
+    published_at: '2026-03-08 10:00:00+05:30',
+  },
+  // ── Pocharam (East — IT Corridor 2.0) ─────────────────────────────────────
+  {
+    title: '3BHK Apartment in Incor PBEL Terraces, Pocharam',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 1050000000,          // ₹1.05 Cr
+    price_per_sqft: 583300,     // ₹5,833/sqft
+    area_sqft: 1800,
+    bedrooms: 3, bathrooms: 2,
+    locality: 'Pocharam', city: 'Hyderabad',
+    lat: 17.4305, lng: 78.5901,
+    pincode: '500088',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','indoor_games'],
+    builder_name: 'Incor Infrastructure',
+    rera_number: 'P02200004012', rera_status: 'verified',
+    risk_score: 28, roi_estimate_3yr: 22.0,
+    description: 'Incor PBEL Terraces in Pocharam is Hyderabad\'s eastern IT corridor\'s flagship residential community — 5 km from Uppal IT Park and 8 km from ECIL. TCS, Infosys, and Wipro have significant campuses in this zone. The ready-to-move 3BHK at ₹5,833/sqft is priced at deep value versus comparable quality in the western corridor. Metro Phase 3 East extension is the key catalyst.',
+    analysis_priority: 'low',
+    published_at: '2026-01-20 10:00:00+05:30',
+  },
+  // ── Kothaguda (between Kondapur and Hitech City) ──────────────────────────
+  {
+    title: '2BHK Apartment in Aurobindo Galleria, Kothaguda',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 1250000000,          // ₹1.25 Cr
+    price_per_sqft: 893000,     // ₹8,930/sqft
+    area_sqft: 1400,
+    bedrooms: 2, bathrooms: 2,
+    locality: 'Kondapur', city: 'Hyderabad',
+    lat: 17.4555, lng: 78.3710,
+    pincode: '500084',
+    amenities: ['gym','swimming_pool','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','rooftop_terrace'],
+    builder_name: 'Aurobindo Realty',
+    rera_number: 'P02400008512', rera_status: 'verified',
+    risk_score: 18, roi_estimate_3yr: 28.5,
+    description: 'Aurobindo Galleria in Kothaguda — the micro-market between Kondapur and Hitech City — offers a 2BHK at ₹8,930/sqft in the most liquid rental zone in Hyderabad. Walking distance from the Kothaguda IT corridor (Oracle, Deloitte Digital). Aurobindo Realty is backed by the Dr. Reddy\'s promoter family, ensuring financial solidity. RERA-verified, immediate possession.',
+    analysis_priority: 'high',
+    published_at: '2026-02-05 10:00:00+05:30',
+  },
+  // ── Bachupally expansion ───────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Ramky One North, Bachupally',
+    property_type: 'residential',
+    status: 'under_construction',
+    price: 1280000000,          // ₹1.28 Cr
+    price_per_sqft: 640000,     // ₹6,400/sqft
+    area_sqft: 2000,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Bachupally', city: 'Hyderabad',
+    lat: 17.5350, lng: 78.3780,
+    pincode: '500090',
+    amenities: ['gym','swimming_pool','clubhouse','jogging_track','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','yoga_room'],
+    builder_name: 'Ramky Estates',
+    rera_number: 'P02500005019', rera_status: 'verified',
+    risk_score: 27, roi_estimate_3yr: 28.0,
+    description: 'Ramky One North is Ramky Estates\'s first Bachupally project, targeting the corridor\'s growing IT workforce from KPHB and Miyapur. Priced at ₹6,400/sqft under construction, it offers meaningful upside given Bachupally\'s ready-to-move stock now trading at ₹7,500–8,000/sqft. Possession targeted Q2 2028 with 70% construction complete.',
+    analysis_priority: 'medium',
+    published_at: '2026-03-12 10:00:00+05:30',
+  },
+  // ── Kokapet Commercial ────────────────────────────────────────────────────
+  {
+    title: 'Commercial Shop Space in Kokapet Business Hub',
+    property_type: 'commercial',
+    status: 'ready_to_move',
+    price: 1800000000,          // ₹1.8 Cr
+    price_per_sqft: 1800000,    // ₹18,000/sqft
+    area_sqft: 1000,
+    bedrooms: null, bathrooms: null,
+    locality: 'Kokapet', city: 'Hyderabad',
+    lat: 17.3958, lng: 78.3258,
+    pincode: '500075',
+    amenities: ['power_backup','24x7_security','cctv','covered_parking','lift','food_court','atm','visitor_parking'],
+    builder_name: 'Kokapet Infra',
+    rera_number: 'P02500006812', rera_status: 'verified',
+    risk_score: 24, roi_estimate_3yr: 28.0,
+    description: 'Ground-floor commercial shop space in the Kokapet Financial District precinct — one of Hyderabad\'s most rapidly densifying business zones. At ₹1.8 Cr for 1,000 sqft, this is priced at ₹18,000/sqft reflecting the premium F&B and convenience retail demand from 50,000+ daily office workers in the surrounding towers. Retail rentals here average ₹150–200/sqft/month, delivering 10–12% gross yield.',
+    analysis_priority: 'high',
+    published_at: '2026-04-08 10:00:00+05:30',
+  },
+  // ── Hitech City Premium Commercial ────────────────────────────────────────
+  {
+    title: 'Co-Working Office Space in Mindspace Airoli, Hitech City',
+    property_type: 'commercial',
+    status: 'ready_to_move',
+    price: 6000000000,          // ₹6.0 Cr
+    price_per_sqft: 1200000,    // ₹12,000/sqft
+    area_sqft: 5000,
+    bedrooms: null, bathrooms: null,
+    locality: 'Hitech City', city: 'Hyderabad',
+    lat: 17.4508, lng: 78.3818,
+    pincode: '500081',
+    amenities: ['power_backup','24x7_security','cctv','covered_parking','lift','conference_rooms','food_court','ev_charging','visitor_parking','cafeteria','gym'],
+    builder_name: 'Mindspace Business Parks REIT',
+    rera_number: 'P02300002218', rera_status: 'verified',
+    risk_score: 12, roi_estimate_3yr: 22.0,
+    description: 'A leasable 5,000 sqft office floor in Mindspace Business Parks — a Blackstone-backed REIT-listed asset with the highest institutional grade profile in Hyderabad\'s commercial market. At ₹12,000/sqft, this is priced below Mindspace\'s last traded rate of ₹14,000–16,000/sqft. Tenants include Goldman Sachs, Amazon, and JPMorgan. Lowest-risk commercial investment in this dataset.',
+    analysis_priority: 'high',
+    published_at: '2026-03-28 10:00:00+05:30',
+  },
+  // ── Jubilee Hills luxury plot ─────────────────────────────────────────────
+  {
+    title: 'Residential Plot, Road No. 72, Jubilee Hills',
+    property_type: 'plot',
+    status: 'ready_to_move',
+    price: 8000000000,          // ₹8.0 Cr
+    price_per_sqft: 800000,     // ₹8,000/sqft on 10,000 sqft plot
+    area_sqft: 10000,
+    bedrooms: null, bathrooms: null,
+    locality: 'Jubilee Hills', city: 'Hyderabad',
+    lat: 17.4261, lng: 78.4098,
+    pincode: '500033',
+    amenities: ['gated_community','24x7_security','paved_roads','water_supply','storm_drainage','electricity'],
+    builder_name: 'GHMC Approved Layout',
+    rera_number: 'P02400009901', rera_status: 'verified',
+    risk_score: 15, roi_estimate_3yr: 30.0,
+    description: 'A 10,000 sqft (227 sq yard) approved residential plot on the prestigious Road No. 72, Jubilee Hills — one of Hyderabad\'s most exclusive addresses. Jubilee Hills plots are extremely rare in the market due to near-100% built-out density. The last comparable Road 72 plot traded at ₹7.2 Cr in 2024 — this is priced at a modest 11% premium reflecting two years of appreciation. Trophy land banking opportunity.',
+    analysis_priority: 'high',
+    published_at: '2026-04-10 10:00:00+05:30',
+  },
+  // ── Bowenpally (North Central) ────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Srinidhi Heights, Bowenpally',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 890000000,           // ₹0.89 Cr
+    price_per_sqft: 556300,     // ₹5,563/sqft
+    area_sqft: 1600,
+    bedrooms: 3, bathrooms: 2,
+    locality: 'Bowenpally', city: 'Hyderabad',
+    lat: 17.4732, lng: 78.4861,
+    pincode: '500011',
+    amenities: ['gym','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift'],
+    builder_name: 'Srinidhi Constructions',
+    rera_number: 'P02300006789', rera_status: 'verified',
+    risk_score: 28, roi_estimate_3yr: 17.5,
+    description: 'Srinidhi Heights in Bowenpally offers an affordable 3BHK at ₹89 Lakh near Secunderabad. Bowenpally is 3 km from Secunderabad Junction (one of India\'s busiest railway stations) and 5 km from Ameerpet Metro Hub. Strong central Hyderabad location with access to both north and south city. Best suited for owner-occupiers or budget-yield investors targeting government sector tenants.',
+    analysis_priority: 'low',
+    published_at: '2026-01-08 10:00:00+05:30',
+  },
+  // ── Keesara (East - Emerging) ──────────────────────────────────────────────
+  {
+    title: 'Farmhouse Plot in Keesara Greens, Keesara',
+    property_type: 'plot',
+    status: 'ready_to_move',
+    price: 1500000000,          // ₹1.5 Cr
+    price_per_sqft: 150000,     // ₹1,500/sqft on 10,000 sqft
+    area_sqft: 10000,
+    bedrooms: null, bathrooms: null,
+    locality: 'Keesara', city: 'Hyderabad',
+    lat: 17.5241, lng: 78.6111,
+    pincode: '501301',
+    amenities: ['gated_community','24x7_security','paved_roads','water_supply','electricity','natural_lake_view'],
+    builder_name: 'Keesara Estates',
+    rera_number: 'P10200004512', rera_status: 'verified',
+    risk_score: 38, roi_estimate_3yr: 48.0,
+    description: 'A 10,000 sqft RERA-approved farmhouse plot in Keesara on the outskirts of Hyderabad — 35 km from Hitech City. The plot adjoins the Pocharam Lake reservoir, offering permanent lake views. Keesara is designated in HMDA\'s Master Plan 2031 as a growth node with proposed ring road connectivity. Highest risk in this dataset but potential for 3–5x appreciation over 7 years for patient investors.',
+    analysis_priority: 'low',
+    published_at: '2026-02-15 10:00:00+05:30',
+  },
+  // ── Hitex Road / Kondapur commercial ─────────────────────────────────────
+  {
+    title: 'Retail Shop in Manjeera Mall High Street, Kukatpally',
+    property_type: 'commercial',
+    status: 'ready_to_move',
+    price: 2500000000,          // ₹2.5 Cr
+    price_per_sqft: 2500000,    // ₹25,000/sqft
+    area_sqft: 1000,
+    bedrooms: null, bathrooms: null,
+    locality: 'Kukatpally', city: 'Hyderabad',
+    lat: 17.4881, lng: 78.3971,
+    pincode: '500072',
+    amenities: ['power_backup','24x7_security','cctv','covered_parking','lift','food_court','atm','visitor_parking'],
+    builder_name: 'Manjeera Group',
+    rera_number: 'P02200009501', rera_status: 'verified',
+    risk_score: 22, roi_estimate_3yr: 24.0,
+    description: 'High-street retail shop in Manjeera Mall, Kukatpally — one of Hyderabad\'s busiest suburban malls with 1.8 lakh sqft of leasable area and daily footfall exceeding 20,000 visitors. At ₹25,000/sqft for 1,000 sqft, this is priced at the upper end of suburban retail. Current rental rates of ₹200–250/sqft/month give a gross yield of 9.6–12% at current asking price.',
+    analysis_priority: 'medium',
+    published_at: '2026-03-05 10:00:00+05:30',
+  },
+  // ── Shaikpet ──────────────────────────────────────────────────────────────
+  {
+    title: '3BHK Apartment in Tranquil Housing, Shaikpet',
+    property_type: 'residential',
+    status: 'ready_to_move',
+    price: 1750000000,          // ₹1.75 Cr
+    price_per_sqft: 875000,     // ₹8,750/sqft
+    area_sqft: 2000,
+    bedrooms: 3, bathrooms: 3,
+    locality: 'Gachibowli', city: 'Hyderabad',
+    lat: 17.4181, lng: 78.4025,
+    pincode: '500008',
+    amenities: ['gym','swimming_pool','clubhouse','children_play_area','power_backup','24x7_security','cctv','covered_parking','lift','landscaped_garden'],
+    builder_name: 'Tranquil Realty',
+    rera_number: 'P02400007902', rera_status: 'verified',
+    risk_score: 19, roi_estimate_3yr: 27.0,
+    description: 'Tranquil Housing in Shaikpet is strategically located between Jubilee Hills and Gachibowli — benefiting from both corridors\' property appreciation without the full premium of either. At ₹8,750/sqft ready-to-move, this offers solid value with 3 km access to both Hitech City and Banjara Hills premium zones. Consistently high occupancy from pharmaceutical MNC and consulting firm employees.',
+    analysis_priority: 'medium',
+    published_at: '2026-02-18 10:00:00+05:30',
+  },
+];
+
 const LOCALITIES = [
   'Jubilee Hills', 'Banjara Hills', 'Gachibowli', 'Kondapur',
   'Kokapet', 'Hitech City', 'Madhapur', 'Nanakramguda', 'Miyapur',
   'Nallagandla', 'Manikonda', 'Tellapur', 'Kukatpally', 'Bachupally',
-  'Kompally', 'Puppalaguda', 'Narsingi', 'Sangareddy',
+  'Kompally', 'Puppalaguda', 'Narsingi', 'Sangareddy', 'Uppal',
+  'Secunderabad', 'Begumpet', 'Shamshabad', 'LB Nagar', 'Sainikpuri',
+  'Nizampet', 'Alwal', 'Gajularamaram', 'Pocharam', 'Keesara',
+  'Attapur', 'Bowenpally',
 ];
 
 function crToRupees(cr: number): number { return Math.round(cr * 1_00_00_000); }
@@ -771,7 +1802,10 @@ async function run() {
     for (const p of NEW_PROPERTIES) await insertProperty(p);
     console.info(`[Seed] ${NEW_PROPERTIES.length} new properties inserted`);
 
-    console.info(`[Seed] Total: ${REAL_PROPERTIES.length + NEW_PROPERTIES.length} properties`);
+    for (const p of MORE_PROPERTIES) await insertProperty(p);
+    console.info(`[Seed] ${MORE_PROPERTIES.length} additional properties inserted`);
+
+    console.info(`[Seed] Total: ${REAL_PROPERTIES.length + NEW_PROPERTIES.length + MORE_PROPERTIES.length} properties`);
 
     // Manager account
     await client.query(

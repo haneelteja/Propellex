@@ -251,7 +251,7 @@ function ActionBar({ property, onSave, isSaving, onCompare, isLoggedIn }: Action
         Compare
       </button>
       <a
-        href={`mailto:enquiry@propellex.in?subject=Private Tour Request — ${property.title}`}
+        href={`mailto:nalluruhaneel@gmail.com?subject=Private Tour Request — ${property.title}`}
         className="flex-1 flex items-center justify-center gap-2 bg-surface-container-high text-on-surface font-label text-sm uppercase tracking-[0.15em] px-6 py-4 hover:bg-surface-container-highest transition-colors border border-outline-variant"
       >
         <span className="material-symbols-outlined text-base">calendar_month</span>
@@ -640,6 +640,31 @@ export default function PropertyDetail() {
               <span className="material-symbols-outlined text-sm">pin_drop</span>
               <span className="font-label text-xs">{property.pincode}</span>
             </div>
+          </div>
+
+          {/* Contact card */}
+          <div className="bg-surface-container-high p-6 border border-outline-variant">
+            <p className="font-label text-[10px] text-on-surface-variant uppercase tracking-[0.15em] mb-3">
+              Contact
+            </p>
+            <a
+              href="tel:9642917777"
+              className="flex items-center gap-3 mb-3 hover:text-primary transition-colors group"
+            >
+              <div className="w-8 h-8 bg-surface-container-highest flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-on-surface-variant text-base group-hover:text-primary">call</span>
+              </div>
+              <span className="font-label text-sm text-on-surface">9642917777</span>
+            </a>
+            <a
+              href="mailto:nalluruhaneel@gmail.com"
+              className="flex items-center gap-3 hover:text-primary transition-colors group"
+            >
+              <div className="w-8 h-8 bg-surface-container-highest flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-on-surface-variant text-base group-hover:text-primary">mail</span>
+              </div>
+              <span className="font-label text-sm text-on-surface">nalluruhaneel@gmail.com</span>
+            </a>
           </div>
 
           {/* RERA card */}
