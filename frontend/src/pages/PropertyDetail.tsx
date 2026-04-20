@@ -301,7 +301,7 @@ export default function PropertyDetail() {
   };
 
   const handleCompare = () => {
-    navigate(`/compare?ids=${property.id}`);
+    navigate(`/search?compareWith=${property.id}`);
   };
 
   const heroPhotos = property.photos.slice(0, 3);

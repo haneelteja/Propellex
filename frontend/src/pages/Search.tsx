@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useProperties } from '@/hooks/useProperties';
 import { useFilterStore } from '@/store/filterStore';
 import { PropertyFilters } from '@/components/property/PropertyFilters';
@@ -11,6 +11,7 @@ import { usePortfolio, useAddToPortfolio } from '@/hooks/usePortfolio';
 
 export default function Search() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { filters, setFilter, page, setPage, showMap, toggleMap } = useFilterStore();
   const { data, pagination, isLoading, isFetching, error } = useProperties();
   const { data: portfolioItems } = usePortfolio();
@@ -18,6 +19,15 @@ export default function Search() {
   const [searchInput, setSearchInput] = useState(filters.query);
   const [compareMode, setCompareMode] = useState(false);
   const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
+
+  // Pre-seed compare mode when arriving from a property detail page
+  useEffect(() => {
+    const compareWith = searchParams.get('compareWith');
+    if (compareWith) {
+      setCompareMode(true);
+      setCompareIds(new Set([compareWith]));
+    }
+  }, [searchParams]);
 
   const shortlistedIds = new Set(portfolioItems?.map((p) => p.property_id) ?? []);
 
@@ -53,11 +63,13 @@ export default function Search() {
     navigate(`/compare?ids=${Array.from(compareIds).join(',')}`);
   };
 
-  const resultLabel = isFetching
+  const resultLabel = isLoading
     ? 'Searching...'
-    : pagination
-      ? `${pagination.total} Properties Found`
-      : '0 Properties Found';
+    : isFetching
+      ? `${pagination?.total ?? 0} Properties Found  ·  Updating…`
+      : pagination
+        ? `${pagination.total} Properties Found`
+        : '0 Properties Found';
 
   return (
     <div className="min-h-screen bg-background">
