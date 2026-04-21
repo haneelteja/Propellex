@@ -1,6 +1,9 @@
 import { getPropertiesNeedingAnalysis, analyzePropertyWithAI } from '../modules/property/property.service';
+import { redis } from '../config/redis';
 
 const DELAY_BETWEEN_PROPERTIES_MS = 10_000; // 10s between calls → 6 RPM, leaves headroom for on-demand compare calls
+const LOCK_KEY = 'cron:analysis:lock';
+const LOCK_TTL_S = 90 * 60; // 90-minute TTL — enough for a full 184-property batch at 10s each (~30 min)
 
 async function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
@@ -15,53 +18,66 @@ export async function runDailyAnalysis(): Promise<void> {
     return;
   }
 
+  // Prevent concurrent runs (e.g. manual trigger overlapping with scheduled cron)
+  const lockAcquired = await redis.set(LOCK_KEY, '1', 'EX', LOCK_TTL_S, 'NX');
+  if (!lockAcquired) {
+    console.info('[Cron] Analysis already in progress — skipping this run.');
+    return;
+  }
+
   let ids: string[];
   try {
     ids = await getPropertiesNeedingAnalysis();
   } catch (err) {
+    await redis.del(LOCK_KEY);
     console.error('[Cron] Failed to fetch property IDs:', err);
     return;
   }
 
   if (ids.length === 0) {
     console.info('[Cron] All properties already analyzed — nothing to do.');
+    await redis.del(LOCK_KEY);
     return;
   }
   console.info(`[Cron] Analyzing ${ids.length} properties (unanalyzed or stale)`);
   let success = 0;
   let failed = 0;
 
-  for (const id of ids) {
-    try {
-      await analyzePropertyWithAI(id);
-      success++;
-    } catch (err) {
-      const msg = (err as Error).message;
-      console.error(`[Cron] Failed to analyze property ${id}:`, msg);
-      // If AI service is unreachable (returns HTML error page), abort — no point
-      // hammering all 50 properties and filling logs with the same error.
-      if (msg.includes('service unavailable')) {
-        console.warn('[Cron] AI service appears to be down — aborting batch.');
-        break;
-      }
-      if (msg.includes('Too Many Requests') || msg.includes('429')) {
-        console.warn('[Cron] Gemini rate limit hit — retrying in 1 hour.');
-        await sleep(60 * 60 * 1000);
-        console.info('[Cron] Resuming after rate-limit backoff...');
-        // retry this property once before continuing
-        try {
-          await analyzePropertyWithAI(id);
-          success++;
-        } catch {
-          failed++;
-          console.warn('[Cron] Still rate-limited after 1h — aborting batch.');
+  try {
+    for (const id of ids) {
+      try {
+        await analyzePropertyWithAI(id);
+        success++;
+      } catch (err) {
+        const msg = (err as Error).message;
+        console.error(`[Cron] Failed to analyze property ${id}:`, msg);
+        // If AI service is unreachable (returns HTML error page), abort — no point
+        // hammering all 50 properties and filling logs with the same error.
+        if (msg.includes('service unavailable')) {
+          console.warn('[Cron] AI service appears to be down — aborting batch.');
           break;
         }
-        continue;
+        if (msg.includes('Too Many Requests') || msg.includes('429')) {
+          console.warn('[Cron] Gemini rate limit hit — retrying in 1 hour.');
+          await sleep(60 * 60 * 1000);
+          console.info('[Cron] Resuming after rate-limit backoff...');
+          // retry this property once before continuing
+          try {
+            await analyzePropertyWithAI(id);
+            success++;
+          } catch {
+            failed++;
+            console.warn('[Cron] Still rate-limited after 1h — aborting batch.');
+            break;
+          }
+          continue;
+        }
+        failed++;
       }
-      failed++;
+      await sleep(DELAY_BETWEEN_PROPERTIES_MS);
     }
-    await sleep(DELAY_BETWEEN_PROPERTIES_MS);
+  } finally {
+    await redis.del(LOCK_KEY);
   }
 
   console.info(`[Cron] Analysis complete — ${success} succeeded, ${failed} failed`);

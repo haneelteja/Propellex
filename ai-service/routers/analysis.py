@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from typing import Optional
 from google import genai
 import os
@@ -232,10 +232,19 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, no extra 
         data = json.loads(text)
         # Clamp score to valid range
         data["overall_score"] = max(0, min(10, int(data.get("overall_score", 5))))
+        # Defensively coerce list fields — Gemini occasionally returns a string instead of a list
+        for list_field in ("advantages", "disadvantages", "future_projects", "risk_factors"):
+            if isinstance(data.get(list_field), str):
+                data[list_field] = [data[list_field]]
+            elif not isinstance(data.get(list_field), list):
+                data[list_field] = []
         return PropertyAnalysis(**data)
     except json.JSONDecodeError as e:
         print(f"[Analysis] Gemini returned invalid JSON for property {req.id}: {e}\nRaw: {text[:300]}")
         raise HTTPException(status_code=502, detail="AI returned malformed response — will retry on next analysis cycle")
+    except ValidationError as e:
+        print(f"[Analysis] Pydantic validation failed for property {req.id}: {e.errors()}")
+        raise HTTPException(status_code=502, detail="AI returned schema-invalid response — will retry on next analysis cycle")
     except Exception as e:
         err_str = str(e)
         is_rate_limit = "429" in err_str or "Too Many Requests" in err_str or "RESOURCE_EXHAUSTED" in err_str
