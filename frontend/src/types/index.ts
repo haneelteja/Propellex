@@ -40,11 +40,17 @@ export type ReraStatus = 'verified' | 'pending' | 'flagged' | 'not_registered' |
 export interface AiPropertyAnalysis {
   advantages: string[];
   disadvantages: string[];
+  future_projects: string[];
+  government_interest: string;
+  private_interest: string;
+  tech_employment_impact: string;
   investment_recommendation: string;
   market_insights: string;
   risk_factors: string[];
   best_suited_for: string;
-  overall_score: number;   // 1–10
+  builder_grade: 'premium' | 'verified' | 'good' | 'standard' | 'unverified' | 'flagged';
+  builder_grade_reason: string;
+  overall_score: number;   // 0–10 (0 = flagged/suspicious)
 }
 
 export interface Property {

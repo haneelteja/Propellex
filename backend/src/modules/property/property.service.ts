@@ -453,14 +453,18 @@ export async function comparePropertiesWithAI(ids: string[]): Promise<{
   };
 }
 
-/** Returns IDs of properties that have never been AI-analyzed. */
+/** Returns IDs of properties needing AI analysis — unanalyzed or stale (>7 days). */
 export async function getPropertiesNeedingAnalysis(): Promise<string[]> {
   const rows = await query<{ id: string }>(
     `SELECT id FROM properties
      WHERE is_active = true
-       AND ai_analyzed_at IS NULL
+       AND (
+         ai_analyzed_at IS NULL
+         OR ai_analyzed_at < NOW() - INTERVAL '7 days'
+       )
      ORDER BY
        CASE analysis_priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
+       ai_analyzed_at ASC NULLS FIRST,
        published_at ASC`,
   );
   return rows.map((r) => r.id);
@@ -483,6 +487,28 @@ export async function analyzePropertyWithAI(id: string): Promise<void> {
     [id],
   );
   if (!prop) throw new AppError('Property not found', 404);
+
+  // Fetch live locality market benchmark (excluding this property so self-reference doesn't skew avg)
+  const benchmark = await queryOne<{
+    avg_price_per_sqft: string;
+    min_price_per_sqft: string;
+    max_price_per_sqft: string;
+    property_count: string;
+  }>(
+    `SELECT
+       AVG(price_per_sqft)::numeric(12,2) AS avg_price_per_sqft,
+       MIN(price_per_sqft)::numeric(12,2) AS min_price_per_sqft,
+       MAX(price_per_sqft)::numeric(12,2) AS max_price_per_sqft,
+       COUNT(*)::text                      AS property_count
+     FROM properties
+     WHERE locality = $1 AND is_active = true AND id != $2`,
+    [prop.locality, id],
+  );
+
+  const localityAvg = benchmark ? (Number(benchmark.avg_price_per_sqft) / 100) : 0; // paise → rupees
+  const localityMin = benchmark ? (Number(benchmark.min_price_per_sqft) / 100) : 0;
+  const localityMax = benchmark ? (Number(benchmark.max_price_per_sqft) / 100) : 0;
+  const localityCount = benchmark ? parseInt(benchmark.property_count, 10) : 0;
 
   const aiServiceUrl = process.env.AI_SERVICE_URL ?? 'http://localhost:8001';
   const response = await fetch(`${aiServiceUrl}/analyze/property`, {
@@ -508,6 +534,10 @@ export async function analyzePropertyWithAI(id: string): Promise<void> {
       lat: prop.lat,
       lng: prop.lng,
       description: prop.description ?? '',
+      locality_avg_price_per_sqft: localityAvg,
+      locality_min_price_per_sqft: localityMin,
+      locality_max_price_per_sqft: localityMax,
+      locality_property_count: localityCount,
     }),
   });
 

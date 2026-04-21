@@ -9,7 +9,6 @@ import asyncio
 
 router = APIRouter(prefix="/analyze", tags=["analysis"])
 
-# gemini-2.5-flash: latest model, available on v1beta for all API key tiers.
 _GEMINI_MODEL = "gemini-2.5-flash"
 
 async def _generate_with_retry(client: genai.Client, model: str, prompt: str, max_retries: int = 3) -> str:
@@ -42,7 +41,6 @@ def _gemini_client() -> genai.Client:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY not configured")
-    # Use SDK default (v1beta) — gemini-2.5-flash is available here.
     return genai.Client(api_key=api_key)
 
 
@@ -66,17 +64,28 @@ class PropertyAnalysisRequest(BaseModel):
     lat: float | None = None
     lng: float | None = None
     description: str = ""
+    # Market benchmark for this locality (from live DB query)
+    locality_avg_price_per_sqft: float = 0
+    locality_min_price_per_sqft: float = 0
+    locality_max_price_per_sqft: float = 0
+    locality_property_count: int = 0
 
 
 class PropertyAnalysis(BaseModel):
     advantages: list[str]
     disadvantages: list[str]
+    future_projects: list[str]
+    government_interest: str
+    private_interest: str
+    tech_employment_impact: str
     investment_recommendation: str
     market_insights: str
     risk_factors: list[str]
     best_suited_for: str
-    overall_score: int  # 1–10
-    analysis_priority: str  # 'high' | 'medium' | 'low'
+    builder_grade: str        # 'premium' | 'verified' | 'good' | 'standard' | 'unverified' | 'flagged'
+    builder_grade_reason: str
+    overall_score: int        # 0–10 (0 = flagged/suspicious)
+    analysis_priority: str    # 'high' | 'medium' | 'low'
 
 
 @router.post("/property", response_model=PropertyAnalysis)
@@ -91,8 +100,21 @@ async def analyze_property(req: PropertyAnalysisRequest) -> PropertyAnalysis:
         else f"Locality: {req.locality}, {req.city}"
     )
 
-    prompt = f"""You are a senior real estate investment analyst specializing in Hyderabad, India.
-Analyze this property and provide a structured investment assessment.
+    has_benchmark = req.locality_property_count > 1
+    if has_benchmark:
+        benchmark_str = f"""
+LOCALITY MARKET BENCHMARK ({req.locality} — {req.locality_property_count} comparable properties in DB):
+  - Avg price/sqft: ₹{req.locality_avg_price_per_sqft:,.0f}
+  - Min price/sqft: ₹{req.locality_min_price_per_sqft:,.0f}
+  - Max price/sqft: ₹{req.locality_max_price_per_sqft:,.0f}
+  - This property: ₹{req.price_per_sqft:,.0f}/sqft ({req.price_per_sqft / req.locality_avg_price_per_sqft:.2f}× locality avg)"""
+        price_ratio = req.price_per_sqft / req.locality_avg_price_per_sqft if req.locality_avg_price_per_sqft > 0 else 1.0
+    else:
+        benchmark_str = f"\nLOCALITY BENCHMARK: Insufficient data ({req.locality_property_count} properties) — use your Hyderabad market knowledge."
+        price_ratio = 1.0
+
+    prompt = f"""You are a senior real estate investment analyst specializing in Hyderabad, India with 20+ years of experience.
+Provide a deep, expert-level investment analysis for this property. Be specific, factual, and brutally honest.
 
 PROPERTY DETAILS:
 - Title: {req.title}
@@ -106,28 +128,110 @@ PROPERTY DETAILS:
 - Risk Score: {req.risk_score}/100 (lower = safer)
 - Amenities: {", ".join(req.amenities) if req.amenities else "None listed"}
 - Description: {req.description or "Not provided"}
+{benchmark_str}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SCORING RUBRIC — follow this exactly to compute overall_score:
+
+Base score: 5
+
+[A] Price vs locality benchmark (apply ONE):
+  • price_per_sqft > 3× locality avg  → overall_score = 0 immediately (FLAGGED: suspiciously overpriced / likely fake listing)
+  • price_per_sqft < 0.35× locality avg → overall_score = 0 immediately (FLAGGED: suspiciously cheap / likely fake listing)
+  • price_per_sqft 2–3× avg           → −2
+  • price_per_sqft 1.5–2× avg         → −1
+  • price_per_sqft 0.85–1.15× avg     → ±0 (fairly priced)
+  • price_per_sqft 0.5–0.85× avg      → +1 (value opportunity)
+  • price_per_sqft 0.35–0.5× avg      → ±0 (check for red flags)
+  (If no benchmark: use your expert knowledge of {req.locality} pricing)
+
+[B] RERA modifier:
+  • verified      → +1
+  • pending       → ±0
+  • flagged       → −3, cap score at 4
+  • not_registered → −2, cap score at 5
+  • unknown       → −1
+
+[C] ROI modifier:
+  • >15%   → +2
+  • 10–15% → +1
+  • 5–10%  → ±0
+  • <5%    → −1
+
+[D] Risk score modifier (lower = safer):
+  • <20  → +1
+  • 20–50 → ±0
+  • >70  → −1
+
+[E] Location fundamentals (your expert judgment of {req.locality} micro-market, max ±1):
+  Apply based on connectivity, demand, future growth, infrastructure.
+
+[F] Builder modifier (after determining builder_grade below):
+  • premium   → +1
+  • verified  → ±0
+  • good      → ±0
+  • standard  → ±0
+  • unverified → −1
+  • flagged   → −2
+
+Final score = Base(5) + A + B + C + D + E + F, clamped to [0, 10].
+Score 0 = FLAGGED. Score 9–10 = genuinely exceptional (rare — justify explicitly).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BUILDER GRADE RULES — assign builder_grade for "{req.builder_name or 'Unknown'}":
+  "premium"   — Major national brand: Sobha, Prestige, Godrej Properties, Brigade, Mahindra Lifespaces, DLF, Shapoorji Pallonji, Tata Housing, Lodha, Oberoi, Puravankara
+  "verified"  — Established Hyderabad builder, 5+ delivered projects, clean RERA: Aparna, My Home, Vasavi, Aliens Group, Lansum, Vertex, SMR, NCC Urban, Ramky Estates, Sattva, Incor, Jayabheri
+  "good"      — Reputable mid-tier builder, decent track record, mostly positive reviews, some delivered projects
+  "standard"  — Smaller or newer builder, limited but clean track record, no red flags
+  "unverified" — Unknown/new builder, no significant track record found
+  "flagged"   — Builder with known complaints, stalled projects, court cases, or fraud allegations
+  If builder name is null/unknown → "unverified"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OUTPUT GUIDELINES:
+- advantages: 3 specific positives of THIS property (not generic — location-specific, builder-specific, or feature-specific). Avoid repeating what is already visible in the listing.
+- disadvantages: 2–3 honest negatives specific to this property or its locality. Be brutally honest.
+- future_projects: 4–6 upcoming government or private infrastructure projects that will impact this locality or adjacent areas within 5 years. Include project name, expected completion, and impact on property value or liveability. Use your knowledge of Hyderabad's pipeline: Metro Phase II, ORR corridors, Regional Ring Road, Pharma City, ITIR, Aerospace SEZ, HMDA layouts, IT corridor expansions, data center clusters, etc.
+- government_interest: 2–3 sentences on state/central government policy focus on this area — zoning, HMDA/GHMC masterplan, special economic zones, infrastructure budget allocations, political focus areas.
+- private_interest: 2–3 sentences on private sector investment signals — major developers acquiring land, corporate campuses, retail/hospitality projects, FDI in the locality or adjacent areas.
+- tech_employment_impact: 2–3 sentences on the tech/data center ecosystem proximity — which IT parks, SEZs, or data center hubs are within 15 km, which companies have campuses there, and how this drives residential demand and price appreciation.
+- investment_recommendation: 3–4 sentence expert investment verdict including holding period, expected appreciation, and who should buy or avoid this property.
+- market_insights: 2 sentences on the {req.locality} micro-market trend — current demand-supply, price trajectory, and any macro factors.
+- risk_factors: 2–4 specific risk tags (short phrases, not sentences).
+- best_suited_for: One sentence on the ideal buyer profile.
+- builder_grade: One of: premium / verified / good / standard / unverified / flagged
+- builder_grade_reason: 1 sentence justifying the grade.
+- overall_score: Integer 0–10, computed using the rubric above.
+- analysis_priority: "high" if score ≥ 8 or rapidly-changing locality, "medium" if score 5–7, "low" if score ≤ 4 or stable asset.
 
 Respond ONLY with a valid JSON object — no markdown, no code fences, no extra text:
 {{
-  "advantages": ["<advantage 1>", "<advantage 2>", "<advantage 3>"],
-  "disadvantages": ["<disadvantage 1>", "<disadvantage 2>"],
-  "investment_recommendation": "<2-3 sentence recommendation>",
-  "market_insights": "<1-2 sentences about the Hyderabad micro-market>",
-  "risk_factors": ["<risk 1>", "<risk 2>"],
-  "best_suited_for": "<type of buyer this property suits best>",
-  "overall_score": <integer 1 to 10>,
-  "analysis_priority": "<high|medium|low — high for premium/rapidly-changing properties or score≥8, medium for standard investments score 5-7, low for stable/slow-moving assets score≤4>"
+  "advantages": ["<specific advantage 1>", "<specific advantage 2>", "<specific advantage 3>"],
+  "disadvantages": ["<specific disadvantage 1>", "<specific disadvantage 2>"],
+  "future_projects": ["<project name: description, expected year, impact>", "<project 2>", "<project 3>", "<project 4>"],
+  "government_interest": "<2–3 sentences>",
+  "private_interest": "<2–3 sentences>",
+  "tech_employment_impact": "<2–3 sentences>",
+  "investment_recommendation": "<3–4 sentence verdict>",
+  "market_insights": "<2 sentences>",
+  "risk_factors": ["<risk tag 1>", "<risk tag 2>"],
+  "best_suited_for": "<buyer profile>",
+  "builder_grade": "<premium|verified|good|standard|unverified|flagged>",
+  "builder_grade_reason": "<1 sentence>",
+  "overall_score": <integer 0–10>,
+  "analysis_priority": "<high|medium|low>"
 }}"""
 
     try:
         client = _gemini_client()
         text = await _generate_with_retry(client, _GEMINI_MODEL, prompt)
 
-        # Strip accidental markdown fences
         if text.startswith("```"):
             text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
 
         data = json.loads(text)
+        # Clamp score to valid range
+        data["overall_score"] = max(0, min(10, int(data.get("overall_score", 5))))
         return PropertyAnalysis(**data)
     except json.JSONDecodeError as e:
         print(f"[Analysis] Gemini returned invalid JSON for property {req.id}: {e}\nRaw: {text[:300]}")
@@ -151,7 +255,7 @@ class CompareRequest(BaseModel):
 
 class PropertyRating(BaseModel):
     id: str
-    overall_score: int           # 1–10
+    overall_score: int           # 0–10
     strengths: list[str]
     weaknesses: list[str]
 
@@ -173,11 +277,12 @@ async def compare_properties(req: CompareRequest) -> CompareResult:
     props_text = ""
     for i, p in enumerate(req.properties, 1):
         price_cr = p.price / 10_000_000
+        benchmark = f"Locality avg: ₹{p.locality_avg_price_per_sqft:,.0f}/sqft ({p.locality_property_count} props)" if p.locality_property_count > 1 else "No benchmark"
         props_text += f"""
 Property {i} (ID: {p.id}):
   - Title: {p.title}
   - Type: {p.property_type} | Status: {p.status}
-  - Price: ₹{price_cr:.2f} Cr (₹{p.price_per_sqft:,.0f}/sqft)
+  - Price: ₹{price_cr:.2f} Cr (₹{p.price_per_sqft:,.0f}/sqft) | {benchmark}
   - Area: {p.area_sqft:,.0f} sqft | Beds: {p.bedrooms or "N/A"} | Baths: {p.bathrooms or "N/A"}
   - Locality: {p.locality}, {p.city}
   - Builder: {p.builder_name or "N/A"} | RERA: {p.rera_status}
@@ -186,7 +291,9 @@ Property {i} (ID: {p.id}):
 """
 
     prompt = f"""You are a senior real estate investment analyst specializing in Hyderabad, India.
-Compare the following {len(req.properties)} properties and provide a structured analysis.
+Compare the following {len(req.properties)} properties and provide a structured side-by-side analysis.
+Use relative scoring — properties in the same comparison should be ranked against each other, not all given 8/10.
+The best property in the group might score 7, and the worst might score 3 — spread the scores meaningfully.
 
 {props_text}
 
@@ -199,7 +306,6 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, no extra 
       "strengths": ["<strength 1>", "<strength 2>"],
       "weaknesses": ["<weakness 1>", "<weakness 2>"]
     }}
-    // one entry per property
   ],
   "best_pick_id": "<ID of the best property>",
   "best_pick_reason": "<1–2 sentence reason why this is the best pick>",

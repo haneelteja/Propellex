@@ -78,12 +78,25 @@ function PriceSparkline({ roi }: { roi: string }) {
 
 // ── AI Analysis section ───────────────────────────────────────────────────────
 
+const BUILDER_GRADE_CONFIG = {
+  premium:    { label: 'Premium Builder',    color: 'text-secondary',              bg: 'bg-secondary/10 border-secondary/30',    icon: 'workspace_premium' },
+  verified:   { label: 'Verified Builder',   color: 'text-primary',                bg: 'bg-primary/10 border-primary/30',        icon: 'verified' },
+  good:       { label: 'Good Track Record',  color: 'text-primary',                bg: 'bg-primary/5 border-primary/20',         icon: 'thumb_up' },
+  standard:   { label: 'Standard Builder',   color: 'text-on-surface-variant',     bg: 'bg-surface-container border-outline-variant', icon: 'business' },
+  unverified: { label: 'Unverified Builder', color: 'text-on-surface-variant',     bg: 'bg-surface-container border-outline-variant', icon: 'help_outline' },
+  flagged:    { label: 'Flagged Builder',    color: 'text-error',                  bg: 'bg-error/10 border-error/30',            icon: 'flag' },
+} as const;
+
 interface AiAnalysisSectionProps {
   analysis: AiPropertyAnalysis;
   analyzedAt: string | null;
 }
 
 function AiAnalysisSection({ analysis, analyzedAt }: AiAnalysisSectionProps) {
+  const isFlagged = analysis.overall_score === 0;
+  const gradeKey = (analysis.builder_grade ?? 'unverified') as keyof typeof BUILDER_GRADE_CONFIG;
+  const grade = BUILDER_GRADE_CONFIG[gradeKey] ?? BUILDER_GRADE_CONFIG.unverified;
+
   return (
     <section className="bg-surface-container-low border-t border-outline-variant">
       {/* Header row */}
@@ -100,24 +113,57 @@ function AiAnalysisSection({ analysis, analyzedAt }: AiAnalysisSectionProps) {
           <p className="font-label text-[10px] text-on-surface-variant uppercase tracking-[0.1em] mb-1">
             AI Score
           </p>
-          <p
-            className={
-              analysis.overall_score >= 8
-                ? 'font-headline text-3xl text-secondary'
-                : analysis.overall_score >= 5
-                ? 'font-headline text-3xl text-primary'
-                : 'font-headline text-3xl text-error'
-            }
-          >
-            {analysis.overall_score}
-            <span className="text-on-surface-variant text-lg font-light">/10</span>
-          </p>
+          {isFlagged ? (
+            <div className="flex items-center gap-1.5 justify-end">
+              <span className="material-symbols-outlined text-error text-xl leading-none">warning</span>
+              <p className="font-headline text-2xl text-error">Flagged</p>
+            </div>
+          ) : (
+            <p
+              className={
+                analysis.overall_score >= 8
+                  ? 'font-headline text-3xl text-secondary'
+                  : analysis.overall_score >= 5
+                  ? 'font-headline text-3xl text-primary'
+                  : 'font-headline text-3xl text-error'
+              }
+            >
+              {analysis.overall_score}
+              <span className="text-on-surface-variant text-lg font-light">/10</span>
+            </p>
+          )}
           {analyzedAt && (
             <p className="font-label text-[10px] text-on-surface-variant mt-1">
               Updated {formatDate(analyzedAt)}
             </p>
           )}
         </div>
+      </div>
+
+      {/* Flagged warning banner */}
+      {isFlagged && (
+        <div className="mx-8 mt-6 flex items-start gap-3 bg-error/10 border border-error/30 px-5 py-4">
+          <span className="material-symbols-outlined text-error text-base mt-0.5 shrink-0">warning</span>
+          <p className="font-body text-sm text-error leading-relaxed">
+            This listing has been flagged by our AI as suspicious — the price deviates significantly from comparable properties in this locality, or there are serious compliance concerns. Exercise extreme caution before proceeding.
+          </p>
+        </div>
+      )}
+
+      {/* Builder Grade */}
+      <div className="px-8 py-6 border-b border-outline-variant">
+        <p className="font-label text-xs text-on-surface-variant uppercase tracking-[0.2em] mb-3">
+          Builder Assessment
+        </p>
+        <div className={`inline-flex items-center gap-2.5 px-4 py-2 border ${grade.bg}`}>
+          <span className={`material-symbols-outlined text-base leading-none ${grade.color}`}>{grade.icon}</span>
+          <span className={`font-label text-xs uppercase tracking-widest font-bold ${grade.color}`}>{grade.label}</span>
+        </div>
+        {analysis.builder_grade_reason && (
+          <p className="font-body text-sm text-on-surface-variant leading-relaxed mt-2 max-w-2xl">
+            {analysis.builder_grade_reason}
+          </p>
+        )}
       </div>
 
       {/* Advantages / Disadvantages */}
@@ -154,6 +200,64 @@ function AiAnalysisSection({ analysis, analyzedAt }: AiAnalysisSectionProps) {
         </div>
       </div>
 
+      {/* Future Projects */}
+      {analysis.future_projects?.length > 0 && (
+        <div className="px-8 py-8 border-b border-outline-variant">
+          <p className="font-label text-xs text-primary uppercase tracking-[0.2em] mb-5">
+            Upcoming Projects &amp; Infrastructure Impact
+          </p>
+          <ul className="space-y-3">
+            {analysis.future_projects.map((proj, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-primary text-base mt-0.5 shrink-0">
+                  construction
+                </span>
+                <span className="font-body text-sm text-on-surface leading-relaxed">{proj}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Government & Private Interest */}
+      <div className="grid grid-cols-1 md:grid-cols-2 border-b border-outline-variant">
+        {analysis.government_interest && (
+          <div className="px-8 py-8 border-b md:border-b-0 md:border-r border-outline-variant">
+            <p className="font-label text-xs text-on-surface-variant uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+              <span className="material-symbols-outlined text-sm leading-none">account_balance</span>
+              Government Interest
+            </p>
+            <p className="font-body text-sm text-on-surface leading-relaxed">
+              {analysis.government_interest}
+            </p>
+          </div>
+        )}
+        {analysis.private_interest && (
+          <div className="px-8 py-8">
+            <p className="font-label text-xs text-on-surface-variant uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+              <span className="material-symbols-outlined text-sm leading-none">corporate_fare</span>
+              Private Investment
+            </p>
+            <p className="font-body text-sm text-on-surface leading-relaxed">
+              {analysis.private_interest}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Tech & Employment Impact */}
+      {analysis.tech_employment_impact && (
+        <div className="px-8 py-8 border-b border-outline-variant">
+          <p className="font-label text-xs text-on-surface-variant uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm leading-none">computer</span>
+            Tech &amp; Employment Impact
+          </p>
+          <p className="font-body text-sm text-on-surface leading-relaxed max-w-3xl">
+            {analysis.tech_employment_impact}
+          </p>
+        </div>
+      )}
+
       {/* Best suited for + Risk factors */}
       <div className="grid grid-cols-1 md:grid-cols-2 border-b border-outline-variant">
         <div className="px-8 py-8 border-b md:border-b-0 md:border-r border-outline-variant">
@@ -183,14 +287,24 @@ function AiAnalysisSection({ analysis, analyzedAt }: AiAnalysisSectionProps) {
         )}
       </div>
 
-      {/* Market insights */}
-      <div className="px-8 py-8">
-        <p className="font-label text-xs text-on-surface-variant uppercase tracking-[0.2em] mb-3">
-          Market Insights
-        </p>
-        <p className="font-body text-sm text-on-surface leading-relaxed max-w-3xl">
-          {analysis.market_insights}
-        </p>
+      {/* Market insights + Investment recommendation */}
+      <div className="grid grid-cols-1 md:grid-cols-2">
+        <div className="px-8 py-8 border-b md:border-b-0 md:border-r border-outline-variant">
+          <p className="font-label text-xs text-on-surface-variant uppercase tracking-[0.2em] mb-3">
+            Market Insights
+          </p>
+          <p className="font-body text-sm text-on-surface leading-relaxed">
+            {analysis.market_insights}
+          </p>
+        </div>
+        <div className="px-8 py-8">
+          <p className="font-label text-xs text-on-surface-variant uppercase tracking-[0.2em] mb-3">
+            Investment Recommendation
+          </p>
+          <p className="font-body text-sm text-on-surface leading-relaxed">
+            {analysis.investment_recommendation}
+          </p>
+        </div>
       </div>
     </section>
   );
