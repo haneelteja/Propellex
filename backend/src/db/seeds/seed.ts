@@ -1802,7 +1802,7 @@ const EXTRA_PROPERTIES = [
     builder_name: 'Ramky Estates', rera_number: 'P02600001107', rera_status: 'verified',
     risk_score: 25, roi_estimate_3yr: 22.0,
     description: 'Ramky Towers Phase II in Uppal benefits from Uppal Metro (Blue Line) 1 km away and proximity to Uppal IT Hub — one of Hyderabad\'s fastest-growing east-corridor IT zones with Wipro\'s 60-acre campus. Priced at ₹6,111/sqft, this is 40% cheaper than equivalent west corridor stock and represents the sharpest value proposition for east-corridor IT professionals.',
-    analysis_priority: 'medium', published_at: '2026-02-08 10:00:05:30',
+    analysis_priority: 'medium', published_at: '2026-02-08 10:00:00',
   },
   {
     title: '4BHK Independent House, Dilsukhnagar',
