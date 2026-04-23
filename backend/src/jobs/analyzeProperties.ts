@@ -53,7 +53,7 @@ export async function runDailyAnalysis(): Promise<void> {
         console.error(`[Cron] Failed to analyze property ${id}:`, msg);
         // If AI service is unreachable (returns HTML error page), abort — no point
         // hammering all 50 properties and filling logs with the same error.
-        if (msg.includes('service unavailable') || msg.includes('not configured')) {
+        if (msg.includes('service unavailable') || msg.includes('not configured') || msg.includes('fetch failed')) {
           console.warn('[Cron] AI service appears to be down or misconfigured — aborting batch.');
           break;
         }
