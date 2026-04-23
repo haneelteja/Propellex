@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ValidationError
 from typing import Optional
 from google import genai
+from google.oauth2 import service_account
 import os
 import json
 import traceback
@@ -10,6 +11,7 @@ import asyncio
 router = APIRouter(prefix="/analyze", tags=["analysis"])
 
 _GEMINI_MODEL = "gemini-2.5-flash"
+_VERTEX_LOCATION = "us-central1"
 
 async def _generate_with_retry(client: genai.Client, model: str, prompt: str, max_retries: int = 3) -> str:
     """Call Gemini with exponential backoff on 429 / RESOURCE_EXHAUSTED errors."""
@@ -38,10 +40,21 @@ async def _generate_with_retry(client: genai.Client, model: str, prompt: str, ma
 
 
 def _gemini_client() -> genai.Client:
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise RuntimeError("GEMINI_API_KEY not configured")
-    return genai.Client(api_key=api_key)
+    """Build a Gemini client backed by Vertex AI (uses GCP credits, no AI Studio billing)."""
+    sa_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+    if not sa_json:
+        raise RuntimeError("GOOGLE_SERVICE_ACCOUNT_JSON not configured")
+    sa_info = json.loads(sa_json)
+    credentials = service_account.Credentials.from_service_account_info(
+        sa_info,
+        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+    )
+    return genai.Client(
+        vertexai=True,
+        project=sa_info["project_id"],
+        location=_VERTEX_LOCATION,
+        credentials=credentials,
+    )
 
 
 class PropertyAnalysisRequest(BaseModel):
@@ -90,8 +103,8 @@ class PropertyAnalysis(BaseModel):
 
 @router.post("/property", response_model=PropertyAnalysis)
 async def analyze_property(req: PropertyAnalysisRequest) -> PropertyAnalysis:
-    if not os.getenv("GEMINI_API_KEY"):
-        raise HTTPException(status_code=503, detail="GEMINI_API_KEY not configured")
+    if not os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON"):
+        raise HTTPException(status_code=503, detail="GOOGLE_SERVICE_ACCOUNT_JSON not configured")
 
     price_cr = req.price / 10_000_000
     location_str = (
@@ -280,8 +293,8 @@ class CompareResult(BaseModel):
 async def compare_properties(req: CompareRequest) -> CompareResult:
     if not (2 <= len(req.properties) <= 4):
         raise HTTPException(status_code=400, detail="Provide 2–4 properties to compare")
-    if not os.getenv("GEMINI_API_KEY"):
-        raise HTTPException(status_code=503, detail="GEMINI_API_KEY not configured")
+    if not os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON"):
+        raise HTTPException(status_code=503, detail="GOOGLE_SERVICE_ACCOUNT_JSON not configured")
 
     props_text = ""
     for i, p in enumerate(req.properties, 1):
