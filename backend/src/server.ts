@@ -23,10 +23,17 @@ const PORT = parseInt(process.env.PORT ?? '3001', 10);
 
 // ── Security ──────────────────────────────────────────────────────────────────
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-// Allow multiple origins: local dev + deployed Vercel frontend
-const allowedOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173,http://localhost:5174')
-  .split(',')
-  .map((o) => o.trim());
+// Allow multiple origins: local dev + deployed Vercel frontend + Capacitor Android
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'capacitor://localhost',
+  'http://localhost',
+  ...(process.env.CORS_ORIGIN ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean),
+];
 
 app.use(cors({
   origin: (origin, cb) => {
