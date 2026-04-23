@@ -13,7 +13,7 @@ import { chatRouter } from './modules/chat/chat.routes';
 import { managerRouter } from './modules/manager/manager.routes';
 import { newsRouter } from './modules/news/news.routes';
 import { billingRouter } from './modules/billing/billing.routes';
-import { scheduleDailyAnalysis } from './jobs/analyzeProperties';
+import { scheduleDailyAnalysis, releaseAnalysisLock } from './jobs/analyzeProperties';
 import { scheduleNewsFetch } from './jobs/fetchNews';
 import { scheduleReraVerification } from './jobs/reraVerification';
 import { markOtpTableReady } from './modules/auth/auth.service';
@@ -161,6 +161,7 @@ async function start() {
 
   const shutdown = async (signal: string) => {
     console.info(`[Server] ${signal} received — shutting down`);
+    await releaseAnalysisLock(); // release before closing Redis
     server.close(async () => {
       await Promise.allSettled([closeRedis(), pool.end()]);
       process.exit(0);

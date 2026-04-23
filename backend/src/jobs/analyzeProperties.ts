@@ -58,16 +58,25 @@ export async function runDailyAnalysis(): Promise<void> {
           break;
         }
         if (msg.includes('Too Many Requests') || msg.includes('429')) {
-          console.warn('[Cron] Gemini rate limit hit — retrying in 1 hour.');
-          await sleep(60 * 60 * 1000);
+          // Distinguish transient rate limit (per-minute) from quota exhaustion (daily cap).
+          // Quota exhaustion messages contain "quota" or "billing"; these won't recover
+          // in an hour, so abort immediately and let the next 6-hour cron pick up.
+          const isQuotaExhausted = msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('billing');
+          if (isQuotaExhausted) {
+            console.warn(`[Cron] Gemini daily quota exhausted — aborting batch. ${success} analyzed so far. Will resume next cron run.`);
+            failed++;
+            break;
+          }
+          // Transient per-minute rate limit — wait 60s then retry once
+          console.warn('[Cron] Gemini rate limit hit — waiting 60s before retry.');
+          await sleep(60_000);
           console.info('[Cron] Resuming after rate-limit backoff...');
-          // retry this property once before continuing
           try {
             await analyzePropertyWithAI(id);
             success++;
           } catch {
             failed++;
-            console.warn('[Cron] Still rate-limited after 1h — aborting batch.');
+            console.warn('[Cron] Still rate-limited after 60s — aborting batch.');
             break;
           }
           continue;
@@ -81,6 +90,12 @@ export async function runDailyAnalysis(): Promise<void> {
   }
 
   console.info(`[Cron] Analysis complete — ${success} succeeded, ${failed} failed`);
+}
+
+/** Release the analysis lock — call this from the SIGTERM/SIGINT shutdown handler
+ *  so a Render instance restart doesn't leave a stale lock for 90 minutes. */
+export async function releaseAnalysisLock(): Promise<void> {
+  await redis.del(LOCK_KEY).catch(() => {/* best-effort */});
 }
 
 /** Schedule analysis using native Node.js timers.
