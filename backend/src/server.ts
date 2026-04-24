@@ -147,7 +147,7 @@ async function start() {
   const aiUrl = process.env.AI_SERVICE_URL;
   if (aiUrl) {
     const pingAi = () => {
-      fetch(`${aiUrl}/health`, { signal: AbortSignal.timeout(15_000) })
+      fetch(`${aiUrl}/health`, { signal: AbortSignal.timeout(60_000) })
         .then((r) => { if (!r.ok) console.warn(`[AI KeepAlive] Unhealthy response: ${r.status}`); })
         .catch((e: Error) => console.warn(`[AI KeepAlive] Ping failed: ${e.message}`));
     };

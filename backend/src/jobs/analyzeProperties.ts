@@ -18,6 +18,21 @@ export async function runDailyAnalysis(): Promise<void> {
     return;
   }
 
+  // Pre-warm: ensure AI service is awake before acquiring lock and starting batch.
+  // Render free-tier cold starts take 30-60s; without this the first property call
+  // gets 'fetch failed' and the abort condition fires, wasting the entire cron run.
+  try {
+    const healthRes = await fetch(`${process.env.AI_SERVICE_URL}/health`, { signal: AbortSignal.timeout(90_000) });
+    if (!healthRes.ok) {
+      console.warn(`[Cron] AI service health check failed (${healthRes.status}) — skipping this run.`);
+      return;
+    }
+    console.info('[Cron] AI service is awake — proceeding with analysis.');
+  } catch (err) {
+    console.warn('[Cron] AI service unreachable — skipping this run:', (err as Error).message);
+    return;
+  }
+
   // Prevent concurrent runs (e.g. manual trigger overlapping with scheduled cron)
   const lockAcquired = await redis.set(LOCK_KEY, '1', 'EX', LOCK_TTL_S, 'NX');
   if (!lockAcquired) {
