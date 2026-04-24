@@ -8,6 +8,8 @@
     "start": "node dist/server.js",
     "seed": "tsx src/db/seeds/seed.ts",
     "migrate": "tsx src/db/migrate.ts",
+    "update-media": "tsx src/db/scripts/updatePropertyMedia.ts",
+    "validate-media": "tsx src/db/scripts/validatePropertyMedia.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

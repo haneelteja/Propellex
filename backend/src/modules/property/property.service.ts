@@ -133,7 +133,7 @@ export async function searchProperties(filters: PropertyFilter): Promise<SearchR
     SELECT p.id, p.title, p.property_type, p.status, p.price, p.price_per_sqft,
            p.area_sqft, p.bedrooms, p.bathrooms, p.locality, p.city, p.lat, p.lng,
            p.amenities, p.builder_name, p.rera_number, p.rera_status,
-           p.photos, p.risk_score, p.roi_estimate_3yr, p.published_at,
+           p.photos, p.video_url, p.risk_score, p.roi_estimate_3yr, p.published_at,
            p.ai_analyzed_at, p.analysis_priority${searchRank}
     FROM properties p
     WHERE ${where}
@@ -401,7 +401,7 @@ export async function comparePropertiesWithAI(ids: string[]): Promise<{
   }>(
     `SELECT id, title, property_type, status, price, price_per_sqft, area_sqft,
             bedrooms, bathrooms, locality, city, pincode, amenities, builder_name,
-            rera_number, rera_status, photos, risk_score, roi_estimate_3yr,
+            rera_number, rera_status, photos, video_url, risk_score, roi_estimate_3yr,
             lat, lng, description, is_active, published_at, agency_id,
             ai_analysis, ai_analyzed_at
      FROM properties WHERE id IN (${placeholders}) AND is_active = true`,
