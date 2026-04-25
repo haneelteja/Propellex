@@ -55,12 +55,12 @@ const POOL_VILLA = [
 const POOL_COMMERCIAL = [
   'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1497366754035-f200968a2e2e?w=800&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1582407947304-fd86f28320c7?w=800&q=80&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1497215728996-7f8a01f5f454?w=800&q=80&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80&auto=format&fit=crop',
 ];
 
 /** Plot / land: open land, green landscapes, development sites */
@@ -80,7 +80,6 @@ const VIDEO_POOL: Record<string, string[]> = {
   'Jubilee Hills': [
     'https://www.youtube.com/embed/jHDjxnLvNh0', // Luxury Apartment Interior Designs @ Jubilee Hills
     'https://www.youtube.com/embed/PlZKj3rOFxE', // Jubilee Hills Review: Connectivity, Property Rates
-    'https://www.youtube.com/embed/8JcVKEquYf8', // Prestige Jubilee Hills Hyderabad
     'https://www.youtube.com/embed/8ohc3wbCJlU', // Halcyon High-end Luxury apartment in Jubilee Hills
     'https://www.youtube.com/embed/QIRhlAzXkVE', // Jubilee Hills 4K Multi Crore Houses
     'https://www.youtube.com/embed/jpEjJKQeFbc', // Richest Area of India – Jubilee Hills Tour
@@ -100,15 +99,15 @@ const VIDEO_POOL: Record<string, string[]> = {
     'https://www.youtube.com/embed/c_YPNkJS0_k', // L&T Serene County Gachibowli Apartment Tour
   ],
   'Hitech City': [
-    'https://www.youtube.com/embed/SFlNm_tWHss', // Westend Villas Hitech City Kondapur
     'https://www.youtube.com/embed/qHoXzEIHl0o', // Hitech City: IT Corridor in Hyderabad
     'https://www.youtube.com/embed/QnNjDyrtsuk', // Hitec City 2026 | Sattva Knowledge IT Park Drive
+    'https://www.youtube.com/embed/FQa3EA7RQKc', // Gachibowli–Hitech City Area Guide
   ],
   'Kondapur': [
     'https://www.youtube.com/embed/KAQ8Rt1IgPM', // Modern 2BHK in Kondapur – Full Apartment Tour
     'https://www.youtube.com/embed/Adqfi11Nmnc', // Kondapur, Hyderabad
     'https://www.youtube.com/embed/HLxkMRUU5vI', // Kondapur Streets Hytechcity Hyderabad
-    'https://www.youtube.com/embed/SFlNm_tWHss', // Westend Villas Hitech City Kondapur
+    'https://www.youtube.com/embed/qHoXzEIHl0o', // Hitech City IT Corridor (adjacent to Kondapur)
   ],
   'Kokapet': [
     'https://www.youtube.com/embed/9Oe7YOgbwJI', // 4 BHK Luxury Flat Tour Kokapet – 47th Floor Infinity Pool
