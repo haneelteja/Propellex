@@ -552,6 +552,43 @@ export default function PropertyDetail() {
         </div>
       </section>
 
+      {/* ── Section 1.5: Locality Tour Video ─────────────────────────────── */}
+      {property.video_url && (
+        <section className="grid grid-cols-1 md:grid-cols-12 border-b border-outline-variant">
+          {/* iframe — col-span-8 */}
+          <div className="md:col-span-8 bg-black">
+            <div className="relative w-full aspect-video">
+              <iframe
+                src={property.video_url}
+                title={`${property.locality} locality tour`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full"
+              />
+            </div>
+          </div>
+
+          {/* Label panel — col-span-4 */}
+          <div className="md:col-span-4 bg-surface-container-low p-8 border-l border-outline-variant flex flex-col justify-center gap-4">
+            <span className="font-label text-xs text-primary uppercase tracking-[0.2em]">
+              Locality Tour
+            </span>
+            <h2 className="font-headline text-3xl font-light text-on-surface leading-snug">
+              {property.locality},<br />Hyderabad
+            </h2>
+            <p className="font-body text-sm text-on-surface-variant leading-relaxed">
+              Explore the neighbourhood — connectivity, infrastructure, nearby landmarks, and the lifestyle that comes with living here.
+            </p>
+            <div className="flex items-center gap-2 pt-2">
+              <span className="material-symbols-outlined text-primary text-base">play_circle</span>
+              <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-[0.15em]">
+                YouTube · Area walkthrough
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── Section 2: ROI Trajectory + AI Intelligence bento ────────────── */}
       <section className="grid grid-cols-1 md:grid-cols-12 border-b border-outline-variant">
 

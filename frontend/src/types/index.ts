@@ -74,6 +74,7 @@ export interface Property {
   amenities: string[];
   builder_name: string;
   photos: string[];
+  video_url: string | null;
   risk_score: number;       // 0–100
   roi_estimate_3yr: string; // e.g. "12.5"
   is_active: boolean;
