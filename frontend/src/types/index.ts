@@ -33,6 +33,14 @@ export interface AuthState {
 
 // ── Property ─────────────────────────────────────────────────────────────────
 
+export type MediaSourceType = 'listing' | 'rendering' | 'brochure' | 'news' | 'official' | 'virtual_tour';
+
+export interface MediaSource {
+  url: string;
+  label: string;
+  type: MediaSourceType;
+}
+
 export type PropertyType = 'residential' | 'commercial' | 'plot';
 export type PropertyStatus = 'ready_to_move' | 'under_construction';
 export type ReraStatus = 'verified' | 'pending' | 'flagged' | 'not_registered' | 'unknown';
@@ -75,6 +83,7 @@ export interface Property {
   builder_name: string;
   photos: string[];
   video_url: string | null;
+  media_sources: MediaSource[];
   risk_score: number;       // 0–100
   roi_estimate_3yr: string; // e.g. "12.5"
   is_active: boolean;

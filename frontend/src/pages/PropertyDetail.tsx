@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useProperty, usePropertyAnalysis } from '@/hooks/useProperties';
 import { useAddToPortfolio } from '@/hooks/usePortfolio';
 import { useAuthStore } from '@/store/authStore';
@@ -8,7 +9,7 @@ import { Skeleton } from '@/components/shared/Skeleton';
 import { RoiCalculator } from '@/components/property/RoiCalculator';
 import { PriceTrendChart } from '@/components/property/PriceTrendChart';
 import { formatRupeesCr, formatRupees, formatDate, riskLabel } from '@/lib/utils';
-import type { AiPropertyAnalysis, Property } from '@/types';
+import type { AiPropertyAnalysis, MediaSource, Property } from '@/types';
 
 // ── Amenity icon mapping ──────────────────────────────────────────────────────
 
@@ -73,6 +74,167 @@ function PriceSparkline({ roi }: { roi: string }) {
         strokeLinecap="round"
       />
     </svg>
+  );
+}
+
+// ── Media Modal ───────────────────────────────────────────────────────────────
+
+const SOURCE_TYPE_CONFIG: Record<string, { icon: string; label: string }> = {
+  listing:      { icon: 'apartment',       label: 'Property Listing' },
+  rendering:    { icon: 'architecture',    label: 'Authorized Rendering' },
+  brochure:     { icon: 'picture_as_pdf',  label: 'Official Brochure' },
+  news:         { icon: 'newspaper',       label: 'News / Press' },
+  official:     { icon: 'verified',        label: 'Official Source' },
+  virtual_tour: { icon: 'vrpano',          label: 'Virtual Tour' },
+};
+
+interface MediaModalProps {
+  photos: string[];
+  mediaSources: MediaSource[];
+  propertyTitle: string;
+  onClose: () => void;
+}
+
+function MediaModal({ photos, mediaSources, propertyTitle, onClose }: MediaModalProps) {
+  const [brokenPhotos, setBrokenPhotos] = useState<Set<string>>(new Set());
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/90 flex flex-col overflow-hidden"
+      onClick={onClose}
+    >
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div>
+          <p className="font-label text-[10px] text-white/50 uppercase tracking-[0.2em]">
+            Media & Sources
+          </p>
+          <p className="font-headline text-lg text-white leading-tight">
+            {propertyTitle}
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+          aria-label="Close"
+        >
+          <span className="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      {/* Scrollable body */}
+      <div
+        className="flex-1 overflow-y-auto p-6 space-y-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+
+        {/* ── Photo gallery (only real uploaded photos) ── */}
+        {photos.length > 0 && (
+          <div>
+            <p className="font-label text-[10px] text-white/50 uppercase tracking-[0.15em] mb-4">
+              Property Photos
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {photos.map((url, i) => (
+                <div key={i} className="bg-white/5 border border-white/10">
+                  {brokenPhotos.has(url) ? (
+                    /* Broken image — show URL as link */
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center justify-center gap-3 p-6 min-h-[160px] hover:bg-white/10 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-white/30 text-3xl">
+                        broken_image
+                      </span>
+                      <p className="font-label text-[10px] text-white/40 uppercase tracking-[0.1em]">
+                        Could not load — click to visit source
+                      </p>
+                      <p className="font-body text-xs text-primary break-all text-center">{url}</p>
+                    </a>
+                  ) : (
+                    <a href={url} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={url}
+                        alt={`${propertyTitle} — photo ${i + 1}`}
+                        className="w-full object-cover max-h-[300px]"
+                        onError={() =>
+                          setBrokenPhotos((prev) => new Set([...prev, url]))
+                        }
+                      />
+                      <div className="px-3 py-2 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-white/30 text-xs">link</span>
+                        <p className="font-body text-[10px] text-white/40 truncate">{url}</p>
+                        <span className="material-symbols-outlined text-white/30 text-xs shrink-0">
+                          arrow_outward
+                        </span>
+                      </div>
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── External media sources ── */}
+        {mediaSources.length > 0 && (
+          <div>
+            <p className="font-label text-[10px] text-white/50 uppercase tracking-[0.15em] mb-4">
+              External Sources — click to visit
+            </p>
+            <div className="space-y-2">
+              {mediaSources.map((src, i) => {
+                const cfg = SOURCE_TYPE_CONFIG[src.type] ?? SOURCE_TYPE_CONFIG.listing;
+                return (
+                  <a
+                    key={i}
+                    href={src.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-primary/40 transition-colors group"
+                  >
+                    <span className="material-symbols-outlined text-primary text-xl shrink-0">
+                      {cfg.icon}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-label text-[10px] text-primary uppercase tracking-[0.1em]">
+                        {cfg.label}
+                      </p>
+                      <p className="font-body text-sm text-white leading-snug mt-0.5">
+                        {src.label}
+                      </p>
+                      <p className="font-body text-[10px] text-white/40 truncate mt-1">
+                        {src.url}
+                      </p>
+                    </div>
+                    <span className="material-symbols-outlined text-white/30 group-hover:text-primary shrink-0 transition-colors">
+                      arrow_outward
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── Empty state ── */}
+        {photos.length === 0 && mediaSources.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
+            <span className="material-symbols-outlined text-white/20 text-6xl">
+              photo_library
+            </span>
+            <p className="font-label text-xs text-white/40 uppercase tracking-[0.15em] max-w-xs">
+              No verified media available yet. The listing agent will add real photos, brochures, and source links.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -405,6 +567,8 @@ export default function PropertyDetail() {
     );
   }
 
+  const [mediaModalOpen, setMediaModalOpen] = useState(false);
+
   const risk = riskLabel(property.risk_score);
   const pricePerSqft = analysis?.price_per_sqft
     ? Math.round(analysis.price_per_sqft / 100).toLocaleString('en-IN')
@@ -420,6 +584,7 @@ export default function PropertyDetail() {
 
   const heroPhotos = property.photos.slice(0, 3);
   const remainingCount = property.photos.length - 3;
+  const hasMedia = property.photos.length > 0 || (property.media_sources ?? []).length > 0;
 
   return (
     <div className="bg-background min-h-screen font-body">
@@ -435,27 +600,42 @@ export default function PropertyDetail() {
         </Link>
       </div>
 
-      {/* ── Section 1: Asymmetric Hero Gallery ───────────────────────────── */}
+      {/* ── Section 1: Hero — photo gallery or media placeholder ───────── */}
       <section className="grid grid-cols-12 gap-1 p-1 bg-surface-container-low h-[600px]">
 
-        {/* Main image: col-span-8 */}
+        {/* Main panel: col-span-8 */}
         <div className="col-span-12 md:col-span-8 h-full relative overflow-hidden group">
           {heroPhotos[0] ? (
             <img
               src={heroPhotos[0]}
               alt={property.title}
               className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           ) : (
-            <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
-              <span className="material-symbols-outlined text-8xl text-on-surface-variant">
-                apartment
+            /* No real photos yet — show branded placeholder */
+            <div className="w-full h-full bg-surface-container-highest flex flex-col items-center justify-center gap-4 px-8 text-center">
+              <span className="material-symbols-outlined text-7xl text-on-surface-variant/30">
+                photo_library
               </span>
+              <p className="font-label text-xs text-on-surface-variant uppercase tracking-[0.15em] max-w-xs">
+                Verified property photos will appear here once added by the registered listing agent
+              </p>
+              {hasMedia && (
+                <button
+                  onClick={() => setMediaModalOpen(true)}
+                  className="mt-2 font-label text-xs text-primary uppercase tracking-[0.15em] border border-primary/50 px-5 py-2 hover:bg-primary hover:text-on-primary transition-colors"
+                >
+                  View External Sources
+                </button>
+              )}
             </div>
           )}
 
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+          {/* Gradient overlay (only when image exists) */}
+          {heroPhotos[0] && (
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+          )}
 
           {/* RERA / status badges */}
           <div className="absolute top-6 left-6 flex gap-2 z-10">
@@ -488,11 +668,11 @@ export default function PropertyDetail() {
           </div>
 
           {/* Title overlay — bottom-left */}
-          <div className="absolute bottom-12 left-12 z-10 max-w-[580px]">
-            <h1 className="font-headline text-4xl md:text-5xl font-light text-white leading-tight">
+          <div className={`absolute z-10 max-w-[580px] ${heroPhotos[0] ? 'bottom-12 left-12' : 'bottom-6 left-6'}`}>
+            <h1 className={`font-headline font-light leading-tight ${heroPhotos[0] ? 'text-4xl md:text-5xl text-white' : 'text-3xl text-on-surface'}`}>
               {property.title}
             </h1>
-            <div className="flex items-center gap-4 text-primary uppercase tracking-[0.2em] text-xs mt-3">
+            <div className={`flex items-center gap-4 uppercase tracking-[0.2em] text-xs mt-3 ${heroPhotos[0] ? 'text-primary' : 'text-on-surface-variant'}`}>
               <span>{property.locality}, Hyderabad</span>
               <span className="w-1 h-1 bg-primary" />
               <span>{formatRupeesCr(property.price)}</span>
@@ -504,6 +684,19 @@ export default function PropertyDetail() {
               )}
             </div>
           </div>
+
+          {/* View Media button — bottom-right (only when photos or sources exist) */}
+          {hasMedia && (
+            <button
+              onClick={() => setMediaModalOpen(true)}
+              className="absolute bottom-6 right-6 z-10 flex items-center gap-2 bg-black/60 border border-white/20 px-4 py-2 font-label text-[10px] text-white uppercase tracking-[0.15em] hover:bg-black/80 transition-colors backdrop-blur-sm"
+            >
+              <span className="material-symbols-outlined text-sm">perm_media</span>
+              {property.photos.length > 0
+                ? `View Photos${remainingCount > 0 ? ` +${remainingCount}` : ''} & Sources`
+                : 'View Sources'}
+            </button>
+          )}
         </div>
 
         {/* Side thumbnails: col-span-4 */}
@@ -514,10 +707,11 @@ export default function PropertyDetail() {
                 src={heroPhotos[1]}
                 alt={`${property.title} — view 2`}
                 className="w-full h-full object-cover grayscale-[15%] hover:grayscale-0 transition-all duration-500"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             ) : (
               <div className="w-full h-full bg-surface-container flex items-center justify-center">
-                <span className="material-symbols-outlined text-4xl text-on-surface-variant">
+                <span className="material-symbols-outlined text-4xl text-on-surface-variant/20">
                   image
                 </span>
               </div>
@@ -529,28 +723,42 @@ export default function PropertyDetail() {
                 src={heroPhotos[2]}
                 alt={`${property.title} — view 3`}
                 className="w-full h-full object-cover grayscale-[15%] hover:grayscale-0 transition-all duration-500"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             ) : (
               <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
-                <span className="material-symbols-outlined text-4xl text-on-surface-variant">
+                <span className="material-symbols-outlined text-4xl text-on-surface-variant/20">
                   image
                 </span>
               </div>
             )}
-            {/* "View all" overlay if 4+ photos */}
+            {/* "View all" overlay if 4+ real photos */}
             {remainingCount > 0 && (
-              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1">
+              <button
+                onClick={() => setMediaModalOpen(true)}
+                className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1 hover:bg-black/70 transition-colors"
+              >
                 <span className="material-symbols-outlined text-3xl text-white">
                   photo_library
                 </span>
                 <p className="font-label text-xs text-white uppercase tracking-[0.15em]">
                   +{remainingCount} more
                 </p>
-              </div>
+              </button>
             )}
           </div>
         </div>
       </section>
+
+      {/* ── Media Modal ──────────────────────────────────────────────────────── */}
+      {mediaModalOpen && (
+        <MediaModal
+          photos={property.photos}
+          mediaSources={property.media_sources ?? []}
+          propertyTitle={property.title}
+          onClose={() => setMediaModalOpen(false)}
+        />
+      )}
 
       {/* ── Section 1.5: Locality Tour Video ─────────────────────────────── */}
       {property.video_url && (
