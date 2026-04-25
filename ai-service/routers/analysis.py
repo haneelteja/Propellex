@@ -97,7 +97,7 @@ class PropertyAnalysis(BaseModel):
     best_suited_for: str
     builder_grade: str        # 'premium' | 'verified' | 'good' | 'standard' | 'unverified' | 'flagged'
     builder_grade_reason: str
-    overall_score: int        # 0–10 (0 = flagged/suspicious)
+    overall_score: float      # 0.00–10.00 (0.00 = flagged/suspicious), 2 decimal places
     analysis_priority: str    # 'high' | 'medium' | 'low'
 
 
@@ -144,51 +144,89 @@ PROPERTY DETAILS:
 {benchmark_str}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SCORING RUBRIC — follow this exactly to compute overall_score:
+SCORING RUBRIC — compute overall_score as a float with exactly 2 decimal places.
+The score is the SUM of 7 sub-scores. Each sub-score is continuous (not discrete jumps)
+so that scores across 184 properties form a meaningful distribution from ~1.5 to ~9.8.
 
-Base score: 5
+FLAGGED check — evaluate FIRST. If either condition is true → overall_score = 0.00, stop:
+  • price_per_sqft > 3.0× locality avg  (suspiciously overpriced / likely fake)
+  • price_per_sqft < 0.35× locality avg (suspiciously cheap / likely fake)
 
-[A] Price vs locality benchmark (apply ONE):
-  • price_per_sqft > 3× locality avg  → overall_score = 0 immediately (FLAGGED: suspiciously overpriced / likely fake listing)
-  • price_per_sqft < 0.35× locality avg → overall_score = 0 immediately (FLAGGED: suspiciously cheap / likely fake listing)
-  • price_per_sqft 2–3× avg           → −2
-  • price_per_sqft 1.5–2× avg         → −1
-  • price_per_sqft 0.85–1.15× avg     → ±0 (fairly priced)
-  • price_per_sqft 0.5–0.85× avg      → +1 (value opportunity)
-  • price_per_sqft 0.35–0.5× avg      → ±0 (check for red flags)
-  (If no benchmark: use your expert knowledge of {req.locality} pricing)
+Otherwise compute each sub-score and sum them:
 
-[B] RERA modifier:
-  • verified      → +1
-  • pending       → ±0
-  • flagged       → −3, cap score at 4
-  • not_registered → −2, cap score at 5
-  • unknown       → −1
+[A] Price-to-value competitiveness (0.00–2.00)
+  Ratio = price_per_sqft ÷ locality_avg_price_per_sqft (use your Hyderabad expertise if no benchmark):
+  • ratio > 2.5×:        0.00–0.20 (severely overpriced)
+  • ratio 2.0–2.5×:      0.20–0.55 (significantly overpriced)
+  • ratio 1.5–2.0×:      0.55–0.95 (above market)
+  • ratio 1.2–1.5×:      0.95–1.25 (moderately priced)
+  • ratio 0.85–1.2×:     1.25–1.65 (fairly priced — interpolate within band)
+  • ratio 0.60–0.85×:    1.65–1.90 (good value)
+  • ratio 0.35–0.60×:    1.90–2.00 (exceptional value — verify no red flags first)
+  Interpolate continuously within each band rather than snapping to band boundaries.
 
-[C] ROI modifier:
-  • >15%   → +2
-  • 10–15% → +1
-  • 5–10%  → ±0
-  • <5%    → −1
+[B] Legal & RERA compliance (0.00–2.00)
+  • verified:        2.00
+  • pending:         1.20
+  • unknown:         0.75
+  • not_registered:  0.35 → ALSO cap total final score at 5.50
+  • flagged:         0.00 → ALSO cap total final score at 3.50
 
-[D] Risk score modifier (lower = safer):
-  • <20  → +1
-  • 20–50 → ±0
-  • >70  → −1
+[C] Return on investment strength (0.00–1.50)
+  Use roi_estimate_3yr = {req.roi_estimate_3yr}%:
+  • >20%:      1.50
+  • 17–20%:    1.38–1.50 (interpolate)
+  • 14–17%:    1.20–1.38
+  • 11–14%:    0.98–1.20
+  • 8–11%:     0.72–0.98
+  • 5–8%:      0.42–0.72
+  • 3–5%:      0.18–0.42
+  • <3%:       0.00–0.18
 
-[E] Location fundamentals (your expert judgment of {req.locality} micro-market, max ±1):
-  Apply based on connectivity, demand, future growth, infrastructure.
+[D] Risk profile (0.00–1.00) — lower risk_score = safer = higher sub-score
+  Use risk_score = {req.risk_score}/100:
+  • 0–15:   1.00
+  • 16–25:  0.82–1.00 (interpolate)
+  • 26–35:  0.64–0.82
+  • 36–45:  0.46–0.64
+  • 46–55:  0.30–0.46
+  • 56–65:  0.15–0.30
+  • 66–80:  0.04–0.15
+  • >80:    0.00–0.04
 
-[F] Builder modifier (after determining builder_grade below):
-  • premium   → +1
-  • verified  → ±0
-  • good      → ±0
-  • standard  → ±0
-  • unverified → −1
-  • flagged   → −2
+[E] Location fundamentals (0.00–1.50) — your expert judgment of {req.locality} micro-market
+  Consider: connectivity, demand depth, appreciation history, supply pipeline, infrastructure quality.
+  Use these Hyderabad-specific benchmarks as anchor points; interpolate based on specifics:
+  • Jubilee Hills, Banjara Hills:           1.30–1.50 (established luxury, constrained supply, deep demand)
+  • Gachibowli, Hitech City, Madhapur:      1.10–1.40 (IT corridor, strong appreciation, infrastructure)
+  • Kokapet, Nanakramguda:                  0.80–1.20 (emerging premium, high-growth, some infra gaps)
+  • Kondapur:                               0.70–1.05 (good but congested, maturing market)
+  • Other Hyderabad localities:             0.30–0.80 (based on your knowledge of the specific area)
 
-Final score = Base(5) + A + B + C + D + E + F, clamped to [0, 10].
-Score 0 = FLAGGED. Score 9–10 = genuinely exceptional (rare — justify explicitly).
+[F] Builder / developer credibility (0.00–1.50) — assign after determining builder_grade
+  • premium:    1.40–1.50
+  • verified:   1.05–1.25
+  • good:       0.70–0.92
+  • standard:   0.35–0.58
+  • unverified: 0.08–0.28
+  • flagged:    0.00 → ALSO subtract 0.50 from the final total
+
+[G] Amenities & livability (0.00–0.50) — based on count of amenities listed
+  • 15+:   0.50
+  • 12–14: 0.44
+  • 9–11:  0.36
+  • 6–8:   0.26
+  • 3–5:   0.14
+  • 1–2:   0.05
+  • 0:     0.00
+
+FINAL CALCULATION:
+  raw = A + B + C + D + E + F + G
+  Apply RERA/builder caps if triggered (not_registered → cap 5.50; flagged RERA → cap 3.50; flagged builder → subtract 0.50)
+  overall_score = round(clamp(raw, 0.00, 10.00), 2)
+
+  Score 0.00 = FLAGGED. Scores 9.50–10.00 = genuinely exceptional (rare — all dimensions must be near-perfect).
+  Scores should vary meaningfully: a weak property should score 2–4, an average one 5–6.5, a strong one 7–8.5.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 BUILDER GRADE RULES — assign builder_grade for "{req.builder_name or 'Unknown'}":
@@ -214,8 +252,8 @@ OUTPUT GUIDELINES:
 - best_suited_for: One sentence on the ideal buyer profile.
 - builder_grade: One of: premium / verified / good / standard / unverified / flagged
 - builder_grade_reason: 1 sentence justifying the grade.
-- overall_score: Integer 0–10, computed using the rubric above.
-- analysis_priority: "high" if score ≥ 8 or rapidly-changing locality, "medium" if score 5–7, "low" if score ≤ 4 or stable asset.
+- overall_score: Float 0.00–10.00 with exactly 2 decimal places, computed using the rubric above (e.g. 7.43, 5.18, 9.02).
+- analysis_priority: "high" if score ≥ 8.00 or rapidly-changing locality, "medium" if 5.00–7.99, "low" if < 5.00 or stable low-growth asset.
 
 Respond ONLY with a valid JSON object — no markdown, no code fences, no extra text:
 {{
@@ -231,7 +269,7 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, no extra 
   "best_suited_for": "<buyer profile>",
   "builder_grade": "<premium|verified|good|standard|unverified|flagged>",
   "builder_grade_reason": "<1 sentence>",
-  "overall_score": <integer 0–10>,
+  "overall_score": <float 0.00–10.00 with 2 decimal places, e.g. 7.43>,
   "analysis_priority": "<high|medium|low>"
 }}"""
 
@@ -244,7 +282,7 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, no extra 
 
         data = json.loads(text)
         # Clamp score to valid range
-        data["overall_score"] = max(0, min(10, int(data.get("overall_score", 5))))
+        data["overall_score"] = round(max(0.0, min(10.0, float(data.get("overall_score", 5.0)))), 2)
         # Defensively coerce list fields — Gemini occasionally returns a string instead of a list
         for list_field in ("advantages", "disadvantages", "future_projects", "risk_factors"):
             if isinstance(data.get(list_field), str):
@@ -277,7 +315,7 @@ class CompareRequest(BaseModel):
 
 class PropertyRating(BaseModel):
     id: str
-    overall_score: int           # 0–10
+    overall_score: float         # 0.00–10.00, 2 decimal places
     strengths: list[str]
     weaknesses: list[str]
 
@@ -314,8 +352,8 @@ Property {i} (ID: {p.id}):
 
     prompt = f"""You are a senior real estate investment analyst specializing in Hyderabad, India.
 Compare the following {len(req.properties)} properties and provide a structured side-by-side analysis.
-Use relative scoring — properties in the same comparison should be ranked against each other, not all given 8/10.
-The best property in the group might score 7, and the worst might score 3 — spread the scores meaningfully.
+Use relative scoring with float values (2 decimal places) — rank properties against each other, not all at 8.00.
+The best in a group might score 7.85 and the worst 3.42 — spread scores meaningfully to reflect real differences.
 
 {props_text}
 
@@ -324,7 +362,7 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, no extra 
   "ratings": [
     {{
       "id": "<property ID>",
-      "overall_score": <integer 1–10>,
+      "overall_score": <float 0.00–10.00 with 2 decimal places>,
       "strengths": ["<strength 1>", "<strength 2>"],
       "weaknesses": ["<weakness 1>", "<weakness 2>"]
     }}

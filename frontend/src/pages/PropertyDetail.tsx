@@ -93,7 +93,7 @@ interface AiAnalysisSectionProps {
 }
 
 function AiAnalysisSection({ analysis, analyzedAt }: AiAnalysisSectionProps) {
-  const isFlagged = analysis.overall_score === 0;
+  const isFlagged = analysis.overall_score <= 0;
   const gradeKey = (analysis.builder_grade ?? 'unverified') as keyof typeof BUILDER_GRADE_CONFIG;
   const grade = BUILDER_GRADE_CONFIG[gradeKey] ?? BUILDER_GRADE_CONFIG.unverified;
 
@@ -128,7 +128,7 @@ function AiAnalysisSection({ analysis, analyzedAt }: AiAnalysisSectionProps) {
                   : 'font-headline text-3xl text-error'
               }
             >
-              {analysis.overall_score}
+              {analysis.overall_score.toFixed(2)}
               <span className="text-on-surface-variant text-lg font-light">/10</span>
             </p>
           )}
@@ -695,7 +695,7 @@ export default function PropertyDetail() {
                   AI Score
                 </p>
                 <p className="font-headline text-5xl font-light">
-                  {property.ai_analysis.overall_score}
+                  {property.ai_analysis.overall_score.toFixed(2)}
                   <span className="text-2xl opacity-60">/10</span>
                 </p>
               </div>
@@ -985,7 +985,7 @@ export default function PropertyDetail() {
                     AI Score
                   </p>
                   <p className="font-headline text-xl text-on-surface">
-                    {property.ai_analysis.overall_score}/10
+                    {property.ai_analysis.overall_score.toFixed(2)}/10
                   </p>
                 </div>
               )}
